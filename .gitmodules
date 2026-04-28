@@ -1,0 +1,3 @@
+[submodule "models/reynolds_heeger_2009"]
+	path = models/reynolds_heeger_2009
+	url = git@github.com:EstevaoUyra/reynolds_heeger_2009.git
