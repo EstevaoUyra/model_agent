@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Local tool/editor state
+.claude/settings.local.json
+.DS_Store
+
+# Python packaging/build artifacts
+*.egg-info/
+build/
+dist/
+
+# Test/coverage artifacts
+.coverage
+htmlcov/
+
+# Local environment files
+.env
+.env.*

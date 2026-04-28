@@ -103,8 +103,9 @@ Tooling, not prompt instructions, enforces the split (Section 4).
 ## 3. Folder and repo structure
 
 Monorepo layout. The framework is a Python package, installed in editable
-mode (`pip install -e .` from the repo root). Models live in sibling
-directories and import from the framework.
+mode (`pip install -e .` from the repo root). Models live in nested git
+repositories tracked as submodules under `models/` and import from the
+framework.
 
 ```
 model_agent/                            # repo root
@@ -116,6 +117,7 @@ model_agent/                            # repo root
   neuromodels/                          # the framework
     framework/
       testing/                          # decorators, runner, tolerance types
+      llm/                              # shared LLM provider access
       judge/                            # adversarial judge orchestration
       logging/                          # aggregated log + queries
       stuck_detector/                   # diff-based stuck signal computation
@@ -125,7 +127,7 @@ model_agent/                            # repo root
     tests/                              # framework tests
 
   models/
-    reynolds_heeger_2009/               # one directory per model
+    reynolds_heeger_2009/               # git submodule; one repo per model
       paper/                            # source of truth
         paper.pdf
         extracted_text.md               # OCR/text extraction, optional
@@ -168,9 +170,9 @@ model_agent/                            # repo root
   with a different lifecycle from derived artifacts.
 - **`APPROVED` sentinel file** is a cheap, version-controllable gate. Phase B
   tooling refuses to start without it.
-- **Per-model directory rather than per-model repo** keeps framework changes
-  co-evolving with model needs while we iterate. Splitting into separate
-  repos is a future refactor, not a current need.
+- **Per-model submodules** give each reproduced model an independent history
+  while keeping the framework and model collection discoverable from one
+  parent repo.
 - **`logs/` per model rather than central** because logs are inherently
   per-model and we want `git log` on one model directory to tell the full
   story.
@@ -227,19 +229,22 @@ chosen_assumption: <what the agent did instead, with link to assumption_id>
 The human reads these periodically and decides whether to revise the spec
 (which triggers re-validation — see Section 10) or leave the assumption.
 
-### 4.3 Adversarial judges (invoked by the runner)
+### 4.3 Adversarial judges (invoked by the runner or CLI)
 
-A pair of LLM calls, invoked by the test runner during qualitative and
-compliance tests.
+A pair of LLM calls used during qualitative and compliance review. The
+runner will use them for tests; the CLI exposes the same core functionality
+for human or agent spot checks.
 
-- **Attacker prompt:** find reasons the implementation does *not* satisfy
-  the claim / does *not* match the spec section.
-- **Defender prompt:** argue that it does.
-- **Inputs to each:** only the relevant spec section (or qualitative claim)
-  and the relevant code or simulation outputs. Not the paper. Not other
-  tests. Not each other's output (independent reasoning).
-- **Output:** the runner writes both responses to a file in
-  `logs/review_queue/`. The human is the decision-maker.
+- **Attacker prompt:** find concrete reasons the under-review object does
+  not pass the rubric.
+- **Defender prompt:** find concrete reasons the under-review object passes
+  the rubric.
+- **Inputs to each:** only a `rubric`, `context`, and `under_review` object,
+  plus the role-specific attacker/defender instruction. Not run IDs, test
+  IDs, review metadata, the paper, other tests, or each other's output.
+- **Output:** the judge returns both responses plus metadata such as
+  `run_id`, timestamp, model, and provider. The caller decides whether to
+  print it, log it, or write a pending human-review file.
 
 No autonomous "majority vote" or "judge accept" path exists in v1. Building
 that path would require calibration data we do not have yet; without it,
@@ -383,13 +388,15 @@ def test_figure_4b_curve():
 )
 def test_attention_qualitative():
     return simulate_attended(), simulate_unattended()
-    # framework: kicks off adversarial judges, marks pending_human_review
+    # framework: builds rubric/context/under_review for the judge,
+    # marks pending_human_review
 
 
 @compliance_test(spec_section="components.normalization")
 def test_normalization_compliance():
     return get_module_source("rh_model.normalization")
-    # judges receive: spec section + source; human decides
+    # framework: builds rubric/context/under_review for the judge;
+    # human decides
 ```
 
 ### 6.2 Tolerance types
@@ -415,8 +422,9 @@ in `framework/testing/defaults.py`; expected to iterate.
 
 - `pass` — all checks satisfied.
 - `fail` — at least one check failed; failure recorded with metric values.
-- `pending_human_review` — qualitative or compliance test; judge outputs
-  written to `review_queue/`, awaiting human verdict.
+- `pending_human_review` — qualitative or compliance test awaiting a human
+  verdict. The runner or review workflow may write judge outputs to
+  `review_queue/`, but the basic judge CLI does not.
 - `relaxed` — test references a `paper_issue` that downgrades it (e.g.,
   qualitative-only when the original was numeric); reported as relaxed, not
   passing.
@@ -485,62 +493,57 @@ formatting, plotting, and artifact-validation checks for `article_aware/`.
 
 ### 7.1 Inputs
 
-Each judge call receives:
+Each attacker/defender LLM call receives exactly three shared inputs:
 
-- The spec section being checked (or the qualitative claim text).
-- The relevant code / simulation outputs.
-- Any citation entries directly referenced from the spec section.
+- `rubric` — the standard the object is being evaluated against.
+- `context` — scoped background needed to understand the rubric and object.
+- `under_review` — the code, data, or output being judged.
 
-Judges do **not** receive: the paper, other tests, the other judge's output,
-the assumptions list (unless explicitly cited from the spec section), or
-prior judge runs on the same test.
+Judges do **not** receive: the paper, run IDs, test IDs, spec refs, review
+queue paths, other tests, the other judge's output, or prior judge runs on
+the same test. If citations or assumptions are needed, the caller includes
+only the relevant snippets inside `context`.
 
 ### 7.2 Prompts
 
-- **Attacker:** "Find specific reasons the following implementation does not
-  satisfy the spec section / claim. Cite line numbers. Be concrete; do not
-  make general comments. If you cannot find a substantive issue, say so."
-- **Defender:** "Argue that the following implementation satisfies the spec
-  section / claim. Cite line numbers. Acknowledge any genuine ambiguities;
-  do not paper over them."
+- **Attacker:** asks for concrete reasons the under-review object fails the
+  rubric. If there is no substantive failure, it should say so.
+- **Defender:** asks for concrete reasons the under-review object passes the
+  rubric, while acknowledging genuine ambiguities.
 
-Both prompts include the same spec section and code; neither sees the
-other's output.
-
-### 7.3 Review queue file format
-
-One file per pending review, named `<test_id>__<run_id>.md`, written to
-`logs/review_queue/`:
+Both prompts include the same three sections and no review metadata:
 
 ```markdown
----
-test_id: tests/test_attention.py::test_attention_qualitative
-run_id: <uuid>
-spec_ref: attention_section
-verdict:           # human fills in: accept | reject
-notes:             # human fills in
----
+## Rubric
 
-## Attacker
+<rubric>
 
-<attacker output>
+## Context
 
-## Defender
+<context>
 
-<defender output>
+## Under Review
 
-## Spec section
-
-<spec section text>
-
-## Code / outputs under review
-
-<code or outputs>
+<under_review>
 ```
 
-The human edits the `verdict` and `notes` fields. The `neuromodels review
-apply` CLI command (or the next test run) reads these files, applies
-verdicts to the log, and moves the files to `logs/review_queue/applied/`.
+Neither prompt sees the other's output.
+
+### 7.3 Basic CLI
+
+The basic human/agent CLI accepts files for the three judge inputs:
+
+```bash
+neuromodels judge run \
+  --rubric-file rubric.md \
+  --context-file context.md \
+  --under-review-file output.txt
+```
+
+It prints the judge result as JSON by default and supports markdown output.
+Runner-specific and data-test-specific commands will be built later around
+the same judge core. Writing `logs/review_queue/` files is caller
+responsibility, not part of the basic judge CLI.
 
 ### 7.4 No autonomous judge decisions in v1
 
@@ -731,10 +734,11 @@ see DESIGN.md §11".
   real runs.
 - **Multi-paper synthesis.** Out of scope. Enriching a spec from another
   paper is a human action that produces a new round of extraction.
-- **UI for human review.** v1 uses files in `review_queue/` and a CLI
-  command. No web UI.
-- **Repository split.** Monorepo throughout v1. Lifting the framework into
-  its own package repo is a future refactor.
+- **UI for human review.** Human review may use files in `review_queue/`;
+  no web UI is planned for v1.
+- **Framework repository split.** The parent monorepo remains the framework
+  repo throughout v1. Lifting the framework into a package-only repo is a
+  future refactor.
 
 ---
 
