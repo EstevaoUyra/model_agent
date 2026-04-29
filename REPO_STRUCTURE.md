@@ -57,8 +57,10 @@ article_aware/                          # PROTECTED — see "Boundaries"
   pseudocode/
     figure_<N>_protocol.md              # per-protocol procedure descriptions
   extracted_data/
+    conftest.py                         # pytest import setup for article-aware tests
+    <model>_claim_helpers.py            # paper-specific helpers used by figure tests
+    test_figure_<N>.py                  # qualitative claims as direct pytest tests
     figure_<N>.csv                      # numeric data digitized from paper figures
-    figure_<N>_qualitative.yaml         # claims with deterministic-reducible flag
   reproduced_figures/
     figure_<N>.png                      # plotted from extracted_data; human spot-check
   APPROVED                              # empty sentinel file; presence = human gate ok
@@ -71,7 +73,7 @@ implementation/
     helpers.py                          # numerical utilities
   tests/
     conftest.py
-    test_*.py                           # tests written from spec + qualitative claims
+    test_*.py                           # internal correctness tests for building blocks
   sanity_checks/                        # exploratory scripts (not tests)
     check_<topic>.py                    # one file per topic; multiple checks inside
     check_<topic>_outputs/              # GITIGNORED — PNG + text per check
@@ -144,7 +146,7 @@ config is a guarantee.
 - **Phase B** — no-article steps: test suite, model, iteration.
 - **Spec** — the structured artifact in `article_aware/spec/`.
 - **Pseudocode** — protocol descriptions in `article_aware/pseudocode/`.
-- **Extracted data** — numeric and qualitative data from paper figures.
+- **Extracted data** — numeric data and executable figure-claim tests extracted from paper figures.
 - **Reproduced figures** — plots from extracted data, for human spot-check.
 - **Citation** — referenceable pointer into the paper, identified `C-NNN`.
 - **Assumption** — referenceable underspecification record, identified `A-NNN`.

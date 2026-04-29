@@ -71,6 +71,15 @@ in order — not because it's elegant, but because the implementation
 agent cannot reverse-engineer the dataflow from equations and prose
 alone without re-reading the paper.
 
+Figure-level tests follow the same rule. Qualitative claims live as
+ordinary pytest files in `article_aware/extracted_data/test_<figure>.py`,
+with paper-specific claim helpers co-located in that directory. Each
+protocol in `model_spec.yaml` declares the exact `expected_outputs` its
+runner must return, and the tests exercise those outputs directly in
+Python. This keeps the paper-derived contract in `article_aware/`
+instead of duplicating it under `implementation/`, while avoiding a
+second expression language or eval path.
+
 ---
 
 ## 3. Adversarial judge protocol

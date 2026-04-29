@@ -88,37 +88,49 @@ Required top-level fields:
   a downstream reader has to reverse-engineer the dataflow from the
   equations.
 - `simulation_protocols` — one per pseudocode file. Per-protocol
-  parameter overrides, link to the pseudocode document, references to
-  expected data and qualitative-claim files.
+  parameter overrides, link to the pseudocode document, `expected_outputs`
+  returned by `implementation/src/<package>/protocols.py::run_<id>()`,
+  and references to expected data / claim files.
 
 **`pseudocode/<figure>_protocol.md`** — plain markdown, one per protocol.
 Inputs, parameter sweeps, procedure (step-by-step), outputs (with named
-variables — these names are the contract that test files use), expected
-behavior with citation refs.
+variables — these names are the runner output contract), expected behavior
+with citation refs.
 
 ### Step 2 — Extract figure data and qualitative claims
 
 For each figure to be reproduced, produce the appropriate combination of:
 
-**`extracted_data/<figure>.csv`** — numeric data digitized from the
-figure (when option (a) — pointwise reproduction — is in scope).
-
-**`extracted_data/<figure>_qualitative.yaml`** — qualitative claims with
-a deterministic-reducible flag. **Reduce to deterministic wherever
+**`extracted_data/test_<figure>.py`** — qualitative claims as ordinary
+pytest tests, one file per figure. **Reduce to deterministic wherever
 possible** — they're cheaper, more reliable, and don't burn judge budget.
+Each test imports the relevant `run_<protocol_id>()` function from the
+implementation and asserts against the named outputs declared in
+`model_spec.yaml/simulation_protocols[*].expected_outputs`.
 
-```yaml
-figure: "Figure 4B"
-claims:
-  - id: Q-001
-    statement: "Attended response exceeds unattended response at all contrasts shown."
-    citation_ref: C-021
-    reducible_to_deterministic: true
-    deterministic_form: "(attended_response > unattended_response).all()"
-  - id: Q-002
-    statement: "The response curve is approximately sigmoidal in shape."
-    reducible_to_deterministic: false
+```python
+from neuromodels.framework.testing import deterministic_test
+from rh_model import protocols
+
+
+@deterministic_test(spec_ref="simulation_protocols.figure_4B", claim_id="Q-001")
+def test_attended_response_exceeds_unattended():
+    """Attended response exceeds unattended response at all contrasts shown.
+
+    Citation: C-021
+    """
+    out = protocols.run_figure_4B()
+    assert (out["attended_response"] > out["unattended_response"]).all()
 ```
+
+**`extracted_data/<model>_claim_helpers.py`** — paper-specific helper
+functions used by those tests. Writing these helpers is part of
+specification authoring, not framework work; keep helpers here unless
+they are truly paper-independent.
+
+**`extracted_data/<figure>.csv`** — numeric data digitized from the
+figure (when option (a) — pointwise reproduction — is in scope). CSVs are
+loaded directly by the corresponding `test_<figure>.py` file.
 
 **`reproduced_figures/<figure>.png`** — plotted from the extracted data.
 Same plot type, same information content as the paper figure; styling
@@ -145,27 +157,24 @@ The implementation agent reads only `article_aware/` (and `logs/`),
 never `paper/`. It writes `implementation/` and may append to
 `logs/spec_questions.md`.
 
-### Step 3 — Write the test suite
+### Step 3 — Run article-aware figure tests
 
-Tests are derived from `model_spec.yaml`, `pseudocode/`, and
-`extracted_data/*_qualitative.yaml`. They define the contract the
-implementation must satisfy.
+Figure-level tests live in `article_aware/extracted_data/test_<figure>.py`
+and are authored during Phase A from `model_spec.yaml`, `pseudocode/`,
+and extracted figure claims. Do not duplicate those claims under
+`implementation/tests/`. The article-aware test is the source of truth;
+`model_spec.yaml/simulation_protocols[*].expected_outputs` is the output
+contract; and `implementation/src/<package>/protocols.py` provides
+`run_<protocol_id>()` functions returning exactly those keys.
 
-Use the framework's `deterministic_test` decorator (and curve /
-qualitative / compliance variants when those land):
+During Phase B, the implementation agent runs these tests and changes
+only `implementation/` to make them pass. If an article-aware test is
+wrong or underspecified, log a spec question; do not silently edit the
+contract from Phase B.
 
-```python
-from neuromodels.framework.testing import deterministic_test
-
-@deterministic_test(
-    spec_ref="simulation_protocols.figure_2A",
-    claim_id="Q-004",
-    paper_issue=None,
-)
-def test_figure_2A_attended_ge_unattended():
-    out = protocols.run_figure_2A()
-    assert (out["attended_CRF"] >= out["unattended_CRF"]).all()
-```
+Hand-written tests still belong in `implementation/tests/` when they
+verify internal correctness of building blocks that have no direct
+paper-claim analog, such as kernel normalization or helper behavior.
 
 Tolerance types (when implementing curve tests against extracted CSVs):
 
