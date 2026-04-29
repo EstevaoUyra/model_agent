@@ -153,6 +153,9 @@ model_agent/                            # repo root
         tests/
           test_normalization.py
           test_figure_4b.py
+        sanity_checks/                   # exploratory scripts + generated local outputs
+          check_stimulus_drive.py
+          check_stimulus_drive_outputs/  # ignored; PNG/text outputs for humans + agents
       logs/
         test_runs.csv                   # aggregated test log
         spec_questions.md               # impl agent: append-only, no read-back
@@ -274,11 +277,19 @@ A structured Pydantic-validated YAML document. Contains:
   an assumption ID), units, source citation ID.
 - **Equations.** Either symbolic form or natural-language description with
   citation. Each equation has a stable ID for cross-referencing from code.
-- **Simulation protocols.** One per pseudocode file. Inputs, expected
-  outputs, link to the pseudocode document.
 - **Components.** Hierarchical decomposition of the model into named
   components (used as `spec_ref` values in tests and `Citation` references
   in code docstrings).
+- **Pipeline.** Ordered list of computation steps from a protocol's input
+  configuration to the recorded response. Each step references an equation
+  and lists its inputs/outputs. Steps may be marked `optional: true` with an
+  `applies_when` condition (e.g., a baseline step that runs only when the
+  protocol overrides a baseline parameter). The pipeline is the missing
+  middle that makes the spec actually executable: without it, a reader has
+  to reverse-engineer the dataflow from the equations.
+- **Simulation protocols.** One per pseudocode file. Per-protocol parameter
+  overrides, link to the pseudocode document, and references to expected
+  data / qualitative-claim files.
 
 Pydantic models give the agent and framework type validation; YAML
 serialization keeps it human-readable on disk.
@@ -486,6 +497,48 @@ expected to produce identical diffs and can trigger the stuck detector.
 
 The extractor agent does not run implementation tests. It may run schema,
 formatting, plotting, and artifact-validation checks for `article_aware/`.
+
+### 6.7 Qualitative sanity checks
+
+Implementation agents should create **qualitative sanity checks** liberally
+during Phase B whenever the model's behavior is hard to understand from narrow
+assertion failures alone. These checks are exploratory diagnostics, not formal
+tests: they summarize what a component or pipeline step appears to be doing at
+a high level so both the agent and the human can quickly regain context.
+
+Sanity checks live under `implementation/sanity_checks/` and should be named
+for the component or question they illuminate, for example
+`check_stimulus_drive.py`, `check_attention_field.py`,
+`check_suppressive_drive.py`, or `check_full_pipeline_trace.py`. They may use
+small grids, simplified stimuli, and a few representative parameter settings
+instead of the full figure protocols. They should answer broad inspection
+questions such as:
+
+- "What does the stimulus drive look like for several input positions and
+  contrasts?"
+- "How do E, A, S, and R change step-by-step for one small protocol?"
+- "Do heatmaps and summary statistics make the current failure mode obvious?"
+
+Each check should save outputs to
+`implementation/sanity_checks/<check_name>_outputs/`. PNG figures are strongly
+preferred for human review: use matplotlib and seaborn when available, with
+heatmaps for matrices and compact line plots for slices or sweeps. Text output
+may also be saved in the same directory, such as matrix excerpts, min/max/mean,
+peak location, integral/sum, shape, and any short interpretation the agent
+needs to remember.
+
+Agents should inspect the generated PNGs after running a sanity check, not just
+produce them. For large matrices, the heatmap is the primary debugging surface:
+open the image, look for the spatial/feature profile, peak location, symmetry,
+saturation, suppression spread, edge effects, and any unexpected blank or
+exploding regions. Use those observations to decide the next implementation
+change, then rerun both the sanity check and the relevant formal tests.
+
+Generated output directories are local artifacts and must be ignored by git.
+The check scripts themselves are version-controlled when they remain useful
+for future debugging. These scripts may evolve freely during implementation;
+unlike tests, they do not define pass/fail correctness and should not be used
+as a substitute for data-claim tests.
 
 ---
 
