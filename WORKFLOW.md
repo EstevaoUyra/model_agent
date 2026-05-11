@@ -180,10 +180,8 @@ paper-claim analog, such as kernel normalization or helper behavior.
 
 Once all data-backed and qualitative figure tests are passing, the
 implementation agent generates the model's figure PNGs and runs a visual
-reproducibility pass before declaring the figure milestone complete.
-
-The default path is to prepare a comparison packet for each figure and
-spawn isolated subagents to inspect those packets:
+reproducibility pass. Follow **`skills/compare-figure/SKILL.md`** for the
+full process. In brief:
 
 ```bash
 neuromodels compare-figure-packet <figure_number> \
@@ -191,34 +189,9 @@ neuromodels compare-figure-packet <figure_number> \
   --output-file /tmp/<model>_figure_packets/figure_<figure_number>.json
 ```
 
-The packet is a JSON file containing paths to four artifacts:
-- `original_figure` — the paper figure image
-- `generated_figure` — the generated model output image
-- `figure_description` — `article_aware/figures/figure_N.md` (expected
-  behavior, parameters, inter-panel relationships)
-- `figure_checklist` — `article_aware/figures/figure_N_visual_checklist.md`
-  (per-item pass/fail criteria written from the original figure)
-
-**The subagent IS the VLM.** Hand only the packet path to the subagent.
-The subagent reads the packet, loads both images directly using its vision
-capability, reads the checklist, and evaluates each item as pass/fail/unsure.
-No external API calls or CLI comparison commands are needed — the subagent
-does the comparison itself. A minimal subagent prompt:
-
-> "Read the packet at `<path>`. It contains paths to the original figure,
-> generated figure, figure description, and visual checklist. Read all four
-> files, then evaluate every checklist item against the generated figure.
-> Report the result for each item and give an overall verdict."
-
-Spawn several figure-comparison subagents in parallel when the agent
-environment allows it; otherwise run them in small batches.
-
-The parent implementation agent summarizes the subagent verdicts and
-uses failures to guide the next implementation iteration. If a figure
-fails, edit the model implementation or figure-generation code under
-`implementation/`, regenerate the PNG, rerun the relevant article-aware
-tests, then rerun the visual comparison. Do not edit `article_aware/`
-from Phase B to make a comparison pass.
+Then spawn a subagent with the packet path. The subagent reads both images
+directly and evaluates each checklist item. See the skill for the subagent
+prompt template, known VLM failure modes, and how to act on results.
 
 If a figure repeatedly fails and the subagent feedback is not enough to
 diagnose the issue, the implementation agent may inspect and analyze
