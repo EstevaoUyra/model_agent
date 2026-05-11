@@ -84,53 +84,25 @@ second expression language or eval path.
 
 ## 3. Adversarial judge protocol
 
-### Why a pair of judges, never a single oracle
-
-LLM judges are notoriously unreliable for evaluating implementations.
-They tend to be overly permissive ("yes, this looks like it implements
-the equation") and miss subtle bugs (sign errors, off-by-one, wrong
-normalization constant). Specifically for "model compliance" — checking
-if code matches a spec section — judges have a known weakness: they say
-"yes, the code computes a normalization" without verifying the exact
-form.
-
-We mitigate by running **two** judges with opposite roles:
-
-- **Attacker** — find concrete reasons the under-review object fails
-  the rubric.
-- **Defender** — find concrete reasons it passes.
-
-Both receive the same three inputs (`rubric`, `context`, `under_review`)
-and neither sees the other's output. The human reads both and decides.
-This isn't a majority-vote system; it's a structured way to surface
+LLM judges are unreliable for evaluating implementations: they tend toward
+over-permissive verdicts and miss subtle bugs (sign errors, off-by-one, wrong
+normalization). The mitigation is structural — two judges with opposite
+roles (attacker, defender), both seeing the same three inputs (`rubric`,
+`context`, `under_review`) and neither seeing the other's output. The human
+reads both and decides. This isn't majority voting; it's a way to surface
 counter-arguments the human might otherwise miss.
 
-### What the judges must NOT see
+**Judges must not see** the paper, run/test IDs, spec refs, review-queue
+paths, other tests, the other judge's output, or prior judge runs on the
+same test. This isolation prevents pattern-matching to past verdicts.
+Operational details (CLI, input file format) are in
+[WORKFLOW.md](WORKFLOW.md#adversarial-judge-usage).
 
-Judges receive only `rubric`, `context`, `under_review`. They do **not**
-receive the paper, run IDs, test IDs, spec refs, review queue paths,
-other tests, the other judge's output, or prior judge runs on the same
-test. This isolation prevents the judge from reasoning about the
-review's history or pattern-matching to past verdicts.
-
-If citations or assumptions are needed for the judgement, the caller
-includes only the relevant snippets inside `context`.
-
-### No autonomous judge decisions in v1
-
-Until we have judge calibration data — known-correct and
-deliberately-broken implementations measured against judge accuracy —
-no automated path treats judge output as a decision. Building such a
-path before calibrating would silently inherit judge biases.
-
-### Reduce qualitative claims to deterministic where possible
-
-Most "qualitative" claims about model behavior reduce to deterministic
-checks (`(line1 > line2).all()`, `argmax in [3, 6]`, etc.). The judge
-path is reserved for claims that genuinely resist coding ("the response
-profile is sigmoidal-looking"). Reaching for the judge by default would
-burn budget *and* import judge unreliability into tests that didn't
-need it.
+**No autonomous judge decisions in v1.** Building an automated path before
+calibration data exists would silently inherit judge biases. Tests reduce
+to deterministic checks wherever possible — judges are reserved for claims
+that genuinely resist coding ("the response profile is sigmoidal-looking"),
+not as a default.
 
 ---
 
@@ -221,26 +193,15 @@ boundary actually wants to be permanent.
 
 ## 7. Why sanity checks live alongside tests
 
-Tests answer "does X always satisfy P?" — binary, narrow. They tell
-you something is wrong but not what's happening. When debugging, the
-agent often needs to *see the shape* of a component's output across a
-few configurations.
+Sanity checks survive where ad-hoc debugging scripts get thrown away. The
+rationale (binary tests don't show *shape*; dual text+PNG output serves
+agents and humans differently; shared helpers enforce cross-model style)
+and the operational rules live in
+[`skills/write-sanity-check/SKILL.md`](skills/write-sanity-check/SKILL.md).
 
-We could write ad-hoc scripts for that, but they get thrown away.
-Sanity checks are the version that survives: each one is named, lives
-in `implementation/sanity_checks/`, can be re-run, and its outputs
-(text + PNG) document the model's current behavior. They make no
-assertions — that's the line between sanity check and test, and
-keeping it sharp prevents the two surfaces from collapsing into each
-other.
-
-The dual-output design (token-friendly text for agents, PNG for
-humans) acknowledges that the two audiences want different things from
-the same diagnostic. Neither is sufficient alone.
-
-The shared helpers in `neuromodels/framework/explore/` enforce
-consistent style across models, so a human inspecting one model's
-sanity checks doesn't have to re-learn idioms.
+The line between sanity check and test (no `assert` in a sanity check) is
+load-bearing — keeping the two surfaces separate prevents them from
+collapsing into each other.
 
 ---
 

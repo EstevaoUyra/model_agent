@@ -38,64 +38,18 @@ work; protect it.
 
 ### Step 1 — Extract the spec
 
-Produce four artifacts under `article_aware/spec/` and `pseudocode/`.
+Follow **`skills/extract-spec/SKILL.md`** for the full process. In brief,
+produce four artifacts under `article_aware/spec/` and `pseudocode/`:
 
-**`spec/citations.yaml`** — numbered `C-NNN` references into the paper.
-Cite each equation, each parameter table, each qualitative claim source,
-each figure caption you'll rely on. Citations are write-once and
-referenced from the spec, code docstrings, and tests.
+- `spec/citations.yaml` — numbered `C-NNN` references into the paper
+- `spec/assumptions.yaml` — named `A-NNN` records for every underspecification
+- `spec/model_spec.yaml` — Pydantic-validated YAML with `state_variables`,
+  `parameters`, `equations`, `components`, `pipeline` (ordered), and
+  `simulation_protocols`
+- `pseudocode/<figure>_protocol.md` — one per protocol, with inputs,
+  procedure, named outputs, and expected behavior
 
-```yaml
-- id: C-001
-  source: "Author Year"
-  location: "Eq. 3, p. 4"
-  text: "<short verbatim quote or close paraphrase>"
-  notes: "<optional>"
-```
-
-**`spec/assumptions.yaml`** — named `A-NNN` records for every
-underspecification. Lead with what was assumed, then *why*, alternatives
-considered, and what scope is affected. Knowing why later lets a reader
-judge edge cases.
-
-```yaml
-- id: A-001
-  name: integration_timestep
-  description: "Euler integration with dt=0.01 (paper does not specify)"
-  rationale: "Stable for the dominant time constant tau=10ms; ..."
-  alternatives_considered:
-    - "RK4 with dt=0.1"
-    - "Euler with dt=0.001"
-  affects:
-    - "simulation_protocol.figure_4"
-  spec_refs:
-    - "components.simulator"
-```
-
-**`spec/model_spec.yaml`** — structured Pydantic-validated YAML.
-Required top-level fields:
-
-- `state_variables` — names, dimensions, units, initial conditions.
-- `parameters` — names, values (or `value: null` plus `underspecified_by:
-  A-NNN`), units, source citation IDs.
-- `equations` — symbolic form or natural-language description with
-  citation. Each has a stable ID (`EQ-NNN`).
-- `components` — named building blocks with parameter and equation refs.
-- `pipeline` — **ordered** computation steps from input to recorded
-  response. Each step references an equation and lists its
-  inputs/outputs. Steps may be `optional: true` with an `applies_when`
-  condition. The pipeline is what makes the spec executable; without it,
-  a downstream reader has to reverse-engineer the dataflow from the
-  equations.
-- `simulation_protocols` — one per pseudocode file. Per-protocol
-  parameter overrides, link to the pseudocode document, `expected_outputs`
-  returned by `implementation/src/<package>/protocols.py::run_<id>()`,
-  and references to expected data / claim files.
-
-**`pseudocode/<figure>_protocol.md`** — plain markdown, one per protocol.
-Inputs, parameter sweeps, procedure (step-by-step), outputs (with named
-variables — these names are the runner output contract), expected behavior
-with citation refs.
+The skill has the YAML schemas, examples, and quality checks.
 
 ### Step 2 — Extract figure data and qualitative claims
 
@@ -293,76 +247,18 @@ make milestone commits when:
 
 ## Sanity checks (Phase B authoring rule)
 
-Sanity checks are **exploratory diagnostics**, not tests. They print
-summary statistics to stdout (token-friendly, agent reads) and save PNGs
-to a gitignored `_outputs/` directory (visual, human reads). They make
-no assertions.
+Sanity checks are **exploratory diagnostics**, not tests. Follow
+**`skills/write-sanity-check/SKILL.md`** for the full guide (where they live,
+which helpers to use, token discipline, lifecycle, citation conventions).
 
-**Sanity check vs test:**
+The load-bearing distinction:
 
-> If you can write `assert P(output)` for a property P that should
-> *always* hold → test.
-> If you want to look at the output and form a judgement → sanity check.
+> If you can write `assert P(output)` for a property P that should *always*
+> hold → **test**.
+>
+> If you want to look at the output and form a judgement → **sanity check**.
 
 The moment you write `assert`, it's a test, not a sanity check.
-
-**Where they live:**
-
-```
-implementation/sanity_checks/
-  check_<topic>.py                # one file per topic; multiple checks inside
-  check_<topic>_outputs/          # GITIGNORED — PNG + text per check
-  README.md                       # one-line index of checks (optional)
-```
-
-**Naming:** `check_<component_or_question>.py`. Examples:
-`check_stimulus_drive.py`, `check_attention_field.py`,
-`check_full_pipeline_trace.py`.
-
-**Use the framework helpers** in `neuromodels.framework.explore` for
-consistent stat printing and PNG output:
-
-```python
-from neuromodels.framework.explore import (
-    require_plotting,
-    output_dir,
-    matrix_stats,
-    matrix_excerpt,
-    write_text,
-    save_heatmap_grid,
-)
-```
-
-`require_plotting()` raises with an install hint if matplotlib/seaborn
-are missing — they live under the optional `sanity` extra:
-`pip install -e ".[sanity]"`.
-
-**Token discipline.** If an array has more than ~10 elements along a
-dimension, print stats (use `matrix_stats`) instead of values. Cap
-stdout per check at ~30 lines. Push the visual surface to PNGs.
-
-**When to write or extend a sanity check:**
-
-- After implementing a new pipeline step → exercise it across a few
-  configurations.
-- When a test fails in a way you don't immediately understand → write
-  or extend a sanity check that gives you the intuition.
-- Before declaring a component "done" → re-run the relevant sanity check
-  and confirm the output looks right.
-
-**Lifecycle.** Keep, evolve, don't delete. They become part of the
-model's permanent documentation. If a component changes meaningfully,
-update the sanity check; don't remove it.
-
-**Citation/Assumption docstrings.** Recommended *yes* for sanity checks
-that exercise specific equations (cite the equation), *no* for full
-pipeline traces (a citation list would be the whole model). A simple
-docstring with the purpose is enough for the latter.
-
-**Don't substitute for understanding.** Sanity checks build intuition;
-they don't replace analysis of a failing test. The fix to a failing
-test is still the failure description plus reasoning, not "I ran the
-sanity check and it looks fine."
 
 ---
 
