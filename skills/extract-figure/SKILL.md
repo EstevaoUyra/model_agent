@@ -84,6 +84,15 @@ Describe changes in these terms rather than vague "shift."
 low, verify whether it has a local maximum in the middle or simply decreases throughout.
 These are different shapes with different implications — do not assume a peak exists.
 
+**Do not infer curve shape from model equations — read the figure directly.** A formula
+may have its theoretical maximum at c=0, but if the plot's x-axis starts at a nonzero
+contrast, the curve may already be at or near its maximum at the left edge of the plot
+and decrease monotonically throughout the visible range. In this case the "peak" is at the
+left edge, not in the interior — do not describe it as a bell or inverted-U peak. Look at
+where the curve is *at the leftmost visible point*, and whether it goes up then down
+(interior peak) or only down (monotonically decreasing from left edge). This error is
+especially common for percent modulation curves under contrast gain conditions.
+
 **Convergence is a strong claim:** only say two curves "converge" if they literally reach
 the same endpoint value. If they both saturate but at different y-values, state the
 endpoint separation explicitly — that is a different and important claim.
