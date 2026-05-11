@@ -181,8 +181,6 @@ paper-claim analog, such as kernel normalization or helper behavior.
 Once all data-backed and qualitative figure tests are passing, the
 implementation agent generates the model's figure PNGs and runs a visual
 reproducibility pass before declaring the figure milestone complete.
-This pass compares the article-aware original figure, the newly generated
-figure, and the figure protocol's expected behavior.
 
 The default path is to prepare a comparison packet for each figure and
 spawn isolated subagents to inspect those packets:
@@ -193,13 +191,27 @@ neuromodels compare-figure-packet <figure_number> \
   --output-file /tmp/<model>_figure_packets/figure_<figure_number>.json
 ```
 
-The packet contains paths to the original figure, generated figure, and
-protocol text, plus the comparison rubric. The parent implementation
-agent should hand only the packet path to the subagent whenever possible,
-so the subagent reads the image/protocol payload and returns a concise
-pass/fail verdict with the important visual discrepancies. Spawn several
-figure-comparison subagents in parallel when the agent environment
-allows it; otherwise run them in small batches.
+The packet is a JSON file containing paths to four artifacts:
+- `original_figure` — the paper figure image
+- `generated_figure` — the generated model output image
+- `figure_description` — `article_aware/figures/figure_N.md` (expected
+  behavior, parameters, inter-panel relationships)
+- `figure_checklist` — `article_aware/figures/figure_N_visual_checklist.md`
+  (per-item pass/fail criteria written from the original figure)
+
+**The subagent IS the VLM.** Hand only the packet path to the subagent.
+The subagent reads the packet, loads both images directly using its vision
+capability, reads the checklist, and evaluates each item as pass/fail/unsure.
+No external API calls or CLI comparison commands are needed — the subagent
+does the comparison itself. A minimal subagent prompt:
+
+> "Read the packet at `<path>`. It contains paths to the original figure,
+> generated figure, figure description, and visual checklist. Read all four
+> files, then evaluate every checklist item against the generated figure.
+> Report the result for each item and give an overall verdict."
+
+Spawn several figure-comparison subagents in parallel when the agent
+environment allows it; otherwise run them in small batches.
 
 The parent implementation agent summarizes the subagent verdicts and
 uses failures to guide the next implementation iteration. If a figure
