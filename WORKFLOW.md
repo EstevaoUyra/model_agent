@@ -176,6 +176,45 @@ Hand-written tests still belong in `implementation/tests/` when they
 verify internal correctness of building blocks that have no direct
 paper-claim analog, such as kernel normalization or helper behavior.
 
+### Step 3b — Compare reproduced figures visually
+
+Once all data-backed and qualitative figure tests are passing, the
+implementation agent generates the model's figure PNGs and runs a visual
+reproducibility pass before declaring the figure milestone complete.
+This pass compares the article-aware original figure, the newly generated
+figure, and the figure protocol's expected behavior.
+
+The default path is to prepare a comparison packet for each figure and
+spawn isolated subagents to inspect those packets:
+
+```bash
+neuromodels compare-figure-packet <figure_number> \
+  --model-dir models/<model> \
+  --output-file /tmp/<model>_figure_packets/figure_<figure_number>.json
+```
+
+The packet contains paths to the original figure, generated figure, and
+protocol text, plus the comparison rubric. The parent implementation
+agent should hand only the packet path to the subagent whenever possible,
+so the subagent reads the image/protocol payload and returns a concise
+pass/fail verdict with the important visual discrepancies. Spawn several
+figure-comparison subagents in parallel when the agent environment
+allows it; otherwise run them in small batches.
+
+The parent implementation agent summarizes the subagent verdicts and
+uses failures to guide the next implementation iteration. If a figure
+fails, edit the model implementation or figure-generation code under
+`implementation/`, regenerate the PNG, rerun the relevant article-aware
+tests, then rerun the visual comparison. Do not edit `article_aware/`
+from Phase B to make a comparison pass.
+
+If a figure repeatedly fails and the subagent feedback is not enough to
+diagnose the issue, the implementation agent may inspect and analyze
+that figure directly. Treat direct analysis as the exception for stuck
+visual reproduction, not the normal path. The command above only prepares
+deterministic comparison inputs; it does not itself spawn Codex agents or
+make a final reproducibility decision.
+
 Tolerance types (when implementing curve tests against extracted CSVs):
 
 ```python
@@ -245,6 +284,8 @@ detection. During iteration:
 - Run the **narrowest relevant test** after each implementation attempt.
 - Expand to file-scoped tests after the narrow one passes.
 - Run the **full model test suite** at each implementation milestone.
+- When all figure tests are passing and generated PNGs exist, run the
+  subagent-based visual figure comparison described in Step 3b.
 - Stop working on a test immediately if the runner emits a `STUCK` gate
   for that test; address the gate before continuing.
 
@@ -258,7 +299,8 @@ The framework runner handles attempt commits automatically. In addition,
 make milestone commits when:
 
 - A new pipeline component passes its tests.
-- A new figure protocol's tests all pass.
+- A new figure protocol's tests all pass and its generated figure passes
+  visual comparison.
 - The spec is revised (this also invalidates prior passes — see
   "Spec edits" below).
 
