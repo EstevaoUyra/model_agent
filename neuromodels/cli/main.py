@@ -74,6 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     packet_parser.set_defaults(func=run_compare_figure_packet_command)
 
+
     return parser
 
 
@@ -177,13 +178,17 @@ def _render_figure_comparison_markdown(result: FigureComparison) -> str:
         "",
         result.summary.rstrip(),
         "",
-        "## Strengths",
-        "",
     ]
-    lines.extend(f"- {item}" for item in result.strengths)
-    if not result.strengths:
-        lines.append("- <none reported>")
-    lines.extend(["", "## Issues", ""])
+
+    if result.checklist_results:
+        lines.extend(["## Checklist Results", ""])
+        for item in result.checklist_results:
+            prefix = item.split(":")[0].upper()
+            marker = {"PASS": "✓", "FAIL": "✗", "UNSURE": "?"}.get(prefix, "-")
+            lines.append(f"- [{marker}] {item}")
+        lines.append("")
+
+    lines.extend(["## Issues", ""])
     lines.extend(f"- {item}" for item in result.issues)
     if not result.issues:
         lines.append("- <none reported>")

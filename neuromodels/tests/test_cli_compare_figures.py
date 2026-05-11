@@ -14,7 +14,7 @@ def test_cli_compare_figure_outputs_json(tmp_path, capsys, monkeypatch):
         return FigureComparison(
             passes=True,
             summary="Generated figure matches.",
-            strengths=("same plot type",),
+            checklist_results=("PASS: curve is sigmoid",),
             issues=(),
             recommendation="pass",
             raw_response="{}",
@@ -38,7 +38,7 @@ def test_cli_compare_figure_outputs_json(tmp_path, capsys, monkeypatch):
     assert exit_code == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["passes"] is True
-    assert payload["strengths"] == ["same plot type"]
+    assert payload["checklist_results"] == ["PASS: curve is sigmoid"]
     assert payload["model"] == "chosen-vlm"
     assert calls == [{"model_dir": tmp_path, "figure_number": "2", "model": "chosen-vlm"}]
 
@@ -48,7 +48,7 @@ def test_cli_compare_figure_outputs_markdown(tmp_path, capsys, monkeypatch):
         return FigureComparison(
             passes=False,
             summary="Generated figure is missing a panel.",
-            strengths=(),
+            checklist_results=("FAIL: two panels present — only one found",),
             issues=("missing panel",),
             recommendation="fail",
             raw_response="{}",
@@ -74,11 +74,12 @@ def test_cli_compare_figure_outputs_markdown(tmp_path, capsys, monkeypatch):
     assert "# Figure Comparison: fail" in out
     assert "Generated figure is missing a panel." in out
     assert "- missing panel" in out
+    assert "FAIL: two panels present" in out
 
 
 def test_cli_compare_figure_reports_errors(tmp_path, capsys, monkeypatch):
     def fake_compare_model_figure(model_dir, figure_number, *, model=None):
-        raise FileNotFoundError("figure_9_original.*")
+        raise FileNotFoundError("figure_9.<image>")
 
     monkeypatch.setattr("neuromodels.cli.main.compare_model_figure", fake_compare_model_figure)
 
@@ -87,7 +88,6 @@ def test_cli_compare_figure_reports_errors(tmp_path, capsys, monkeypatch):
     assert exit_code == 1
     err = capsys.readouterr().err
     assert "neuromodels compare-figure: error:" in err
-    assert "figure_9_original" in err
 
 
 def test_cli_compare_figure_packet_outputs_json(tmp_path, capsys):
@@ -98,9 +98,10 @@ def test_cli_compare_figure_packet_outputs_json(tmp_path, capsys):
     assert exit_code == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["figure_number"] == "2"
-    assert payload["original_figure"].endswith("figure_2_original.jpg")
+    assert payload["original_figure"].endswith("figure_2.jpg")
     assert payload["generated_figure"].endswith("figure_2.png")
-    assert payload["figure_protocol"].endswith("figure_2_protocol.md")
+    assert payload["figure_description"].endswith("figure_2.md")
+    assert payload["figure_checklist"].endswith("figure_2_visual_checklist.md")
 
 
 def test_cli_compare_figure_packet_writes_file(tmp_path, capsys):
@@ -126,13 +127,12 @@ def test_cli_compare_figure_packet_writes_file(tmp_path, capsys):
 
 def _write_model_figure_files(tmp_path):
     model_dir = tmp_path / "demo_model"
-    original_dir = model_dir / "article_aware" / "figures"
+    figures_dir = model_dir / "article_aware" / "figures"
     generated_dir = model_dir / "implementation" / "figure_outputs"
-    protocol_dir = model_dir / "article_aware" / "pseudocode"
-    original_dir.mkdir(parents=True)
+    figures_dir.mkdir(parents=True)
     generated_dir.mkdir(parents=True)
-    protocol_dir.mkdir(parents=True)
-    (original_dir / "figure_2_original.jpg").write_bytes(b"original")
+    (figures_dir / "figure_2.jpg").write_bytes(b"original")
     (generated_dir / "figure_2.png").write_bytes(b"generated")
-    (protocol_dir / "figure_2_protocol.md").write_text("Expected behavior.", encoding="utf-8")
+    (figures_dir / "figure_2.md").write_text("Figure description.", encoding="utf-8")
+    (figures_dir / "figure_2_visual_checklist.md").write_text("- [ ] Curve is present.", encoding="utf-8")
     return model_dir
