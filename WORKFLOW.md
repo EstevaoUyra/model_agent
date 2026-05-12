@@ -130,6 +130,10 @@ Hand-written tests still belong in `implementation/tests/` when they
 verify internal correctness of building blocks that have no direct
 paper-claim analog, such as kernel normalization or helper behavior.
 
+For the commands to run figure tests (filename glob, narrowing recipe,
+useful flags, the `cd` gotcha that affects log placement, and how to read
+`logs/test_runs.jsonl`), follow **`skills/run-tests/SKILL.md`**.
+
 ### Step 3b — Compare reproduced figures visually
 
 Once all data-backed and qualitative figure tests are passing, the
