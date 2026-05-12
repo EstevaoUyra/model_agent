@@ -91,6 +91,13 @@ the failure message, a brief hypothesis if obvious. ≤200 words.>
 ## Recent changes
 <table of last 3-5 versions from changelog.yaml summaries, OR last 5-10
 git commit subjects when no changelog exists>
+
+## README generation
+<List of custom Python (or other ad-hoc commands) the agent ran to answer
+questions the existing scripts don't cover. APPEND-ONLY across invocations.
+Each entry: date, one-line summary of what was queried, the actual code,
+and why it was needed. Patterns that recur should be turned into new
+scripts in `skills/update-state/scripts/`.>
 ```
 
 Total target: ~1000 words including the test table.
@@ -109,6 +116,22 @@ Current scripts:
   latest row per test_id, and print rows whose status is not `pass`. Output
   format: `<status>: <test_id> | figure=<N> | <failure_message>`.
 
+- `scripts/log_freshness.py` — for each figure (including the "Unassigned"
+  bucket for rows with `figure=None`), print row count, distinct test_id
+  count, latest `commit_hash`, and latest timestamp. This is the diagnostic
+  for distinguishing *stale-metadata* (commit older than HEAD but test
+  surface still matches) from *stale-data* (test surface has changed).
+  Pass `--verbose` to also list the distinct test_ids.
+
+### When you need a query no script covers
+
+If you find yourself needing custom Python to answer a question the existing
+scripts don't, that's fine — run it. But **log it in the README's "README
+generation" section** (see Output structure below). Over time those entries
+identify patterns worth turning into new scripts. Don't silently run ad-hoc
+queries and discard them — they're the most useful signal for what the
+helper set is missing.
+
 ---
 
 ## Process
@@ -125,6 +148,9 @@ neuromodels test-table
 
 # Failing test details (for "next correction")
 python <repo-root>/skills/update-state/scripts/failing_tests.py
+
+# Per-figure log freshness (for stale-metadata vs stale-data diagnosis)
+python <repo-root>/skills/update-state/scripts/log_freshness.py
 
 # Recent activity
 git log --oneline -20
@@ -233,8 +259,25 @@ Open `README.md` in the model directory. Replace **Current state**, **Next
 correction**, **Test status**, and **Recent changes** entirely. Preserve
 **Model** unless its description is clearly stale.
 
+**Append (do not replace) the README generation section.** If a previous run
+left entries there, keep them and add new ones below. Format each entry:
+
+```
+- <YYYY-MM-DD>: <one-line summary of what you needed to know>.
+  Code:
+  ```
+  <the actual command or python snippet>
+  ```
+  Why: <one-line reason this wasn't in the existing scripts>.
+```
+
+If you didn't need any custom queries this run, write a single line:
+`- <YYYY-MM-DD>: no custom queries needed.`
+
 Word counts: Model ≤200, Current state ≤300, Next correction ≤200. The skill
-fails if any prose section exceeds its cap — keep the README scannable.
+fails if any prose section exceeds its cap — keep the README scannable. The
+"README generation" section has no cap (it's evidence-tracking, not reading
+material).
 
 ---
 
@@ -250,6 +293,10 @@ fails if any prose section exceeds its cap — keep the README scannable.
       to falsify it.
 - [ ] Length caps respected: Model ≤200, Current state ≤300, Next
       correction ≤200 words.
+- [ ] **README generation** section is up to date. Either contains a
+      "no custom queries needed" line for this date, or lists every
+      custom Python/shell snippet run, with code and reason. Previous
+      entries are preserved (append-only).
 
 ---
 
