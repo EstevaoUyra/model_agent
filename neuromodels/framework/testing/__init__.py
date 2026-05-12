@@ -17,9 +17,9 @@ F = TypeVar("F", bound=Callable[..., Any])
 def deterministic_test(
     *,
     spec_ref: str,
-    claim_id: str | None = None,
+    claim_id: str,
+    figure: int | str,
     paper_issue: str | None = None,
-    figure: int | str | None = None,
 ) -> Callable[[F], F]:
     """Attach deterministic-test metadata and pytest marks to a test function."""
     if not spec_ref:
