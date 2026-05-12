@@ -14,6 +14,7 @@ from neuromodels.framework.compare_figures import (
     write_model_figure_packet,
 )
 from neuromodels.framework.judge import JudgeInput, JudgeResult, run_judge
+from neuromodels.framework.test_table import render_table
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -74,6 +75,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     packet_parser.set_defaults(func=run_compare_figure_packet_command)
 
+    table_parser = subparsers.add_parser(
+        "test-table",
+        help="Render the per-figure test status table from logs/test_runs.jsonl",
+    )
+    table_parser.add_argument(
+        "--model-dir",
+        type=Path,
+        default=Path.cwd(),
+        help="Model directory containing logs/test_runs.jsonl",
+    )
+    table_parser.add_argument(
+        "--log-path",
+        type=Path,
+        help="Override path to test_runs.jsonl (default: <model-dir>/logs/test_runs.jsonl)",
+    )
+    table_parser.set_defaults(func=run_test_table_command)
 
     return parser
 
@@ -129,6 +146,16 @@ def run_compare_figure_packet_command(args: argparse.Namespace) -> int:
             print(json.dumps(packet.to_dict(), indent=2))
     except Exception as exc:
         print(f"neuromodels compare-figure-packet: error: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def run_test_table_command(args: argparse.Namespace) -> int:
+    log_path = args.log_path or (args.model_dir / "logs" / "test_runs.jsonl")
+    try:
+        print(render_table(log_path))
+    except Exception as exc:
+        print(f"neuromodels test-table: error: {exc}", file=sys.stderr)
         return 1
     return 0
 
