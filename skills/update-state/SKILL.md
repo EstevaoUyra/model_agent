@@ -119,10 +119,15 @@ list the most recent verdict per figure.
 
 Synthesize a **specific** picture. The reflection section must answer:
 
-- **What's working?** Which figures are fully green (tests + VLM)? Cite the
-  test counts.
+- **What's working?** Which figures are **fully green** — deterministic tests
+  pass AND a recent VLM verdict says pass? Cite the counts.
 - **What's broken?** Name failing test_ids and the figure they belong to.
-  Group by likely common cause.
+  Group by likely common cause. A figure with passing tests but a failing VLM
+  verdict counts as broken — not green.
+- **What's unknown?** Figures where deterministic tests pass but no VLM
+  verdict exists (or the verdict is stale relative to current `commit_hash`)
+  are **not green** — they are *uncovered*. The reproduction is not
+  validated visually. Name these figures explicitly.
 - **What's blocked?** Spec questions, paper issues, STUCK signals.
 - **What's been tried?** Walk through the last 5-10 commits — what was the
   goal, did the test counts change?
@@ -131,9 +136,23 @@ Synthesize a **specific** picture. The reflection section must answer:
 - **What's been ruled out?** From the changelog or commit messages — what was
   tried and didn't work?
 
+The three states per figure:
+
+| State | Deterministic | VLM | Reflection treatment |
+|---|---|---|---|
+| Green | all pass | pass (recent) | "complete" |
+| Red | any fail OR VLM fail | — | "broken" — concrete failure mode |
+| Unknown | all pass | not run / stale | "uncovered" — surface as work-to-do |
+
+Do not call a figure "done" without a recent VLM-pass verdict. "Recent" means
+the verdict's recorded model `commit_hash` matches current HEAD (or is at
+least newer than the most recent change to figure-relevant code).
+
 Anti-patterns to avoid:
 - "Most tests pass; some failures remain." — too vague to be useful.
 - "Things look mostly working." — agentic hand-waving. Be specific.
+- "All green!" when most figures lack a VLM verdict — that's mostly *unknown*,
+  not *green*.
 - "Tried X, didn't work, will try Y next." — only if X and Y are real,
   named hypotheses with concrete code paths.
 
@@ -145,8 +164,13 @@ Pick the **single** most pressing fix. Selection criteria, in order:
    specific output mismatch
 2. Failing **VLM verdict** with a specific visible discrepancy (e.g.,
    "Figure 1 S panel shows single band")
-3. Open **spec question** that's blocking implementation work
-4. A figure with a high % of failures (broad problem)
+3. **Unknown figures** — when deterministic tests pass everywhere and no VLM
+   verdicts (or only stale ones) exist, the next correction is "run VLM
+   comparison for figures X, Y, Z to find out what's actually wrong." A
+   100%-pass test table with no VLM coverage is **not** "we're done"; it is
+   "we don't know yet."
+4. Open **spec question** that's blocking implementation work
+5. A figure with a high % of failures (broad problem)
 
 Skip:
 - Failures whose root cause is already an open spec question (call them out
