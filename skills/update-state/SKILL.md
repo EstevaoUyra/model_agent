@@ -54,6 +54,18 @@ the long-term design but not all are implemented — degrade gracefully.
    section. Preserve it unless the scope has clearly changed (e.g., the model
    now reproduces figures the description doesn't mention).
 
+   **If no README exists**, write the Model section from scratch by reading:
+   - `article_aware/spec/citations.yaml` — for the paper title, authors,
+     journal/year, and core equation citations
+   - `article_aware/spec/model_spec.yaml` — for the pipeline structure and
+     which simulation protocols exist
+   - `article_aware/figures/figure_*.md` — for the scope (which figures
+     are in the reproduction)
+
+   Ground every claim in a citation ID (`C-NNN`) or a structural fact
+   (e.g., "pipeline has 4 steps", "7 figures in scope"). Do not invent
+   descriptive language the spec doesn't support.
+
 ---
 
 ## Output: README structure
@@ -138,6 +150,16 @@ Synthesize a **specific** picture. The reflection section must answer:
   are **not green** — they are *uncovered*. The reproduction is not
   validated visually. Name these figures explicitly.
 - **What's blocked?** Spec questions, paper issues, STUCK signals.
+  - **Hard blockers**: a spec question is open and unresolved AND a test
+    failure or VLM mismatch depends on the answer. Test color cannot be
+    trusted until a human adjudicates.
+  - **Soft blockers (propping-up factors)**: a spec question has a
+    `chosen_assumption` resolution AND tests pass under that assumption
+    but the resolution wasn't human-audited. The reproduction is held up
+    by unaudited calibration. Tests are green but the green is provisional.
+    Name these explicitly in "Current state" with the SQ-NNN id and the
+    figures affected; do **not** treat them as the next correction (the
+    next correction is for a human, not the agent).
 - **What's been tried?** Walk through the last 5-10 commits — what was the
   goal, did the test counts change?
 - **What hypotheses are live?** What's the agent's current best theory for
@@ -167,17 +189,24 @@ Anti-patterns to avoid:
 
 ### Step 3 — Identify the next correction
 
-Pick the **single** most pressing fix. Selection criteria, in order:
+Pick the **single most pressing action**. Usually that's a single fix at a
+single test/figure, but it can be a *batch action* (e.g., "run VLM comparison
+across figures 1–7") when the bottleneck is missing coverage rather than a
+specific identified bug.
+
+Selection criteria, in order:
 
 1. Failing **deterministic test** with a clear failure message that names a
-   specific output mismatch
+   specific output mismatch — single test, single figure
 2. Failing **VLM verdict** with a specific visible discrepancy (e.g.,
-   "Figure 1 S panel shows single band")
-3. **Unknown figures** — when deterministic tests pass everywhere and no VLM
-   verdicts (or only stale ones) exist, the next correction is "run VLM
-   comparison for figures X, Y, Z to find out what's actually wrong." A
-   100%-pass test table with no VLM coverage is **not** "we're done"; it is
-   "we don't know yet."
+   "Figure 1 S panel shows single band") — single figure
+3. **Unknown figures (batch action OK).** When deterministic tests pass and
+   no VLM verdicts exist, the next action is "run VLM comparison for figures
+   X, Y, Z." If many figures are uncovered, this is a legitimate *batch*
+   correction — name all affected figures, but still pick one to start with
+   (the highest-information one) so the work has a head. A 100%-pass test
+   table with no VLM coverage is **not** "we're done"; it is "we don't know
+   yet."
 4. Open **spec question** that's blocking implementation work
 5. A figure with a high % of failures (broad problem)
 
@@ -189,10 +218,14 @@ Skip:
   failures exist
 
 Format:
-- **Test_id or figure** at the top
-- **Symptom** — what fails, what the failure message says
+- **Target** — single test_id, single figure, OR a batch like "figures 1–7"
+- **Action** — what to do (fix code, run VLM, answer spec question)
+- **Symptom** — what fails, what the failure message says (omit for batch
+  coverage actions where the symptom is "no signal yet")
+- **Starting point** — for batch actions, which item to do first and why
 - **Likely scope** — which implementation file(s) are involved
-- **Hypothesis** — if obvious, a one-sentence theory. If not, say so.
+- **Hypothesis** — if obvious, a one-sentence falsifiable theory. If not,
+  say so.
 
 ### Step 4 — Write README
 
@@ -222,15 +255,28 @@ fails if any prose section exceeds its cap — keep the README scannable.
 
 ## When to flag stale data
 
-If any source is suspiciously old, note it in the reflection rather than
-silently using it:
+Stale-data signals are **soft**, not binary. Report what you see, don't
+collapse to "stale / not stale" — let the reader judge how much weight
+each signal deserves.
 
-- `logs/test_runs.jsonl` mtime > 7 days → "test run is N days old; results
-  may be stale"
-- `logs/changelog.yaml` last version > 14 days old → "no version recorded
-  since <date>"
-- Failing test where the latest row's `commit_hash` doesn't match current
-  HEAD → "this failure is from before the most recent commits"
+Things to check and how to report them:
+
+- **`logs/test_runs.jsonl` mtime** > 7 days → "test run is N days old;
+  results may be stale"
+- **`logs/changelog.yaml` last version** > 14 days old → "no version
+  recorded since <date>"
+- **Latest row's `commit_hash` vs current HEAD.** These can disagree in
+  two ways:
+  - *Stale-metadata case:* `commit_hash` is older than HEAD **but** the
+    set of test_ids in the log matches the current test surface (same row
+    count, same nodeids). The results are likely still trustworthy; just
+    say "log was last refreshed at `<short_sha>`; row count still matches
+    HEAD's test surface."
+  - *Stale-data case:* `commit_hash` is older **and** the test surface has
+    changed (new tests since, or tests deleted). Results are not
+    trustworthy; recommend a re-run.
+
+  Don't conflate the two. The fix for each is different.
 
 ---
 
