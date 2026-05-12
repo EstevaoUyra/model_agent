@@ -85,6 +85,20 @@ Total target: ~1000 words including the test table.
 
 ---
 
+## Helper scripts
+
+Anything more than a one-line shell command lives in `scripts/` next to this
+SKILL.md. The skill itself stays single-line invocations; the logic lives in
+the script. Adopt this convention if you extend the skill with new helpers.
+
+Current scripts:
+
+- `scripts/failing_tests.py` — read `logs/test_runs.jsonl`, dedupe to the
+  latest row per test_id, and print rows whose status is not `pass`. Output
+  format: `<status>: <test_id> | figure=<N> | <failure_message>`.
+
+---
+
 ## Process
 
 ### Step 1 — Compile (mechanical)
@@ -98,12 +112,7 @@ cd models/<model_name>
 neuromodels test-table
 
 # Failing test details (for "next correction")
-python -c "import json; \
-  rows=[json.loads(l) for l in open('logs/test_runs.jsonl')]; \
-  latest={}; \
-  [latest.update({r['test_id']: r}) for r in sorted(rows, key=lambda r: r['timestamp'])]; \
-  [print(r['test_id'], '|', r.get('figure'), '|', r.get('failure_message')) \
-   for r in latest.values() if r['status'] != 'pass']"
+python <repo-root>/skills/update-state/scripts/failing_tests.py
 
 # Recent activity
 git log --oneline -20
