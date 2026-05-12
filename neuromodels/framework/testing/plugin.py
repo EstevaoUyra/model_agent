@@ -39,10 +39,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    config.addinivalue_line(
-        "markers",
+    for marker_line in (
         "figure(N): associate this test with figure N for test_runs.jsonl",
-    )
+        "neuromodels_deterministic: deterministic Neuromodels test metadata",
+        "neuromodels_claim(claim_id): qualitative or data claim identifier",
+        "neuromodels_paper_issue(paper_issue): linked paper issue identifier",
+    ):
+        config.addinivalue_line("markers", marker_line)
 
 
 @pytest.hookimpl(tryfirst=True)
