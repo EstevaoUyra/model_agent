@@ -90,6 +90,14 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Override path to test_runs.jsonl (default: <model-dir>/logs/test_runs.jsonl)",
     )
+    table_parser.add_argument(
+        "--comparisons-dir",
+        type=Path,
+        help=(
+            "Override path to the VLM figure-comparison verdicts directory "
+            "(default: <log-path parent>/figure_comparisons)"
+        ),
+    )
     table_parser.set_defaults(func=run_test_table_command)
 
     return parser
@@ -153,7 +161,7 @@ def run_compare_figure_packet_command(args: argparse.Namespace) -> int:
 def run_test_table_command(args: argparse.Namespace) -> int:
     log_path = args.log_path or (args.model_dir / "logs" / "test_runs.jsonl")
     try:
-        print(render_table(log_path))
+        print(render_table(log_path, args.comparisons_dir))
     except Exception as exc:
         print(f"neuromodels test-table: error: {exc}", file=sys.stderr)
         return 1
