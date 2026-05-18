@@ -135,6 +135,31 @@ def test_aggregate_by_figure_sort_order() -> None:
     assert labels == ["Figure 1", "Figure 2", "Figure 3", "Unassigned"]
 
 
+def test_aggregate_by_figure_mixed_int_and_str_keys() -> None:
+    """Mixed int/str figure markers must not raise (carrasco2021 regression).
+
+    Numeric (incl. numeric strings) sort by value, then non-numeric, then
+    None last.
+    """
+    rows = [
+        _row("a", figure="Supp4"),
+        _row("b", figure=2),
+        _row("c", figure="10"),
+        _row("d", figure=1),
+        _row("e", figure=None),
+        _row("f", figure="Supp1"),
+    ]
+    labels = [s.label for s in aggregate_by_figure(rows)]
+    assert labels == [
+        "Figure 1",
+        "Figure 2",
+        "Figure 10",
+        "Figure Supp1",
+        "Figure Supp4",
+        "Unassigned",
+    ]
+
+
 def test_format_markdown_table_basic() -> None:
     stats = [
         FigureStats(figure=1, total=10, passing=10),

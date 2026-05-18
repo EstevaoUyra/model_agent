@@ -57,9 +57,23 @@ Rules:
 - **Swap = replace one stage honoring its contract.** Nothing else
   changes. A reproduction is not done until a *modification smoke test*
   proves this (see §5).
-- **A model may depend on another reproduced model.** A stage can import a
-  stage from another model's package (e.g. an extension paper that reuses a
-  prior model's forward path). Declared as a dependency in `model_spec.yaml`.
+- **A model may depend on another reproduced model — but only on its
+  primitive stages, never on a calibrated protocol.** A stage may import
+  another model's *forward primitive stages* (e.g. excitatory drive,
+  suppression kernel, divisive normalization). It must **not** depend on
+  that model's *calibrated protocol* (a protocol carrying
+  implementation-side calibration — 1D-discretization knobs, baselines):
+  doing so drags un-re-derivable calibration across the boundary as
+  unauditable magic numbers in the dependent. Evidence: hermann2010 reused
+  R&H's calibrated 1D-CRF protocol and inherited 22 unauditable knobs +
+  a regime-conditional in its own stage code; carrasco2021 reused only
+  R&H's clean primitives and had zero such leak. If a dependent genuinely
+  needs protocol-level behavior, either the dependency must expose a
+  *formalized calibrated entry point* (a cross-model refactor — the
+  organizer's call, not the dependent's), or the dependent must own that
+  calibration explicitly in its own `implementation/calibration.yaml`
+  (§3), never as a literal in stage code. Declare the dependency and which
+  primitive stages it consumes in `model_spec.yaml`.
 
 **Known limitations (from the cagly2012 run — design as you go, don't
 pretend these away):**

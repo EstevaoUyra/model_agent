@@ -113,13 +113,22 @@ def aggregate_by_figure(rows: Iterable[dict]) -> list[FigureStats]:
     return sorted(stats, key=_sort_key)
 
 
-def _sort_key(stat: FigureStats) -> tuple[int, int | str]:
-    """Sort numeric figures ascending; None last."""
-    if stat.figure is None:
-        return (1, 0)
-    if isinstance(stat.figure, int):
-        return (0, stat.figure)
-    return (0, str(stat.figure))
+def _sort_key(stat: FigureStats) -> tuple[int, float, str]:
+    """Sort numeric figures ascending, then non-numeric, then None last.
+
+    The key is uniformly typed ``(group:int, value:float, text:str)`` so a
+    table mixing int and string figure markers (e.g. ``1`` and ``"Supp4"``)
+    sorts without a ``TypeError`` — the previous ``(0, int)`` vs ``(0, str)``
+    keys were mutually incomparable in Python 3 and crashed any model that
+    mixed marker types (found by the carrasco2021 run).
+    """
+    figure = stat.figure
+    if figure is None:
+        return (2, 0.0, "")
+    try:
+        return (0, float(figure), "")
+    except (TypeError, ValueError):
+        return (1, 0.0, str(figure))
 
 
 def _verdict_word(record: dict) -> str:

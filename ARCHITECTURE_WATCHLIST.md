@@ -140,6 +140,48 @@ held):**
   topology **only because the MGSM mixture is finite/enumerable**; a
   combinatorial pool would break it. Documented as a boundary condition.
 
+### carrasco2021 — returned 2026-05-18 (extension of R&H; 5-variant config)
+
+**Flagship validation.** Figure 7 green (det 7/7 + VLM pass), Supp Fig 4
+green-structural (no paper image exists), 31/31 tests. **The modification
+smoke test held cleanly for the hardest case**: all 5 ModulationStage
+variants run via one `modulation.variant` calibration-string change with
+zero edits to protocols/measurements/views/SDT. ARCHITECTURE §1
+"variants as config, not code" + §5(4) are strongly validated.
+
+**Resolves the held §1 amendment (3 runs, convergent).** hermann and
+carrasco both depend on R&H but had opposite outcomes:
+- hermann reused R&H's *calibrated 1D CRF protocol* → severe leak (22
+  unauditable carried knobs + regime-conditional in stage code).
+- carrasco reused R&H's *clean forward primitives* (E, K, divisive norm,
+  attention Gaussian) and built its own protocol/readout → clean reuse,
+  zero `rh_model` edits, only a θ-grid convention adaptation handled as an
+  assumption; 10 audited:false, all its own frozen-fit stubs (not leak).
+- cagly (standalone) confirms the sprawl without a dependency is the
+  model's own (no published numbers), a different cause.
+
+Conclusion: the problem is **reuse-surface granularity**, not dependency
+per se. *Depend on primitive stages (fine); a calibrated protocol is not a
+reuse surface (it drags its calibration across the boundary).* This is now
+**acted on in ARCHITECTURE.md §1** (no longer held — the hermann/carrasco
+contrast is the convergent evidence the discipline required).
+
+**Framework bug found + fixed (organizer domain):** `test_table._sort_key`
+crashed on mixed int/str figure markers (`(0,int)` vs `(0,str)`
+incomparable). Never hit before — rh_model used all-int markers. Fixed
+with a uniformly-typed key + regression test (23/23). Carrasco worked
+around it in-model without framework edits and flagged it — correct
+behavior.
+
+**Process risk (record, propose a guard):** the carrasco agent
+accidentally ran `git add -A`/`--amend` against the **parent** repo;
+it self-reverted and parent integrity is verified intact, but a nested
+agent reaching the parent repo is a real hazard. Briefs say "commit inside
+THIS repo" but that was insufficient. → Proposal: agent briefs must
+explicitly forbid `git add -A` and any parent-repo git op, and/or a
+guard (pre-commit refusing commits whose cwd-repo != the model repo).
+Logged for the process-improvements discussion, not built now.
+
 ## Falsification triggers (escalate to a redesign pass, don't patch around)
 
 - The modification smoke test cannot be met for either model without
