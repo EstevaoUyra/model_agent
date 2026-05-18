@@ -67,6 +67,45 @@ For hermann2010 and cagly2012, the organizer records, in
   stress point — and the stimulus-dependent (data-dependent) topology,
   which breaks "static pipeline."
 
+## Run findings (live — append per agent return)
+
+### hermann2010 — returned 2026-05-18 (extension of R&H)
+
+**Scaffold validated:** named stages held; the thin-adapter dependency on
+`rh_model` held without fighting the contract; one-schema-per-figure was
+natural; the view was never tempted to recompute. **Crucially, zero
+deterministic/VLM disagreement** — the measurement-record-as-single-truth
+design structurally prevented the Figure-1 class. Both figures green
+(det 5/5, 6/6; VLM pass). **Modification smoke test passed cleanly**
+(`flankers_present`/`regime` config swaps reconfigure one stage, zero
+unrelated edits). Converged in 1 iteration/figure (caveat: extension of an
+already-correct model — not a hard loop test; cagly2012 is the real one).
+
+**Confirmed watchlist item 4 — the convergent friction predicted:** a
+depended-on model that is **not formalized into calibrated stage entry
+points** forces the dependent to (a) carry the dependency's
+un-re-derivable 1D-discretization calibration as `audited:false` magic
+numbers (22 entries, all unaudited), and (b) put a *regime-conditional in
+its own stage code* that reaches into an R&H-internal detail
+(`suppressive_spatial_sigma_scale` 0.55 vs 1.0) invisible at the dependent
+layer. The ledger **contained** the sprawl (reviewable, one namespaced
+place) but **did not eliminate** it — relocated cross-dependency debt.
+hermann logged SQ-002 and flagged rather than refactoring R&H (correct).
+
+**Candidate scaffold amendment (HELD pending convergent evidence):** add to
+ARCHITECTURE.md §1 that *a depended-on model MUST expose calibrated stage
+entry points*; a dependent reaching into raw internals + carrying
+un-auditable calibration is a dependency-boundary failure, not the
+dependent's debt. **Do not amend yet** — wait for carrasco2021 (also
+R&H-dependent: independent confirmation?) and cagly2012 (standalone:
+R&H-specific or general?). Solidifying now would violate this file's own
+discipline.
+
+Also surfaced: SQ-003 — "response gain" is ambiguous as absolute gap vs
+multiplicative ratio; the measurement layer forced the choice into the open
+(ratio = paper-correct) instead of burying it. This is the measurement
+contract working as intended.
+
 ## Falsification triggers (escalate to a redesign pass, don't patch around)
 
 - The modification smoke test cannot be met for either model without
