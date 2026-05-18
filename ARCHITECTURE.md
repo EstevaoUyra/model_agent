@@ -61,6 +61,21 @@ Rules:
   stage from another model's package (e.g. an extension paper that reuses a
   prior model's forward path). Declared as a dependency in `model_spec.yaml`.
 
+**Known limitations (from the cagly2012 run — design as you go, don't
+pretend these away):**
+
+- When the math shares terms across "stages" (coupled equations), the
+  stage boundary is an **imposed modifiability choice, not a natural
+  decomposition**. That is acceptable — the contract still forces
+  duplication out and keeps swaps localized — but name it in
+  `model_spec.yaml` (`boundary: imposed`) so a reader knows it is a seam
+  of convenience, not of nature.
+- The static `consumes/produces` pipeline expresses data-dependent
+  topology (a stimulus-dependent pool) **only when the dependence is
+  finite/enumerable** (e.g. a fixed mixture). A combinatorial data-
+  dependent pool does not fit; flag it for a design pass rather than
+  contorting the contract.
+
 ## 2. Figures = protocol → measurement → view
 
 Three separable layers. The middle one is the contract.
@@ -91,24 +106,36 @@ Consequences (all required):
   "looks sigmoidal", labeling), not the primary check (idea #3:
   code-first).
 
-## 3. Calibration is data, not constants
+## 3. Calibration is data, not constants — in TWO ledgers by Phase owner
 
-One versioned ledger per model (`calibration.yaml`), **namespaced per
-stage/protocol** (flat ledgers rot). Each entry:
+Calibration is **two different artifacts** with different owners and
+lifecycles. Conflating them into one ledger under `article_aware/`
+self-contradicts the Phase A/B boundary (it is read-only to Phase B) — a
+defect confirmed independently by the hermann2010 and cagly2012 runs. So:
 
-```
-<stage>.<param>: { value: ..., units: ..., source: C-NNN|A-NNN|SQ-NNN,
-                    audited: true|false, note: ... }
-```
+- **`article_aware/spec/calibration.yaml`** — *paper-derived* parameters
+  (values the paper states or that follow from it). Phase A owns it;
+  Phase-A-protected; Phase B reads only. `source: C-NNN`.
+- **`implementation/calibration.yaml`** — *implementation-side*
+  calibration: 1D-discretization knobs, stub magnitudes for frozen-fit
+  models, and **calibration carried from a depended-on model** (e.g. the
+  R&H 1D `suppressive_*` knobs a dependent cannot re-derive). **Phase B
+  writes this.** `source: A-NNN | SQ-NNN`. This is the home for the
+  SQ-001/002/004 class.
 
-- Model code receives the **resolved** ledger; it holds no tunable
-  literals.
+Both are namespaced per stage (`<stage>.<param>: { value, units, source,
+audited, note }`; flat ledgers rot). Rules:
+
+- Model code receives the **merged resolved** ledger; it holds no tunable
+  literals (no regime-conditional reaching into a dependency's internals —
+  that value is an `implementation/calibration.yaml` entry, not code).
 - The **resolved-ledger hash is recorded in every measurement record and
   every test/VLM verdict** — a figure is always traceable to exact
   calibration.
-- This retires the SQ-001/002/004 sprawl: every `chosen_assumption` SQ is
-  one ledger entry with `audited: false`. The state report counts and
-  lists unaudited entries; the human audits the *ledger*, not the code.
+- The state report counts `audited:false` entries in **both** ledgers; the
+  human audits the *ledger*, not the code. A high unaudited count is
+  honest (e.g. a from-scratch model with no published numbers), not a
+  defect — the point is containment in one reviewable place, not zero.
 
 ## 4. The closed loop (auto inner, human milestone gates)
 
@@ -157,7 +184,7 @@ models/<m>/
   paper/                      raw PDF (extractor only)
   article_aware/              PROTECTED — Phase A contract
     spec/model_spec.yaml      state vars, params, STAGES (§1), protocols
-    spec/calibration.yaml     the ledger (§3)  [NEW]
+    spec/calibration.yaml     PAPER-DERIVED params ledger (§3)  [NEW]
     spec/citations.yaml  spec/assumptions.yaml
     pseudocode/<fig>_protocol.md
     figures/figure_<N>.md  figure_<N>_visual_checklist.md  figure_<N>.<img>
@@ -168,6 +195,7 @@ models/<m>/
     src/<pkg>/measurements.py pure measurement fns (§2)   [NEW]
     src/<pkg>/protocols.py    run_figure_<N>() → raw outputs
     src/<pkg>/views.py        declarative renderers (§2)  [renamed figures.py]
+    calibration.yaml          IMPLEMENTATION-SIDE ledger, Phase-B-writable (§3)  [NEW]
     artifacts/                persisted learned params (§1)  [NEW, gitignored if large]
     figure_outputs/           generated PNGs (gitignored)
     tests/                    contract + internal tests

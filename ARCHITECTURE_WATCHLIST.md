@@ -106,6 +106,40 @@ multiplicative ratio; the measurement layer forced the choice into the open
 (ratio = paper-correct) instead of burying it. This is the measurement
 contract working as intended.
 
+### cagly2012 — returned 2026-05-18 (standalone, from-scratch MGSM — hard loop)
+
+**Scaffold held under real difficulty.** 8-stage pipeline; Figures 6 & 8
+green (det 4/4 + VLM pass); the 7 failing tests are ONE root cause
+(SQ-004) and were left **visible, not gamed**. Modification smoke test
+passed cleanly (full→diagonal = one calibration key, zero unrelated
+edits) — thesis holds for a from-scratch model. SQ-004 validated the
+**stub→real-fit artifact-contract** design: a future real-GEM stage
+honoring the same artifact lifts the block with zero inference edits; the
+v1 scope limitation is explicit and contained, working as intended.
+
+**Convergent scaffold defect (now 2 independent runs) — ACTED ON:** the
+calibration ledger conflated two things with different owners/lifecycles.
+- hermann SQ-002: depended-on model's implementation-side calibration has
+  no home → carried as unauditable magic numbers.
+- cagly SQ-003: `calibration.yaml` is in Phase-A-protected
+  `article_aware/`, but stub/implementation-side calibration is written by
+  Phase B → a logical self-contradiction in the scaffold.
+Root: paper-derived params (Phase A, protected) and implementation-side
+calibration (Phase B, writable; the SQ-001/002/004 class) are different
+artifacts. **Fixed in ARCHITECTURE.md §3** (split by Phase ownership) — a
+proven-by-construction contradiction, not a judgment call needing more
+evidence.
+
+**Recorded as known limitations (held, not restructured — workarounds
+held):**
+- SQ-001: for math with shared terms (Eqs 4/5/6/10/11 share λ), the stage
+  boundary is an **imposed modifiability choice, not a natural
+  decomposition**. The scaffold still helped (forced duplication out) but
+  the boundary "feels arbitrary." Documented in ARCHITECTURE.md §1.
+- SQ-002: the static `consumes/produces` pipeline survives data-dependent
+  topology **only because the MGSM mixture is finite/enumerable**; a
+  combinatorial pool would break it. Documented as a boundary condition.
+
 ## Falsification triggers (escalate to a redesign pass, don't patch around)
 
 - The modification smoke test cannot be met for either model without
