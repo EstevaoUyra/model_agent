@@ -4,6 +4,14 @@ This document is the reference for **what lives where**. For *how* to do
 work, see [WORKFLOW.md](WORKFLOW.md). For *why* the design is shaped this
 way, see [DESIGN.md](DESIGN.md).
 
+> ⚠️ **Reality check — see [STATUS.md](STATUS.md).** The framework-layout
+> block below lists `logging/`, `stuck_detector/`, `review/` and a filled
+> `static_checks/` — these **do not exist**. It omits the real
+> `compare_figures.py`, `test_table.py`, and the per-model
+> `article_aware/figures/`, `implementation/figure_outputs/`,
+> `logs/figure_comparisons/`. Logs are `test_runs.jsonl`, not `.csv`.
+> STATUS.md has the accurate inventory.
+
 ## Layout
 
 The framework is a Python package, installed in editable mode (`pip install

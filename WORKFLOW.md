@@ -4,6 +4,14 @@ This document is the operational guide for reproducing a model with this
 system. For *where* things live, see [REPO_STRUCTURE.md](REPO_STRUCTURE.md).
 For *why* the workflow is shaped this way, see [DESIGN.md](DESIGN.md).
 
+> ⚠️ **Reality check — see [STATUS.md](STATUS.md).** This document
+> references a "framework runner", automatic attempt commits, a stuck
+> detector / `STUCK` gate, `relaxed`/`pending_human_review` statuses, and
+> `test_runs.csv`. **None of those are built.** In reality: run plain
+> `pytest` (a plugin logs to `test_runs.jsonl`), then use the `skills/`
+> (run-tests, compare-figure, update-state). Treat runner/stuck/CSV
+> passages below as planned design, not instructions.
+
 The pipeline has five steps in two phases, separated by a hard
 article-access boundary:
 
