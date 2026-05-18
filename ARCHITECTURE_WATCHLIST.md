@@ -85,10 +85,13 @@ already-correct model — not a hard loop test; cagly2012 is the real one).
 depended-on model that is **not formalized into calibrated stage entry
 points** forces the dependent to (a) carry the dependency's
 un-re-derivable 1D-discretization calibration as `audited:false` magic
-numbers (22 entries, all unaudited), and (b) put a *regime-conditional in
-its own stage code* that reaches into an R&H-internal detail
-(`suppressive_spatial_sigma_scale` 0.55 vs 1.0) invisible at the dependent
-layer. The ledger **contained** the sprawl (reviewable, one namespaced
+numbers (the carried-R&H set was **3** knobs —
+`suppressive_drive_gain`, `suppressive_spatial_sigma_scale`,
+`baseline_unmodulated` — inside a broader ~22-entry unaudited ledger that
+is otherwise hermann's *own* frozen-fit stubs), and (b) put a
+*regime-conditional in its own stage code* that reaches into an
+R&H-internal detail (`suppressive_spatial_sigma_scale` 0.55 vs 1.0)
+invisible at the dependent layer. The ledger **contained** the sprawl (reviewable, one namespaced
 place) but **did not eliminate** it — relocated cross-dependency debt.
 hermann logged SQ-002 and flagged rather than refactoring R&H (correct).
 
@@ -151,8 +154,10 @@ zero edits to protocols/measurements/views/SDT. ARCHITECTURE §1
 
 **Resolves the held §1 amendment (3 runs, convergent).** hermann and
 carrasco both depend on R&H but had opposite outcomes:
-- hermann reused R&H's *calibrated 1D CRF protocol* → severe leak (22
-  unauditable carried knobs + regime-conditional in stage code).
+- hermann reused R&H's *calibrated 1D CRF protocol* → leak: 3 carried
+  R&H implementation knobs + a regime-conditional in its stage code
+  (inside a broader ~22-entry unaudited ledger that is otherwise its own
+  frozen-fit stubs). Later driven to 0 by the run_crf refactor.
 - carrasco reused R&H's *clean forward primitives* (E, K, divisive norm,
   attention Gaussian) and built its own protocol/readout → clean reuse,
   zero `rh_model` edits, only a θ-grid convention adaptation handled as an
@@ -216,6 +221,45 @@ independently arrived at this resolution — strong signal it is correct.
 
 **Ledger:** paper-derived 51 entries / 0 unaudited; implementation-side
 34 / 33 unaudited. Contained, not erased (consistent with hermann/cagly).
+
+### hermann2010 → run_crf refactor — returned 2026-05-18 (the §1 proof, closed)
+
+**The convergent-evidence loop is closed.** hermann's carried R&H
+implementation knobs **3 → 0**; the regime-conditional **fully removed**
+(grep-confirmed zero R&H-internal refs in hermann `src/`). Behavior
+**bit-identical**: `run_crf` vs old path max abs diff 0.0 both regimes;
+measurement-record fields bit-identical except `calibration_hash` (correct
+provenance reflection of the deleted entries — metadata, not a behavior
+change; the agent reasoned this correctly); figures byte-identical (MD5
+unchanged); deterministic 14/14 identical pass set; smoke test passes;
+fresh VLM Fig 1/3 pass as before. **§1's reuse-surface rule is validated
+end-to-end**, not just by the earlier byte-identity argument: a real
+dependent was refactored and the leak provably dissolved with zero drift.
+
+**Strong secondary signal — the agent distinguished leak from legitimate
+own-params correctly.** It did *not* game the count: it kept hermann's 6
+regime-geometry entries as hermann's *own* scientific encoder params
+(A-001/SQ-001), correctly arguing these are not R&H implementation
+calibration. That the §1 leak-vs-own-parameterization distinction was
+understandable and actionable by an independent agent is itself evidence
+the contract is well-formed.
+
+**SQ-004 contract nuance (refinement, not a defect):** `run_crf` requires
+`stimulus_size`/`attention_field_size`/`gamma`/`tuning_width` as caller
+args, so a dependent still expresses regime *geometry* itself. Driving
+that into the reuse surface too would need a named-regime-geometry preset
+in `run_crf` — a possible future refinement of how much *scientific*
+parameterization an entry point should encapsulate vs expose. Does not
+falsify §1 (the rule is about implementation calibration, which went to
+0); logged for a later design pass.
+
+**Record-accuracy correction (artifact integrity):** earlier entries said
+hermann "inherited 22 unauditable knobs". Precise: the *carried R&H
+implementation* set was **3 knobs + a regime-conditional**; "22" was
+hermann's broader unaudited ledger (mostly its own frozen-fit stubs,
+legitimately kept). The substantive finding (calibrated-protocol reuse
+drags implementation calibration across the boundary) stands; the number
+is now corrected here and in ARCHITECTURE.md §1.
 
 ## Falsification triggers (escalate to a redesign pass, don't patch around)
 

@@ -82,9 +82,13 @@ Rules:
   implementation-side calibration — 1D-discretization knobs, baselines):
   doing so drags un-re-derivable calibration across the boundary as
   unauditable magic numbers in the dependent. Evidence: hermann2010 reused
-  R&H's calibrated 1D-CRF protocol and inherited 22 unauditable knobs +
-  a regime-conditional in its own stage code; carrasco2021 reused only
-  R&H's clean primitives and had zero such leak. If a dependent genuinely
+  R&H's calibrated 1D-CRF protocol and was forced to carry R&H's
+  implementation-side discretization calibration — 3 knobs
+  (`suppressive_drive_gain`, `suppressive_spatial_sigma_scale`,
+  `baseline_unmodulated`) plus a regime-conditional in its own stage code;
+  carrasco2021 reused only R&H's clean primitives and had zero such leak.
+  The later hermann→`run_crf` refactor drove that carried set to **0** with
+  bit-identical behavior — §1 proven end-to-end, not merely argued. If a dependent genuinely
   needs protocol-level behavior, either the dependency must expose a
   *formalized calibrated entry point* (a cross-model refactor — the
   organizer's call, not the dependent's), or the dependent must own that
