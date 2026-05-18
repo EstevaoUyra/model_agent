@@ -26,7 +26,24 @@ deliberately watching for and what would falsify it.
 A model is an **ordered list of named stages**. The *contract* is the
 primary artifact; the ordering is secondary.
 
-Each stage declares, as data (in `model_spec.yaml`):
+**Phase ownership (same split as §3 calibration — confirmed by the R&H
+migration, which was structurally forced into this resolution).** Two
+different artifacts, two owners:
+
+- The **paper-derived pipeline / dataflow** (the ordered computation steps
+  the paper implies) stays in Phase-A `article_aware/spec/model_spec.yaml`
+  — DESIGN.md §2's argument holds: Phase B cannot reverse-engineer
+  dataflow order without the paper.
+- The **stage manifest** (the typed swap contracts below, the dependency
+  declaration, the calibrated reuse-surface declaration, any
+  `boundary: imposed` flags) is an **implementation concern owned by
+  Phase B**. It lives implementation-side
+  (`implementation/src/<pkg>/stages/manifest.yaml`), **not** under
+  Phase-A-protected `article_aware/`. Filing it in the Phase-A spec was a
+  defect (it made the manifest unwriteable by exactly the phase that owns
+  the decomposition).
+
+Each stage declares, as data (in the implementation-side stage manifest):
 
 - `name` — stable identifier (e.g. `stimulus_drive`, `attention_field`,
   `suppression`, `normalization`, `readout`).
@@ -197,7 +214,9 @@ wrong — fix the contracts, not the test.
 models/<m>/
   paper/                      raw PDF (extractor only)
   article_aware/              PROTECTED — Phase A contract
-    spec/model_spec.yaml      state vars, params, STAGES (§1), protocols
+    spec/model_spec.yaml      state vars, params, paper-derived PIPELINE
+                              (dataflow order), protocols  [§1: NOT the
+                              stage manifest — that is impl-side]
     spec/calibration.yaml     PAPER-DERIVED params ledger (§3)  [NEW]
     spec/citations.yaml  spec/assumptions.yaml
     pseudocode/<fig>_protocol.md
@@ -206,6 +225,7 @@ models/<m>/
     APPROVED
   implementation/
     src/<pkg>/stages/         one module per stage (§1)  [NEW shape]
+    src/<pkg>/stages/manifest.yaml  the stage manifest, Phase-B-owned (§1)  [NEW]
     src/<pkg>/measurements.py pure measurement fns (§2)   [NEW]
     src/<pkg>/protocols.py    run_figure_<N>() → raw outputs
     src/<pkg>/views.py        declarative renderers (§2)  [renamed figures.py]

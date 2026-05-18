@@ -182,6 +182,41 @@ explicitly forbid `git add -A` and any parent-repo git op, and/or a
 guard (pre-commit refusing commits whose cwd-repo != the model repo).
 Logged for the process-improvements discussion, not built now.
 
+### reynolds_heeger_2009 arch-migration — returned 2026-05-18
+
+**The §1 reuse-surface fix is validated end-to-end (headline).** The
+formalized `rh_model.crf_protocol.run_crf(stimulus_size,
+attention_field_size, gamma, regime, contrasts)` exposes only scientific
+params + a regime *name*; a signature-introspection test asserts no
+`suppressive_*`/`baseline_*`/`sigma` leaks into the public surface. It is
+**byte-identical (max abs diff 0.0, both regimes)** to hermann2010's
+current hand-rolled calibrated CRF. So hermann can depend on it carrying
+**zero** of its ~10 carried R&H knobs and **zero** regime-conditional —
+the §1 amendment is proven in practice, not just argued.
+
+**Behavior preservation airtight (how a migration of a green model should
+go):** 64/64 identical pass set; all 10 protocol outputs byte-identical
+(hash); all 7 figures **pixel-identical** to pre-migration `5d3e751`
+(decoded-array diff 0) → VLM unchanged by construction; modification smoke
+test passes; dependents unaffected (carrasco 31/31, hermann 14/14); +17
+new ARCHITECTURE-shape tests green. Stage decomposition met **no**
+resistance (R&H is feedforward, kernels already pure) — the abstraction is
+a *natural* fit here, no `boundary: imposed` needed.
+
+**New convergent contract gap — FIXED (2nd instance of the §3 root
+cause).** §1 filed the stage manifest in `article_aware/spec/
+model_spec.yaml`, but `article_aware/` is Phase-A-protected and the stage
+decomposition is a Phase-B concern; the migration was structurally forced
+to put the manifest implementation-side. Same root cause as the §3
+calibration defect (a Phase-B-owned artifact filed under Phase-A
+protection). Fixed in ARCHITECTURE.md §1 + layout: paper-derived
+*pipeline/dataflow* stays Phase-A spec; the *stage manifest* is
+Phase-B-owned, `implementation/src/<pkg>/stages/manifest.yaml`. The agent
+independently arrived at this resolution — strong signal it is correct.
+
+**Ledger:** paper-derived 51 entries / 0 unaudited; implementation-side
+34 / 33 unaudited. Contained, not erased (consistent with hermann/cagly).
+
 ## Falsification triggers (escalate to a redesign pass, don't patch around)
 
 - The modification smoke test cannot be met for either model without
