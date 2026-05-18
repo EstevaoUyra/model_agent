@@ -51,6 +51,12 @@ model_agent/                            # repo root (this monorepo)
 
 ## Per-model layout (inside `models/<model_name>/`)
 
+> The layout below is the *original* shape. [ARCHITECTURE.md](ARCHITECTURE.md)
+> defines the **current required shape** (stage modules, `measurements.py`,
+> `views.py`, `spec/calibration.yaml`, `logs/figure_diagnoses/`) and
+> supersedes this block where they differ. New models use the
+> ARCHITECTURE.md shape; `reynolds_heeger_2009` migrates opportunistically.
+
 ```
 paper/
   paper.pdf                             # raw source

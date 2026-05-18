@@ -9,6 +9,15 @@ WORKFLOW.md or REPO_STRUCTURE.md. When the *underlying reason* for a
 design choice is unclear, the answer is here. When this document is
 wrong, update it before writing code.
 
+> **See also:** [STATUS.md](STATUS.md) (what is actually built) and
+> [ARCHITECTURE.md](ARCHITECTURE.md) (the contract structure every
+> reproduction must produce — the stage pipeline, the
+> protocol→measurement→view figure split, calibration-as-data, the closed
+> loop, and the verifiable+modifiable acceptance criteria). The end goal
+> is not faithful reproduction alone; it is a substrate a scientist can
+> verify and modify. ARCHITECTURE.md supersedes the older structural
+> assumptions sprinkled through §§2–8 below where they conflict.
+
 ---
 
 ## 1. Goals and non-goals
@@ -32,9 +41,15 @@ wrong, update it before writing code.
 
 ### Non-goals (v1)
 
-- **Stochastic models.** Deterministic models only for the first
-  version. The framework should not preclude stochastic support, but
-  it will not be built out until the deterministic path is solid.
+- **Stochastic models / fitting loops.** v1 reproduces the
+  **deterministic forward/inference path**. A model whose parameters come
+  from a stochastic fit or offline training (GEM/EM, NLLS+bootstrap) is in
+  scope **only with the fitting stage stubbed**: the learned parameters
+  are supplied as a frozen, persisted artifact (ARCHITECTURE.md §1) and
+  the forward path consumes them deterministically. Reproducing the
+  fitting/optimization/bootstrap itself is deferred. (Decision 2026-05-18,
+  prompted by hermann2010 and cagly2012, both of which wrap the forward
+  model in an outer fit/compare loop.)
 - **Full autonomy.** A human is in the loop for: approving the
   article-aware artifacts (spec, pseudocode, extracted data, reproduced
   figures), deciding the verdict on adversarial-judge reviews, and
