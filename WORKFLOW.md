@@ -73,6 +73,24 @@ under `article_aware/`:
   code) | sensitivity`. This evidence is what lets the final review trust the
   reproduction cheaply.
 
+**Faithfulness rules (extraction) — Wave-1 retro, non-negotiable.**
+
+- **Never confabulate.** Do not assert a mechanism or a quantitative claim the
+  paper does not state. Every test claim traces to a specific paper passage
+  (cite it) or is an explicit `A-NNN` assumption with provenance — never a
+  fabricated claim wearing a real `C-NNN`. (Wave 1: an extractor invented a false
+  "identity dictionary ⇒ coefficients unchanged" mechanism and a kurtosis claim
+  the paper never makes — caught by the spec-review panel.)
+- **Thresholds live in the ledger.** Binding numeric thresholds go in
+  `calibration.yaml` (`audited:false` + `A-NNN`), not hidden in test code — the
+  human audits the *ledger*, not the code.
+- **One convention, everywhere.** Unit/scale conventions (contrast
+  fraction-vs-percent, curve-peak-vs-raw-coefficient) must be singular and
+  identical across spec, calibration, and provenance.
+- **Verify internal consistency** with a throwaway reference implementation
+  before finalizing: does the spec's own recipe actually satisfy its qualitative
+  claims?
+
 **Gate:** `article_aware/APPROVED` (empty sentinel). The human writes it; in the
 autonomous program the spec-review panel writes it after attacking the spec for
 completeness (can a paper-blind agent build it?) and faithfulness (is every

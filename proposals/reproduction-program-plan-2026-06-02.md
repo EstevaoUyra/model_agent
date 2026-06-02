@@ -101,15 +101,22 @@ originals."
 Each cluster has a **shared engine**; reproduce it first so dependents reuse
 *primitive stages*, never a calibrated protocol (the hermann-vs-carrasco lesson).
 
-| Wave | Models | Why |
-|---|---|---|
-| **Wave 1** (anchors, breadth-first; doubles as machinery shakedown) | Lee & Maunsell 2009 (C1, cheapest/familiar) · Olshausen–Field 1996/97 (C2 dictionary) · Spratling 2010 DIM (C3 engine) | one anchor per motif → exercises all 3 early, fastest process-gap surfacing; expect more re-iterations here |
-| **Wave 2** | Denison 2021 (C1 dynamic) · Rozell LCA (C2 engine) · Rao & Ballard 1999 (C3 anchor) | engines + the dynamic C1 |
-| **Wave 3** | Verhoef & Maunsell 2017 (C1, has code) · Zhu & Rozell 2013 (C2, reuses LCA) · Bogacz 2017 (C3 ref solver) | reuse-heavy; **revisit Wave 1** here |
-| **Wave 4+** | Ni/Ray 2012 (C1 tuned) · Bell–Sejnowski (C2) · Spratling 2012 (C3) · Hara/Gardner 2016, Pestilli 2009, Boynton 2009, Heeger 1992 / CHM 1997 precursors (C1) … | drain the remaining lineage; periodic revisits |
+**Schedule — 3 → 6 → rest, widening parallelism (user direction 2026-06-02).**
+Each pass is slow, so fan out wide: validate on 3, then 6, then everything.
 
-Order is a hypothesis; the per-iteration improvement may reorder it, and any wave
-may re-run more than once. ~7–8 waves total.
+| Wave | Size | Models | Why |
+|---|---|---|---|
+| **Wave 1** (running) | 3 | Lee & Maunsell 2009 (C1) · Olshausen–Field 1996/97 (C2 dictionary) · Spratling 2010 DIM (C3 engine) | one anchor per motif; machinery shakedown |
+| **Wave 2** | 6 ∥ | Denison 2021, Verhoef & Maunsell 2017 (C1) · Rozell LCA 2008, Bell & Sejnowski 1997 (C2) · Rao & Ballard 1999, Bogacz 2017 (C3) | engines + anchors + independents, 2 per cluster |
+| **Wave 3** | all remaining ∥ | rest of the C1 lineage (Ni/Ray 2012, Hara/Gardner 2016, Pestilli 2009, Boynton 2009, Heeger 1992, CHM 1997, Ni & Maunsell 2017/2019, Doostani 2023, …) + Zhu & Rozell 2013 (C2) + Spratling 2012 (C3) | drain the corpus; reuse-heavy dependents land after their engines exist |
+
+The retro/improvement still runs between waves, so 3 + 6 = **9 models of
+process-learning before the final big batch**. The workflow concurrency cap
+(~10–16) lets the final wave's ~12–14 run largely in parallel with light
+queuing. Engines/anchors are front-loaded so dependents (Zhu & Rozell after
+Rozell-LCA; the C1 extensions after R&H/Lee&Maunsell) can reuse primitive stages.
+Order is a hypothesis; the per-iteration improvement may reorder it, and any
+model that resists is deferred to a later wave (§6).
 
 ## 5. Process guardrails carried from the open-branch learnings
 
