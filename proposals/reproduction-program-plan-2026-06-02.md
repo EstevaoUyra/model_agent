@@ -42,6 +42,13 @@ The earlier-designed faithfulness machinery *is* the substitute:
   silently passed**.
 - **The single human call = the consolidated triage report** (§9), sorted
   confidence × impact, so one review session adjudicates the whole corpus.
+- **The organizer owns the git ground-truth and the gate (added Wave 1).**
+  Critique / spec-review / re-review agents judge *content faithfulness only* —
+  they do NOT verify commit/push state or write `APPROVED`. The organizer verifies
+  git inside each model repo and writes the gate. (Wave 1: a re-review agent
+  inferred a model's git state from the parent repo and false-blocked an
+  approvable model — agents must `git -C` the model repo, never infer from the
+  parent where it is a nested untracked repo.)
 
 ## 2. The unit — one model's reproduction pipeline
 

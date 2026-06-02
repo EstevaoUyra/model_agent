@@ -43,4 +43,26 @@ throwaway reference impl.* Wave-2 extractors inherit it.
   agents. Each extraction agent read the full paper and wrote a throwaway
   reference impl to self-check — expensive but it is what caught the defects.
 
-**Still open after revision:** → next entry.
+**After revision (round 2):**
+- **lee_maunsell_2009 + olshausen_field_1996 → APPROVED** (organizer-gated).
+  lee_maunsell was content-approved by the panel; olshausen needed one more fix —
+  a false pixel-control claim ("identity bases give no sparsity gain") still
+  lurking in the Fig-9 *visual checklist* after the revision removed it
+  everywhere else — applied by the organizer.
+- **spratling_2010 → one more pass.** Real catch: the Fig.6a iso-point relaxation
+  landed in the test + ledger but three figure/protocol docs still asserted strict
+  suppression at all orientations, and the cited paper text (C-011) says "all mask
+  orientations" — so whether the relaxation is even faithful needs the figure/
+  paper. A focused reconciliation agent is resolving it against `figure_6.jpg`.
+
+**Process lessons → fixes (applied going forward):**
+- **Git-context confusion (cost a cycle).** The re-review agents inferred each
+  model's git state from the **parent** repo — where the model is a *nested,
+  untracked* repo — and falsely concluded "the work doesn't exist", a phantom
+  blocker that nearly failed an approvable model. *Fix:* any agent doing git
+  ops/verification operates INSIDE the model repo (`git -C models/<repo>`);
+  model-repo state is never inferred from the parent.
+- **Organizer owns the git gate.** Critique / spec-review / re-review agents judge
+  **content faithfulness only** — they do not verify push state or write
+  `APPROVED`. The organizer verifies git ground-truth in each repo and writes the
+  gate. (Removes the brittle agent-git-verification that caused the above.)
