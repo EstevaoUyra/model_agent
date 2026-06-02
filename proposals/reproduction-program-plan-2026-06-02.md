@@ -52,17 +52,17 @@ setup → Phase A (extract + literature-grounding) → [autonomous spec-review p
       → commit+push milestones throughout
 ```
 
-Built and hardened on the **pilot**, this becomes a **reusable workflow script**
-— i.e. the "framework runner" the docs describe but STATUS.md says was never
-built is now *realized as the reproduction workflow*, reused every wave. That is
-Pillar 4 paying for itself.
+Built and hardened during **Wave 1** (and refined every iteration after), this
+becomes a **reusable workflow script** — i.e. the "framework runner" the docs
+describe but STATUS.md says was never built is now *realized as the reproduction
+workflow*, reused and improved every wave. That is Pillar 4 paying for itself.
 
 Phase-A and Phase-B run as **separate agents with separate briefs and directory
 scope**; Phase-B agents stay paper-blind (brief-enforced, as today).
 
-## 3. The spiral — waves of 3, with revisits and a process retro
+## 3. The spiral — waves of ~3, improved every iteration, re-run until solid
 
-Each **wave = 3 models**, run as ~3 workflows with the organizer adjudicating
+Each **wave = ~3 models**, run as ~3 workflows with the organizer adjudicating
 between them:
 
 1. **W-extract** — parallel fan-out (one agent / paper) → Phase-A artifacts →
@@ -70,10 +70,25 @@ between them:
 2. **W-reproduce** — per-model bounded closed loop, models in parallel
    (pipeline) → status (green / partial / blocked).
 3. **W-validate** — parallel fan-out → per-model triage reports.
-4. **Process retro (organizer)** — a design-pass-style consolidation: where
-   agents fought the scaffold, footguns hit, caps tripped → concrete skill/canon
-   edits → committed. **This is the "improve the process" step; each wave's retro
-   upgrades the next.**
+4. **Improve (organizer)** — consolidate what was learned into concrete edits to
+   the **agent guidelines, briefs, skills, and docs** → committed.
+
+**Two principles make a separate one-paper "pilot" unnecessary (user direction,
+2026-06-02):**
+
+- **Improve at every iteration, not only between waves.** Course correction is
+  continuous: the moment an agent fights the scaffold, a footgun hits, or a
+  guideline proves thin, the guidelines/skills/briefs are updated and the fix
+  applies immediately downstream. The improvement loop *is* the validation
+  mechanism — a one-paper pilot is both too narrow (it won't surface the range of
+  problems we will certainly hit) and redundant (the loop already course-
+  corrects).
+- **Re-iterate the same group more than once if needed.** A wave is *not*
+  one-pass. If the retro surfaces fixable issues, re-run the group with the
+  improved guidelines until it is solid (or a STUCK / falsification trigger
+  fires, §6). **Wave 1 therefore doubles as the machinery shakedown** — expect
+  more re-iterations early; that is by design, not failure. **No mid-program
+  human checkpoint**; the human is called once, at the end (§9).
 
 Then spawn the next wave, and at planned points **revisit** earlier waves:
 re-run the upgraded process and wire up **cross-cluster benchmarks** (extra-
@@ -86,15 +101,15 @@ originals."
 Each cluster has a **shared engine**; reproduce it first so dependents reuse
 *primitive stages*, never a calibrated protocol (the hermann-vs-carrasco lesson).
 
-| Stage | Models | Why |
+| Wave | Models | Why |
 |---|---|---|
-| **Pilot** | Lee & Maunsell 2009 (C1) | cheap, familiar mechanism; debuts literature-grounding + proves the workflow & commit/push machinery end-to-end |
-| **Wave 1** (anchors, breadth-first) | Olshausen–Field 1996/97 (C2 dictionary) · Spratling 2010 DIM (C3 engine) · Denison 2021 (C1 dynamic) | exercises all 3 motifs early → fastest process-gap surfacing |
-| **Wave 2** | Rozell LCA (C2 engine) · Rao & Ballard 1999 (C3 anchor) · Verhoef & Maunsell 2017 (C1, has code) | engines + a coded C1 |
-| **Wave 3** | Zhu & Rozell 2013 (C2, reuses LCA) · Bogacz 2017 (C3 ref solver) · Ni/Ray 2012 (C1 tuned) | reuse-heavy; **revisit Wave 1** here |
-| **Wave 4+** | Bell–Sejnowski (C2) · Spratling 2012 (C3) · Hara/Gardner 2016, Pestilli 2009, Boynton 2009, Heeger 1992 / CHM 1997 precursors (C1) … | drain the remaining lineage; periodic revisits |
+| **Wave 1** (anchors, breadth-first; doubles as machinery shakedown) | Lee & Maunsell 2009 (C1, cheapest/familiar) · Olshausen–Field 1996/97 (C2 dictionary) · Spratling 2010 DIM (C3 engine) | one anchor per motif → exercises all 3 early, fastest process-gap surfacing; expect more re-iterations here |
+| **Wave 2** | Denison 2021 (C1 dynamic) · Rozell LCA (C2 engine) · Rao & Ballard 1999 (C3 anchor) | engines + the dynamic C1 |
+| **Wave 3** | Verhoef & Maunsell 2017 (C1, has code) · Zhu & Rozell 2013 (C2, reuses LCA) · Bogacz 2017 (C3 ref solver) | reuse-heavy; **revisit Wave 1** here |
+| **Wave 4+** | Ni/Ray 2012 (C1 tuned) · Bell–Sejnowski (C2) · Spratling 2012 (C3) · Hara/Gardner 2016, Pestilli 2009, Boynton 2009, Heeger 1992 / CHM 1997 precursors (C1) … | drain the remaining lineage; periodic revisits |
 
-Order within the table is a hypothesis; the retro may reorder. ~7–8 waves total.
+Order is a hypothesis; the per-iteration improvement may reorder it, and any wave
+may re-run more than once. ~7–8 waves total.
 
 ## 5. Process guardrails carried from the open-branch learnings
 
