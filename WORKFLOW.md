@@ -1,411 +1,167 @@
-# Workflow — How to reproduce a model end-to-end
+# Workflow — how to reproduce a model end-to-end
 
-This document is the operational guide for reproducing a model with this
-system. For *where* things live, see [REPO_STRUCTURE.md](REPO_STRUCTURE.md).
-For *why* the workflow is shaped this way, see [DESIGN.md](DESIGN.md).
+Operational guide for one model reproduction. *Where* things live:
+[REPO_STRUCTURE.md](REPO_STRUCTURE.md). *Why* the shape: [DESIGN.md](DESIGN.md).
+*What each model must become*: [ARCHITECTURE.md](ARCHITECTURE.md). *What is
+actually built*: [STATUS.md](STATUS.md). For the **autonomous reproduction
+program** (waves, critique-agent gates, the no-stop policy), see
+[proposals/reproduction-program-plan-2026-06-02.md](proposals/reproduction-program-plan-2026-06-02.md).
 
-> ⚠️ **Reality check — see [STATUS.md](STATUS.md).** This document
-> references a "framework runner", automatic attempt commits, a stuck
-> detector / `STUCK` gate, `relaxed`/`pending_human_review` statuses, and
-> `test_runs.csv`. **None of those are built.** In reality: run plain
-> `pytest` (a plugin logs to `test_runs.jsonl`), then use the `skills/`
-> (run-tests, compare-figure, update-state). Treat runner/stuck/CSV
-> passages below as planned design, not instructions.
+Two phases separated by a hard article-access boundary:
 
-The pipeline has five steps in two phases, separated by a hard
-article-access boundary:
+- **Phase A (article-aware):** read `paper/`, produce the self-sufficient
+  `article_aware/` contract. Gate: `article_aware/APPROVED`.
+- **Phase B (no article access):** implement from the spec alone; iterate
+  against tests + figures. **Never reads `paper/`.**
 
-- **Phase A** (article-aware): extract a self-sufficient specification
-  and qualitative claims from the paper. Ends with the human writing
-  `article_aware/APPROVED`.
-- **Phase B** (no article access): write tests from the spec, then
-  implement the model bottom-up. Iterate on failing tests; escalate when
-  stuck.
+The boundary is the load-bearing design choice: anything not in `article_aware/`
+is, by definition, an underspecification → recorded as an `Assumption`.
 
----
+## Reality, and the autonomous program — read this first
+
+The real loop is **skills + plain `pytest` (a plugin logs to `test_runs.jsonl`)
++ VLM subagents + a documented iteration cap**, driven by the organizer. The
+"framework runner", the stuck-detector / `STUCK` gate, the citation static-check,
+the `relaxed`/`pending_human_review` statuses, `CurveTolerance`,
+`paper_issues.md`, and `review_queue/` that earlier drafts described **were never
+built and have been removed** (STATUS.md).
+
+Gates are *canonically* human (Phase-A `APPROVED`, faithfulness verdict). In the
+**autonomous reproduction program** they are substituted by **adversarial
+critique agents** — a spec-review panel writes `APPROVED` in the human's stead,
+and the verdict combines the faithfulness rubric + multi-subagent VLM +
+attacker/defender judge — with the human called **once, at the end**. See the
+program plan.
 
 ## Roles
 
-- **Article extractor** — reads `paper/`, writes `article_aware/`. Done
-  when the human writes `APPROVED`.
-- **Implementation agent** — reads `article_aware/` (read-only),
-  `implementation/`, and `logs/`. Writes `implementation/` and appends
-  to `logs/spec_questions.md`. Cannot read the paper.
-- **Adversarial judges** — invoked by the runner for qualitative and
-  compliance tests. See §"Adversarial judge usage" below.
-
----
+- **Article extractor (Phase A)** — reads `paper/`, writes `article_aware/`.
+- **Implementation agent (Phase B)** — reads `article_aware/` (read-only) +
+  `logs/`; writes `implementation/`; appends to `logs/spec_questions.md`.
+  **Never reads `paper/`.**
+- **Critique / judge agents** — the spec-review panel and the attacker/defender
+  verdict judges (DESIGN §3); see the program plan for how they substitute for
+  the human gates.
 
 ## Phase A — article-aware
 
-The extractor produces every artifact a downstream agent needs to
-implement the model *without re-reading the paper*. Anything it can't
-find in `article_aware/` is by definition an underspecification, recorded
-as an `Assumption`. This is the property that makes the whole approach
-work; protect it.
+Produce everything a paper-blind implementer needs. Follow
+`skills/extract-spec/SKILL.md` and `skills/extract-figure/SKILL.md`. Artifacts
+under `article_aware/`:
 
-### Step 1 — Extract the spec
+- `spec/model_spec.yaml` — state variables, parameters, equations, components,
+  the ordered **paper-derived pipeline (dataflow)**, and `simulation_protocols`
+  (each declaring its `expected_outputs`). Pydantic-validated.
+- `spec/calibration.yaml` — the **paper-derived** parameter ledger
+  (ARCHITECTURE §3); Phase-A-owned, `source: C-NNN`.
+- `spec/citations.yaml` (`C-NNN`) · `spec/assumptions.yaml` (`A-NNN`).
+- `pseudocode/<figure>_protocol.md` — inputs, procedure, named outputs, expected
+  behavior, one per protocol.
+- `figures/figure_<N>.md`, `figure_<N>_visual_checklist.md`, and the paper figure
+  image — central to the VLM flow.
+- `extracted_data/test_figure_<N>.py` — qualitative claims as ordinary pytest
+  tests asserting on the protocol's named outputs / the measurement record.
+  Reduce to deterministic wherever possible. **For visual words** ("saturates",
+  "sigmoidal") the VLM is the binding check and the deterministic test is a
+  regression tripwire — and tighten the proxy so passing it implies the visual
+  reads right. **For schematic figures**, assert spatial-layout structure
+  (positions live in the measurement record) — guards the "Figure-1 class"
+  (deterministically perfect, visually broken).
+- **Literature-grounding / parameter-provenance table** (the adopted process
+  upgrade): for each significant parameter/choice — `value | stated-in-paper |
+  relative-only | inferred | evidence (cited ref / lineage / follow-up / original
+  code) | sensitivity`. This evidence is what lets the final review trust the
+  reproduction cheaply.
 
-Follow **`skills/extract-spec/SKILL.md`** for the full process. In brief,
-produce four artifacts under `article_aware/spec/` and `pseudocode/`:
-
-- `spec/citations.yaml` — numbered `C-NNN` references into the paper
-- `spec/assumptions.yaml` — named `A-NNN` records for every underspecification
-- `spec/model_spec.yaml` — Pydantic-validated YAML with `state_variables`,
-  `parameters`, `equations`, `components`, `pipeline` (ordered), and
-  `simulation_protocols`
-- `pseudocode/<figure>_protocol.md` — one per protocol, with inputs,
-  procedure, named outputs, and expected behavior
-
-The skill has the YAML schemas, examples, and quality checks.
-
-### Step 2 — Extract figure data and qualitative claims
-
-For each figure to be reproduced, produce the appropriate combination of:
-
-**`extracted_data/test_<figure>.py`** — qualitative claims as ordinary
-pytest tests, one file per figure. **Reduce to deterministic wherever
-possible** — they're cheaper, more reliable, and don't burn judge budget.
-Each test imports the relevant `run_<protocol_id>()` function from the
-implementation and asserts against the named outputs declared in
-`model_spec.yaml/simulation_protocols[*].expected_outputs`.
-
-```python
-from neuromodels.framework.testing import deterministic_test
-from rh_model import protocols
-
-
-@deterministic_test(spec_ref="simulation_protocols.figure_4B", claim_id="Q-001")
-def test_attended_response_exceeds_unattended():
-    """Attended response exceeds unattended response at all contrasts shown.
-
-    Citation: C-021
-    """
-    out = protocols.run_figure_4B()
-    assert (out["attended_response"] > out["unattended_response"]).all()
-```
-
-**`extracted_data/<model>_claim_helpers.py`** — paper-specific helper
-functions used by those tests. Writing these helpers is part of
-specification authoring, not framework work; keep helpers here unless
-they are truly paper-independent.
-
-**`extracted_data/<figure>.csv`** — numeric data digitized from the
-figure (when option (a) — pointwise reproduction — is in scope). CSVs are
-loaded directly by the corresponding `test_<figure>.py` file.
-
-**`reproduced_figures/<figure>.png`** — plotted from the extracted data.
-Same plot type, same information content as the paper figure; styling
-need not match. This is a **human-review artifact**: the human compares
-it to the paper figure to verify extraction quality.
-
-### Approval gate
-
-When the human is satisfied, they write `article_aware/APPROVED` (an
-empty file is fine). Phase B tooling refuses to start without it.
-
-### Phase A commit cadence
-
-Commit the per-model submodule:
-- After step 1 (spec + pseudocode in place).
-- After step 2 (data + qualitative + reproduced figures in place).
-- After human approval (`APPROVED` written).
-
----
+**Gate:** `article_aware/APPROVED` (empty sentinel). The human writes it; in the
+autonomous program the spec-review panel writes it after attacking the spec for
+completeness (can a paper-blind agent build it?) and faithfulness (is every
+assumption evidenced?).
 
 ## Phase B — implementation
 
-The implementation agent reads only `article_aware/` (and `logs/`),
-never `paper/`. It writes `implementation/` and may append to
-`logs/spec_questions.md`.
+Reads only `article_aware/` + `logs/`. Build to the ARCHITECTURE shape
+(`src/<pkg>/stages/` + `manifest.yaml`, `measurements.py`, `views.py`,
+`protocols.py`, `implementation/calibration.yaml`, `artifacts/`). The closed
+loop:
 
-### Step 3 — Run article-aware figure tests
+1. Implement bottom-up along the spec `pipeline`, smallest helpers first.
+2. Run `pytest` — the plugin logs each test to `logs/test_runs.jsonl`; follow
+   `skills/run-tests`. **Deterministic tests assert on the measurement record**
+   (golden-file style), so a passing test and the figure cannot disagree.
+3. Generate figure PNGs; run the **multi-subagent VLM compare**
+   (`skills/compare-figure`): **≥3 subagents + a parent image-read** for changed
+   / contested / soft-blocked figures, 1 for stable-green. Persist the
+   per-subagent splits, not just the adjudicated result.
+4. Diagnose each issue, tagged `model | figure_generation | spec_scope`, and
+   route the fix accordingly. **Before sweeping calibration knobs**, write the
+   closed form for the recorded quantity and identify which knob can actually
+   move the failing value (avoids the "nothing works, looks stuck" trap).
+5. Repeat until **deterministic green + VLM pass**, or the **iteration cap**
+   trips → escalate (below).
 
-Figure-level tests live in `article_aware/extracted_data/test_<figure>.py`
-and are authored during Phase A from `model_spec.yaml`, `pseudocode/`,
-and extracted figure claims. Do not duplicate those claims under
-`implementation/tests/`. The article-aware test is the source of truth;
-`model_spec.yaml/simulation_protocols[*].expected_outputs` is the output
-contract; and `implementation/src/<package>/protocols.py` provides
-`run_<protocol_id>()` functions returning exactly those keys.
-
-During Phase B, the implementation agent runs these tests and changes
-only `implementation/` to make them pass. If an article-aware test is
-wrong or underspecified, log a spec question; do not silently edit the
-contract from Phase B.
-
-Hand-written tests still belong in `implementation/tests/` when they
-verify internal correctness of building blocks that have no direct
-paper-claim analog, such as kernel normalization or helper behavior.
-
-For the commands to run figure tests (filename glob, narrowing recipe,
-useful flags, the `cd` gotcha that affects log placement, and how to read
-`logs/test_runs.jsonl`), follow **`skills/run-tests/SKILL.md`**.
-
-### Step 3b — Compare reproduced figures visually
-
-Once all data-backed and qualitative figure tests are passing, the
-implementation agent generates the model's figure PNGs and runs a visual
-reproducibility pass. Follow **`skills/compare-figure/SKILL.md`** for the
-full process. In brief:
-
-```bash
-neuromodels compare-figure-packet <figure_number> \
-  --model-dir models/<model> \
-  --output-file /tmp/<model>_figure_packets/figure_<figure_number>.json
-```
-
-Then spawn a subagent with the packet path. The subagent reads both images
-directly and evaluates each checklist item. See the skill for the subagent
-prompt template, known VLM failure modes, and how to act on results.
-
-If a figure repeatedly fails and the subagent feedback is not enough to
-diagnose the issue, the implementation agent may inspect and analyze
-that figure directly. Treat direct analysis as the exception for stuck
-visual reproduction, not the normal path. The command above only prepares
-deterministic comparison inputs; it does not itself spawn Codex agents or
-make a final reproducibility decision.
-
-Tolerance types (when implementing curve tests against extracted CSVs):
-
-```python
-@dataclass
-class CurveTolerance:
-    max_rel: float       # max pointwise relative error
-    nrmse: float         # normalized RMSE (by signal range)
-    pearson: float       # min Pearson correlation
-    abs_floor: float = 1e-9
-```
-
-All three metrics are computed and logged on every curve test. A test
-passes only if all three pass. Logging all three matters for diagnosis:
-shape passes but pointwise fails → wrong amplitude/scaling; pointwise
-passes but shape fails → tolerance too loose.
-
-**Test status values:**
-
-- `pass` — all checks satisfied.
-- `fail` — at least one check failed; failure recorded with metric values.
-- `pending_human_review` — qualitative or compliance test awaiting a
-  human verdict.
-- `relaxed` — references a `paper_issue` that downgrades it (e.g.,
-  qualitative-only when the original was numeric); reported as relaxed,
-  not passing.
-- `error` — test infrastructure failure (not a test failure).
-
-### Step 4 — Implement the model bottom-up
-
-Follow the `pipeline` in `model_spec.yaml`: implement each step in
-order, smallest helpers first. Run tests frequently.
+**Calibration.** Implementation-side knobs, 1D-discretization, and frozen-fit
+stub magnitudes go in `implementation/calibration.yaml` (Phase-B-writable,
+ARCHITECTURE §3) — **never as literals in stage code**. Fitting/training is a
+**stubbed** stage: a frozen, **hashed, provenanced** learned-parameter artifact
+under `artifacts/`; the forward path consumes it deterministically.
 
 **Citation/Assumption docstring discipline.** Every function in
-`implementation/src/` must have, in its docstring, either a `Citation:`
-or an `Assumption:` field (or both). Citations reference `C-NNN`; assumptions
-reference `A-NNN`. A function that wraps and composes other cited
-functions only needs citations for the *additional* logic it introduces
-— small functions have small citation lists.
+`implementation/src/` carries `Citation:` (`C-NNN`) and/or `Assumption:`
+(`A-NNN`). A cheap **presence** check enforces presence only (not quality);
+quality is a periodic audit. (The presence check is built as part of this
+program — STATUS.md.)
 
-```python
-def attended_response(stim, attention_field):
-    """Compute the attended response by gain modulation.
+**Acceptance (ARCHITECTURE §5).** Every stage has contract tests; every plotted
+quantity a deterministic measurement test; the VLM backstop passes; and the
+**modification smoke test** passes — swap one stage for a trivial variant *via
+config only*, with zero edits to unrelated code. If (4) can't be met without
+touching unrelated code, the decomposition is wrong — fix the contracts.
 
-    Args:
-        stim: Stimulus drive, shape (n_neurons,).
-        attention_field: Attention gain, shape (n_neurons,).
+## Escalation
 
-    Returns:
-        Modulated response, shape (n_neurons,).
+- **Spec questions** → append to `logs/spec_questions.md` (`SQ-NNN`,
+  append-only, self-contained: `spec_ref`, `question`, `chosen_assumption`, and
+  `human_resolution` once resolved). The agent continues with the chosen
+  assumption.
+- **Cap reached / no progress (the "STUCK" condition).** The stuck-detector
+  isn't built; honor the documented iteration cap + repeated-diff signal. In the
+  autonomous program a STUCK model is **deferred to a later wave** — retried once
+  neighbors and the improved process may unblock it — **never allowed to halt the
+  program**; residual unreproduced models at the end are recorded as learning
+  (program plan §6).
+- **Falsification triggers** (modification smoke test impossible; calibration
+  ledger not materially cleaner than ad-hoc; agents serving the scaffold more
+  than reproducing) → **stop and escalate a redesign pass**, don't patch around
+  (ARCHITECTURE_WATCHLIST).
 
-    Citation: C-014  # Eq. 7, gain modulation by attention
-    """
-    return stim * attention_field
-```
+## Adversarial judge
 
-A static check (`framework/static_checks/`) verifies *presence* of one
-of these fields on every function. It does not verify *quality* — the
-cited paragraph might not actually support the function's behavior. Periodic
-human audit is required.
+For claims that resist deterministic + VLM checks, a pair of judges (attacker,
+defender) each see exactly `rubric` / `context` / `under_review` and nothing else
+— not the paper, run/test IDs, each other's output, or prior runs. CLI:
+`neuromodels judge run --rubric-file … --context-file … --under-review-file …`.
+Canonically the human decides; in the autonomous program the verdict combines the
+judge with the leaf rubric + VLM panel (program plan §1).
 
-### Step 5 — Iterate
+## Spec edits invalidate prior passes
 
-The implementation agent runs tests through the framework runner (not
-raw `pytest`) so every invocation is logged and participates in stuck
-detection. During iteration:
+The plugin records `spec_commit_hash` (git tree hash of `article_aware/`) on
+every test row. It is an **advisory** filter (no tooling): if `article_aware/`
+changes mid-Phase-B, rerun affected tests. Selective dependency-aware
+invalidation is deferred.
 
-- Run the **narrowest relevant test** after each implementation attempt.
-- Expand to file-scoped tests after the narrow one passes.
-- Run the **full model test suite** at each implementation milestone.
-- When all figure tests are passing and generated PNGs exist, run the
-  subagent-based visual figure comparison described in Step 3b.
-- Stop working on a test immediately if the runner emits a `STUCK` gate
-  for that test; address the gate before continuing.
+## Sanity checks
 
-The runner creates an attempt commit in the model repo before each test
-invocation when there are working-tree changes. The recorded
-`commit_hash` is the model commit actually tested.
+Exploratory diagnostics, **never tests** — the moment you write `assert`, it is a
+test. Follow `skills/write-sanity-check`. They live in
+`implementation/sanity_checks/`; generated `_outputs/` are gitignored.
 
-### Phase B commit cadence
+## Commit cadence (program plan §7)
 
-The framework runner handles attempt commits automatically. In addition,
-make milestone commits when:
-
-- A new pipeline component passes its tests.
-- A new figure protocol's tests all pass and its generated figure passes
-  visual comparison.
-- The spec is revised (this also invalidates prior passes — see
-  "Spec edits" below).
-
----
-
-## Sanity checks (Phase B authoring rule)
-
-Sanity checks are **exploratory diagnostics**, not tests. Follow
-**`skills/write-sanity-check/SKILL.md`** for the full guide (where they live,
-which helpers to use, token discipline, lifecycle, citation conventions).
-
-The load-bearing distinction:
-
-> If you can write `assert P(output)` for a property P that should *always*
-> hold → **test**.
->
-> If you want to look at the output and form a judgement → **sanity check**.
-
-The moment you write `assert`, it's a test, not a sanity check.
-
----
-
-## Escalation channels
-
-When work blocks, route to the right channel:
-
-### Spec questions (impl agent → human)
-
-Append to `logs/spec_questions.md` when the implementation agent
-discovers a spec ambiguity or genuine missing information that it can
-work around but wants the human to revisit. The file is **append-only,
-no read-back** — each entry must stand alone.
-
-```
-## SQ-<n> — <short title>
-date: <ISO8601>
-spec_ref: <citation_id or assumption_id or section path>
-question: <the concern>
-chosen_assumption: <what the agent did instead, with link to assumption_id>
-```
-
-The agent then continues with the chosen assumption. The human reviews
-periodically and decides whether to revise the spec or leave the
-assumption.
-
-### Paper issues (human-only)
-
-`logs/paper_issues.md` records suspected paper errors, ambiguities, or
-known errata. Distinct from underspecification (which is an
-`Assumption`); the workflow for resolving them differs.
-
-```yaml
-- id: PI-001
-  test: test_figure_4b_attended_vs_unattended
-  type: suspected_paper_error  # | paper_ambiguity | known_erratum
-  description: "Figure 4B y-axis label appears inconsistent with text on p. 7."
-  action: "assertion relaxed to qualitative ordering only"
-  references:
-    - "Erratum, Journal Vol X, p. Y"
-```
-
-Tests reference `PI-NNN` IDs in their `paper_issue` decorator argument
-and report status `relaxed` rather than `pass`. The aggregated log can
-answer "what is relaxed because of paper issues" separately from "what
-is stuck."
-
-### STUCK gate (framework → impl agent)
-
-When the stuck detector emits a signal, it writes a `STUCK` file at the
-model root with the offending `test_id`, recent attempt summary, and
-the most recent failure's `issue_description`. The implementation agent
-refuses to continue working on that test until the file is removed.
-
-The human investigates and takes one of: revise the spec, register a
-paper issue, relax the test, or clear the signal and tell the agent to
-keep trying.
-
-### Pending review gate (judges → human)
-
-Tests in `pending_human_review` block any downstream work that depends
-on them. The agent may continue with unblocked work in the meantime.
-
----
-
-## Spec edits and re-validation
-
-If the human edits any file in `article_aware/` after Phase B has
-started, every prior test pass was validated against the *old* spec.
-The runner records `spec_commit_hash` on every test row; queries that
-ask "what is currently passing" filter to rows whose `spec_commit_hash`
-matches the current head of `article_aware/`.
-
-In v1 this is an advisory filter — the human or agent reads it and
-reruns affected tests. Selective dependency-aware invalidation is on the
-deferred list.
-
----
-
-## Adversarial judge usage
-
-For qualitative or compliance tests that resist deterministic reduction,
-the framework invokes a pair of LLM judges (attacker and defender) with
-no autonomous decision authority — the human always decides.
-
-### Inputs
-
-Each judge receives exactly three sections:
-
-- `rubric` — the standard the object is being evaluated against.
-- `context` — scoped background needed to understand the rubric.
-- `under_review` — the code, data, or output being judged.
-
-Judges do **not** receive the paper, run IDs, test IDs, spec refs,
-review queue paths, other tests, the other judge's output, or prior
-judge runs on the same test.
-
-### Basic CLI
-
-```bash
-neuromodels judge run \
-  --rubric-file rubric.md \
-  --context-file context.md \
-  --under-review-file output.txt
-```
-
-Prints the judge result as JSON by default (markdown also supported).
-Writing `logs/review_queue/` files is the caller's responsibility, not
-part of the basic judge CLI.
-
----
-
-## Stuck detection: what gets logged
-
-The aggregated test log (`logs/test_runs.csv`) writes one row per test
-execution regardless of how it was invoked. Key fields used by the
-stuck detector:
-
-- `diff_hash` — hash of the diff vs. the last failing run of the same
-  `test_id`.
-- `lines_changed` — count of changed lines in that diff.
-- `regions_jaccard_prior` — Jaccard similarity of changed line ranges
-  against prior attempts in the current debugging session for this test.
-
-A "debugging session" is scoped per `test_id`: it begins at the first
-failure and ends when the test passes, is relaxed, or the human clears
-it. See [DESIGN.md](DESIGN.md) for trigger thresholds and the rationale
-behind diff-based detection.
-
-### Useful queries on the log
-
-The CSV is intentionally simple to start. Expected queries (pandas
-one-liners):
-
-- "All currently failing tests, latest attempt only."
-- "All tests relaxed because of paper issues."
-- "Attempt history for a given `test_id`."
-- "Tests in `pending_human_review` for current run."
+Per-model submodule, on its own **feature branch**: after spec+pseudocode; after
+data+figures+`APPROVED`; when a component's tests pass; when a figure goes green
+(deterministic + VLM). **Push throughout.** The model `main` is advanced once, by
+a squash-merge PR, before the final review. **Commit only inside the model repo**
+— never the parent (a real past incident: an agent `--amend`-ed the parent); the
+parent's submodule-pointer bumps are the organizer's serial job.

@@ -1,177 +1,102 @@
 # Repository structure
 
-This document is the reference for **what lives where**. For *what the project
-is for*, see [VISION.md](VISION.md). For *how* to do work, see
-[WORKFLOW.md](WORKFLOW.md). For *why* the design is shaped this way, see
-[DESIGN.md](DESIGN.md).
+What lives where. *What the project is for*: [VISION.md](VISION.md). *How to
+reproduce a model*: [WORKFLOW.md](WORKFLOW.md). *Why the design*:
+[DESIGN.md](DESIGN.md). *The shape each model must take*:
+[ARCHITECTURE.md](ARCHITECTURE.md). *What is actually built*:
+[STATUS.md](STATUS.md).
 
-> ⚠️ **Reality check — see [STATUS.md](STATUS.md).** The framework-layout
-> block below lists `logging/`, `stuck_detector/`, `review/` and a filled
-> `static_checks/` — these **do not exist**. It omits the real
-> `compare_figures.py`, `test_table.py`, and the per-model
-> `article_aware/figures/`, `implementation/figure_outputs/`,
-> `logs/figure_comparisons/`. Logs are `test_runs.jsonl`, not `.csv`.
-> STATUS.md has the accurate inventory.
-
-## Layout
-
-The framework is a Python package, installed in editable mode (`pip install
--e .` from the repo root). Models are nested git repositories under
-`models/`, tracked from this monorepo as git submodules. Each model
-directory imports from the framework but has its own history.
+## Root
 
 ```
-model_agent/                            # repo root (this monorepo)
-  pyproject.toml                        # framework package config + extras
-  pytest.ini                            # custom pytest markers
-  AGENTS.md                             # thin entry point for agent sessions
-  VISION.md                             # what the project is for (four pillars; apex doc)
-  STATUS.md                             # what is actually built (canonical on reality)
-  DESIGN.md                             # rationale for the system's mechanisms
-  ARCHITECTURE.md                       # the contract shape every model must take
-  ARCHITECTURE_WATCHLIST.md             # what would falsify the structural bets
-  REPO_STRUCTURE.md                     # this document
-  WORKFLOW.md                           # how to reproduce a model end-to-end
-
-  neuromodels/                          # the framework
-    framework/
-      testing/                          # pytest decorators, runner, tolerance types
-      llm/                              # shared LLM provider access
-      judge/                            # adversarial judge orchestration
-      logging/                          # aggregated test log + queries
-      stuck_detector/                   # diff-based stuck signal computation
-      static_checks/                    # citation/assumption docstring check
-      review/                           # review-queue file format and apply
-      explore/                          # helpers for sanity-check scripts
-    cli/                                # `neuromodels` CLI entry points
-    tests/                              # framework tests
-
-  models/
-    reynolds_heeger_2009/               # git submodule; one repo per model
-      paper/                            # source of truth (raw input)
-      article_aware/                    # PROTECTED — Phase A artifacts
-      implementation/                   # Phase B code, tests, sanity checks
-      logs/                             # per-model test/escalation logs
+model_agent/                       # parent monorepo (also the framework repo)
+  VISION.md                        # what the project is for (four pillars; apex)
+  STATUS.md                        # what is actually built (canonical on reality)
+  DESIGN.md                        # rationale for the mechanisms
+  ARCHITECTURE.md                  # the contract shape every model must take
+  ARCHITECTURE_WATCHLIST.md        # what would falsify the structural bets
+  WORKFLOW.md                      # how to reproduce a model end-to-end
+  REPO_STRUCTURE.md                # this document
+  AGENTS.md                        # thin entry point for agent sessions
+  pyproject.toml  pytest.ini
+  neuromodels/                     # the framework (pip install -e .)
+  models/                          # one git submodule per reproduced model
+  proposals/                       # process-knowledge (Pillar 4): plans, retros, design passes
+  skills/                          # the operational layer — how work actually gets done
 ```
 
-## Per-model layout (inside `models/<model_name>/`)
-
-> The layout below is the *original* shape. [ARCHITECTURE.md](ARCHITECTURE.md)
-> defines the **current required shape** (stage modules, `measurements.py`,
-> `views.py`, `spec/calibration.yaml`, `logs/figure_diagnoses/`) and
-> supersedes this block where they differ. New models use the
-> ARCHITECTURE.md shape; `reynolds_heeger_2009` migrates opportunistically.
+## The framework — `neuromodels/`
 
 ```
-paper/
-  paper.pdf                             # raw source
-  extracted_text.md                     # OCR/text extraction (optional)
-
-article_aware/                          # PROTECTED — see "Boundaries"
-  spec/
-    model_spec.yaml                     # state vars, params, equations, components,
-                                        #   pipeline, simulation_protocols
-    citations.yaml                      # numbered C-NNN references into the paper
-    assumptions.yaml                    # named A-NNN underspecification records
-  pseudocode/
-    figure_<N>_protocol.md              # per-protocol procedure descriptions
-  extracted_data/
-    conftest.py                         # pytest import setup for article-aware tests
-    <model>_claim_helpers.py            # paper-specific helpers used by figure tests
-    test_figure_<N>.py                  # qualitative claims as direct pytest tests
-    figure_<N>.csv                      # numeric data digitized from paper figures
-  reproduced_figures/
-    figure_<N>.png                      # plotted from extracted_data; human spot-check
-  APPROVED                              # empty sentinel file; presence = human gate ok
-
-implementation/
-  src/<package>/                        # the model implementation
-    __init__.py
-    model.py                            # pipeline functions
-    protocols.py                        # per-figure runners
-    helpers.py                          # numerical utilities
-  tests/
-    conftest.py
-    test_*.py                           # internal correctness tests for building blocks
-  sanity_checks/                        # exploratory scripts (not tests)
-    check_<topic>.py                    # one file per topic; multiple checks inside
-    check_<topic>_outputs/              # GITIGNORED — PNG + text per check
-
-logs/
-  test_runs.csv                         # aggregated test log (one row per test execution)
-  spec_questions.md                     # Phase B agent: append-only, no read-back
-  paper_issues.md                       # human-only, structured PI-NNN entries
-  review_queue/                         # one file per pending human verdict
+neuromodels/
+  framework/
+    testing/         # pytest plugin → logs/test_runs.jsonl; figure(N) marker; deterministic_test
+    test_table.py    # per-figure Deterministic + VLM status table   (CLI: neuromodels test-table)
+    compare_figures.py  # figure-comparison packet builder           (CLI: neuromodels compare-figure[-packet])
+    judge/           # adversarial judge, attacker/defender           (CLI: neuromodels judge)
+    llm/             # shared LLM provider access
+    explore/         # helpers for sanity-check scripts
+  cli/               # `neuromodels` CLI entry points
+  tests/             # framework tests
 ```
 
-## Who writes / reads what
+Earlier drafts listed `logging/`, `stuck_detector/`, `review/`, a populated
+`static_checks/`, and a "runner" — **none ever existed**; they have been removed
+here (STATUS.md). The real operational layer is `skills/` + the pytest plugin.
 
-| Directory                            | Writers                          | Readers                          |
-|--------------------------------------|----------------------------------|----------------------------------|
-| `paper/`                             | human (one-time)                 | extractor only                   |
-| `article_aware/spec/`                | extractor                        | extractor, impl agent, framework |
-| `article_aware/pseudocode/`          | extractor                        | extractor, impl agent            |
-| `article_aware/extracted_data/`      | extractor                        | extractor, impl agent            |
-| `article_aware/reproduced_figures/`  | extractor                        | human (review)                   |
-| `article_aware/APPROVED`             | human                            | framework gate                   |
-| `implementation/src/`                | impl agent                       | impl agent, framework, judges    |
-| `implementation/tests/`              | impl agent                       | impl agent, framework            |
-| `implementation/sanity_checks/`      | impl agent                       | impl agent, human                |
-| `implementation/sanity_checks/*_outputs/` | impl agent (auto-generated) | impl agent, human                |
-| `logs/test_runs.csv`                 | framework runner                 | impl agent, human, framework     |
-| `logs/spec_questions.md`             | impl agent (append-only)         | human                            |
-| `logs/paper_issues.md`               | human                            | impl agent, framework            |
-| `logs/review_queue/`                 | framework runner / impl agent    | human                            |
+## Per-model — `models/<model>/`
+
+Each model is a **private git submodule** with its own history; the parent bumps
+the pointer. The required *internal* shape (stage modules + `manifest.yaml`,
+`measurements.py`, `views.py`, the two calibration ledgers, `artifacts/`,
+`logs/figure_comparisons/`, `logs/figure_diagnoses/`) is defined in
+**[ARCHITECTURE.md → Per-model layout]** — the authoritative source. In brief:
+
+```
+models/<model>/
+  paper/             # raw PDF — extractor (Phase A) only
+  article_aware/     # PROTECTED — Phase A contract: spec/ (model_spec, calibration,
+                     #   citations, assumptions), pseudocode/, figures/, extracted_data/, APPROVED
+  implementation/    # Phase B: src/<pkg>/{stages,measurements,views,protocols}, calibration.yaml,
+                     #   artifacts/, tests/, sanity_checks/, figure_outputs/ (gitignored)
+  logs/              # test_runs.jsonl, figure_comparisons/, figure_diagnoses/, spec_questions.md
+  README.md          # the reviewable state report (update-state skill)
+```
 
 ## Boundaries (enforced by tooling, not just prompts)
 
-| Agent role     | Reads paper | Reads article_aware | Writes article_aware | Reads spec_questions | Writes spec_questions |
-|----------------|-------------|---------------------|----------------------|----------------------|-----------------------|
-| Extractor      | yes         | yes                 | yes                  | n/a                  | n/a                   |
-| Implementation | **no**      | yes (read-only)     | **no**               | **no**               | append-only           |
-| Judges         | no          | scoped section only | no                   | no                   | no                    |
+| Agent role | Reads `paper/` | Reads `article_aware/` | Writes `article_aware/` | Writes `spec_questions` |
+|---|---|---|---|---|
+| Extractor (Phase A) | yes | yes | yes | n/a |
+| Implementation (Phase B) | **no** | yes (read-only) | **no** | append-only |
+| Judges / critique | no | scoped section only | no | no |
 
-Boundaries are enforced by Claude Code permission config / working
-directory scope, not by prompt instructions. Prompts are a hint; tool
-config is a guarantee.
+Enforced by working-directory scope, not prompt text — prompts are a hint, tool
+config is the guarantee. The Phase-A `APPROVED` and faithfulness-verdict **human
+gates** are, in the autonomous reproduction program, substituted by adversarial
+critique agents (program plan §1); the directory boundary itself is unchanged.
 
-## Defenses for layout choices
+## Who writes / reads what
 
-- **`article_aware/` as a single directory** makes the protection boundary
-  one path prefix. Easy to enforce; obvious to humans inspecting the repo.
-- **`paper/` separate from `article_aware/`** because the PDF is raw input
-  with a different lifecycle from derived artifacts. Extractor reads both;
-  implementation reads neither.
-- **`APPROVED` sentinel file** is a cheap, version-controllable gate. Phase
-  B tooling refuses to start without it.
-- **Per-model submodules** give each reproduced model an independent
-  history while keeping the framework and model collection discoverable
-  from one parent repo.
-- **`logs/` per model rather than central** because logs are inherently
-  per-model and we want `git log` on one model directory to tell the full
-  story.
-- **`sanity_checks/` separate from `tests/`** because sanity checks are
-  exploratory diagnostics with no assertions; mixing them with assertion
-  tests would conflate "this is a contract" with "let me look at this."
-  Generated `_outputs/` directories are gitignored — only the scripts are
-  version-controlled.
-- **`framework/explore/` shared across models** so sanity-check scripts
-  use a consistent style (stat printing, heatmap saving) rather than
-  reimplementing helpers per model.
+| Path | Writers | Readers |
+|---|---|---|
+| `paper/` | human (once) | extractor only |
+| `article_aware/**` | extractor | extractor, impl agent |
+| `article_aware/APPROVED` | human / spec-review panel | Phase-B gate |
+| `implementation/**` | impl agent | impl agent, judges |
+| `logs/test_runs.jsonl` | pytest plugin | impl agent, organizer, human |
+| `logs/figure_comparisons/` | compare-figure flow | organizer, human |
+| `logs/spec_questions.md` | impl agent (append-only) | human / organizer |
 
-## Glossary
+## Layout rationale (still true)
 
-- **Phase A** — article-aware steps: extraction and figure reproduction.
-- **Phase B** — no-article steps: test suite, model, iteration.
-- **Spec** — the structured artifact in `article_aware/spec/`.
-- **Pseudocode** — protocol descriptions in `article_aware/pseudocode/`.
-- **Extracted data** — numeric data and executable figure-claim tests extracted from paper figures.
-- **Reproduced figures** — plots from extracted data, for human spot-check.
-- **Citation** — referenceable pointer into the paper, identified `C-NNN`.
-- **Assumption** — referenceable underspecification record, identified `A-NNN`.
-- **Paper issue** — referenceable suspected paper error or ambiguity, `PI-NNN`.
-- **Spec question** — write-only escalation from the impl agent, `SQ-NNN`.
-- **Sanity check** — exploratory script under `sanity_checks/`; no asserts.
-- **APPROVED gate** — sentinel file marking Phase A as human-reviewed.
-- **STUCK gate** — sentinel file emitted by stuck detector blocking further
-  work on a specific test.
+- **`article_aware/` as one directory** = the protection boundary is one path
+  prefix; obvious to enforce and to inspect.
+- **`paper/` separate from `article_aware/`** — the PDF is raw input with a
+  different lifecycle; the extractor reads both, the implementation reads neither.
+- **`APPROVED` sentinel** — a cheap, version-controllable gate.
+- **Per-model submodules** — independent history per model, discoverable from one
+  parent (DESIGN §6).
+- **Per-model `logs/`** — `git log` on one model tells its full story.
+- **`sanity_checks/` separate from `tests/`** — exploratory (no asserts) vs
+  contract; generated `_outputs/` are gitignored.

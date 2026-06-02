@@ -162,9 +162,13 @@ for, the **falsification triggers** and genuine blockers:
 - **Calibration `audited:false` not materially below the ad-hoc baseline**, or
   **agents spending more effort serving the scaffold than reproducing** → the
   contract is theatre/too heavy → escalate.
-- **Genuine STUCK** on a model (iteration cap + repeated-diff signal) → log
-  `STUCK`, **skip that model, keep going**, report it at the end (don't burn
-  iterations).
+- **A model that won't reproduce is NOT a stop condition (user direction,
+  2026-06-02).** At the iteration cap / repeated-diff signal, log `STUCK`,
+  **leave it and move on** — **re-queue it for a later wave**, where more
+  neighbors (cross-cluster benchmarks) and the improved process may unblock it.
+  **Never halt the program for one or two problem models.** A few models still
+  unreproduced at the end is an **acceptable, recorded outcome** — learning, not
+  failure.
 - A **hard-rule conflict** or something genuinely weird → stop and ask.
 
 Otherwise: run to completion, deliver §9.
@@ -203,7 +207,9 @@ and keeps each retro's improvements compounding.
 
 1. A **consolidated confidence × impact triage report** over all ~21–23 models:
    per-model verdict, the low-confidence/high-impact leaves flagged for your
-   eyes, open SQs and `audited:false` calibration across the corpus.
+   eyes, open SQs and `audited:false` calibration across the corpus, **and an
+   explicit list of any models left unreproduced/deferred with what each one
+   taught us** (expected, not a blocker).
 2. The **process-improvement ledger** (every wave retro consolidated) — what the
    program taught the method.
 3. **All repos committed & pushed**; parent pointers current.
