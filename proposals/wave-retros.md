@@ -117,6 +117,34 @@ binding checklist. Added to WORKFLOW.md Phase B.
 
 Phase A for Denison 2021, Verhoef & Maunsell 2017 (C1); Rozell LCA 2008,
 Bell & Sejnowski 1997 (C2); Rao & Ballard 1999, Bogacz 2017 (C3) — with the new
-**content-only spec-review** (the organizer owns the git gate). Rozell-LCA and
-Verhoef declare reuse of primitive stages (olshausen dictionary; R&H normalization
-primitives) per the §1 reuse-surface rule. → outcome next entry.
+**content-only spec-review** (the organizer owns the git gate).
+
+**Phase A outcome:** 4 approved (denison2021, verhoef_maunsell_2017,
+rao_ballard_1999, bogacz2017) + 2 **minor**-revise (rozell2008, bell — both ONLY
+the rule-(b) threshold-in-ledger slip; gate caught them, revised → approved).
+
+**Are the improvements holding? (mid-program check)**
+- ✅ **No-confabulation held** — the olshausen-class defect did not recur;
+  denison even adjudicated an OCR divisive-vs-multiplicative Eq.1 ambiguity
+  *without* confabulating.
+- ✅ **Organizer-owns-git-gate held** — zero false git-blocks in Wave 2.
+- ⚠️ **Thresholds-in-ledger** caught by the gate but still slipped at extraction
+  (2/6) → added an explicit **extraction self-check** to WORKFLOW.md (grep tests
+  for hard-coded numbers before finishing).
+- 🆕 **Repo-naming drift** (`denison2021` vs `denison_2021`) → pinned exact names
+  in the Wave-3 brief.
+
+**Phase B outcome (so far):** **rozell2008 GREEN** (3/3; the olshausen
+dictionary-PRIMITIVE reuse ran clean with no calibrated-protocol leak — §1
+reuse-surface validated across models; honest SQ-004 on a convergence-criterion
+inconsistency; the fresh-figure-regen produced first-pass green). **bell 2/3**
+(figure_3/5 green; figure_4 = the ICA *basis* rendered as noise — a real catch:
+a hand-built filter stub has a *noise inverse*, only a real ICA has both
+localized; targeted fix `w3sb590yw` rebuilds the stub via FastICA + reconciles a
+checklist↔ledger contradiction). The 4-model Phase B (`wf4k2u2e8`) is still
+running.
+
+**Decision (user-offered): a 3rd validation wave** — Wave 3 (6) Phase A launched
+(`w7q9o2uux`: Zhu&Rozell, Spratling2012, Ni/Ray2012, Hara/Gardner2016,
+Pestilli2009, Heeger1992); after it + the Phase-B evidence, the final batch
+(remaining ~8) goes out. So the schedule is now **3 → 6 → 6 → rest**.

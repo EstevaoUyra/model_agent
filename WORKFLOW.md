@@ -87,7 +87,12 @@ under `article_aware/`:
   the paper never makes — caught by the spec-review panel.)
 - **Thresholds live in the ledger.** Binding numeric thresholds go in
   `calibration.yaml` (`audited:false` + `A-NNN`), not hidden in test code — the
-  human audits the *ledger*, not the code.
+  human audits the *ledger*, not the code. **Self-check before finishing: grep
+  your tests for hard-coded numeric literals; every binding threshold must be a
+  ledger entry read via the calibration fixture** (only definitional constants
+  like the Gaussian-kurtosis 3.0, and float guards like 1e-9, may stay inline,
+  annotated). Wave-2: 2 of 6 extractions still buried one — the gate caught them;
+  prevent it at the source.
 - **One convention, everywhere.** Unit/scale conventions (contrast
   fraction-vs-percent, curve-peak-vs-raw-coefficient) must be singular and
   identical across spec, calibration, and provenance.
