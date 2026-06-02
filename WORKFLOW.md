@@ -64,7 +64,11 @@ under `article_aware/`:
   Reduce to deterministic wherever possible. **For visual words** ("saturates",
   "sigmoidal") the VLM is the binding check and the deterministic test is a
   regression tripwire — and tighten the proxy so passing it implies the visual
-  reads right. **For schematic figures**, assert spatial-layout structure
+  reads right. **Shape claims** (turnover / end-stopping / peak / saturation) must
+  assert the STRICT structure — e.g. an interior argmax that exceeds *both*
+  endpoints by a ledger margin — so a monotonic/plateau curve fails (Wave-1
+  spratling figure_5b: a loose proxy passed a curve with no end-stopping; the
+  independent VLM, not the impl agent's self-check, caught it). **For schematic figures**, assert spatial-layout structure
   (positions live in the measurement record) — guards the "Figure-1 class"
   (deterministically perfect, visually broken).
 - **Literature-grounding / parameter-provenance table** (the adopted process
