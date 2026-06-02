@@ -161,14 +161,15 @@ Otherwise: run to completion, deliver §9.
   each figure green, verdict). Same pattern as cagly/carrasco/hermann.
 - Parent: pointer-bump + push at each model milestone, serially, by the
   organizer (never a model agent — §5 guard).
-- **`main`-push guardrail (discovered 2026-06-02).** A user-level hook refuses
-  any direct `git push origin main` (in the parent *and*, being a user-level
-  hook, in model repos); it directs to a feature branch + PR (`gh pr create` /
-  `gh pr merge` are allowed). So the program pushes to **feature branches** and
-  advances `main` via `gh pr merge` — OR runs with `ALLOW_MAIN_COMMIT` set for
-  the model repos. **This is an OPEN setup decision to settle before "go"**
-  (see the question raised in chat): per-milestone PRs per model is heavier than
-  direct pushes, so we need to pick the mechanism.
+- **`main`-push guardrail → settled mechanism (2026-06-02).** A user-level hook
+  refuses any direct `git push origin main` (parent and model repos), directing
+  to a feature branch + PR. **Decision:** all reproduction work happens **on a
+  feature branch in each model's own repo, pushed throughout**; the model repo's
+  `main` is advanced **once, by a squash-merge PR** at the end (before the human
+  review), keeping each model's `main` clean of per-attempt noise. The **parent**
+  integrates via PR with a **history-preserving merge** (its branch carries
+  meaningful framework history that should not be squashed). No
+  `ALLOW_MAIN_COMMIT` bypass.
 - **Observable without being called:** committed+pushed progress means nothing is
   lost on failure; workflows are resumable; each model's `README.md`
   (update-state) + a **live `PROGRAM_STATUS.md`** + `/workflows` let you peek any
@@ -176,10 +177,12 @@ Otherwise: run to completion, deliver §9.
 
 ## 8. Controls & cost
 
-Per-model iteration cap (honored + escalate — stuck-detector still unbuilt);
-≤3 models/wave; workflows run in background and resume; I report cost per wave in
-the retro. This is a large program (≈21–23 full reproductions); the wave
-structure bounds blast radius and keeps each retro's improvements compounding.
+**No token/cost cap** (user direction 2026-06-02: large budget, run to
+completion). The per-model *iteration* cap stays — it guards against burning
+effort on a STUCK model (stuck-detector still unbuilt), not against spend. ≤3
+models/wave; workflows run in background and resume; I report cost per wave in
+the retro for visibility, not as a gate. The wave structure bounds blast radius
+and keeps each retro's improvements compounding.
 
 ## 9. The end deliverable (the single human call)
 
