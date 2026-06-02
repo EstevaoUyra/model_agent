@@ -16,6 +16,7 @@ observations → proposals → (human decides) → canon edit.
 |---|---|
 | [design-pass-2026-05-18.md](design-pass-2026-05-18.md) | Consolidation of one full empirical cycle (hermann · cagly · carrasco · R&H migration + the `run_crf` refactor). The thesis verdict, the scaffold-change ledger, per-section contract status, and the **v2 decision surface (§8)**. |
 | [process-improvements-2026-05-18.md](process-improvements-2026-05-18.md) | Candidate framework/skill changes from the R&H session, each as observation → proposal. Inputs to §6 of the design pass. |
+| [corpus-expansion-2026-06-02.md](corpus-expansion-2026-06-02.md) | The plan to grow the library beyond 4 models: taxonomy + phylogeny of mechanistic vision models, the 1-deep + 2-complementary cluster shape (attention-normalization · sparse coding · predictive coding), the literature-grounding process upgrade, and the deferred-ontology seeding notes. |
 
 ## Where the rest of the process knowledge lives
 
