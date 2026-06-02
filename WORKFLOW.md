@@ -118,6 +118,14 @@ loop:
 5. Repeat until **deterministic green + VLM pass**, or the **iteration cap**
    trips → escalate (below).
 
+**Figure faithfulness (Wave-1 figure_1 lesson).** For schematic figures the view
+must reproduce the *specified iconography* — the exact glyphs/panels the visual
+checklist names (e.g. a sigmoid + arrow-stack pool, two Gabors in a dashed RF
+ellipse) — not simplified box/text placeholders; correct topology with wrong
+iconography still fails the binding checklist. For multi-panel paper figures,
+render the model panels in the paper's layout so the generated PNG lines up with
+`article_aware/figures/figure_<N>.*`.
+
 **Calibration.** Implementation-side knobs, 1D-discretization, and frozen-fit
 stub magnitudes go in `implementation/calibration.yaml` (Phase-B-writable,
 ARCHITECTURE §3) — **never as literals in stage code**. Fitting/training is a

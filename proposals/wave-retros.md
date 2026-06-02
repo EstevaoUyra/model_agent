@@ -66,3 +66,26 @@ throwaway reference impl.* Wave-2 extractors inherit it.
   **content faithfulness only** — they do not verify push state or write
   `APPROVED`. The organizer verifies git ground-truth in each repo and writes the
   gate. (Removes the brittle agent-git-verification that caused the above.)
+
+**Phase B (paper-blind impl + 3-voter VLM backstop):**
+- **lee_maunsell_2009 → GREEN.** Deterministic 20/20 + VLM-green on all 3 figures
+  + modification smoke test passing; stage decomposition a *natural* fit (no
+  `boundary: imposed`). Flag for final triage: figure_1 (schematic) passed by VLM
+  majority but a voter flagged simplified iconography (plain boxes/text vs the
+  specified sigmoid+arrow pools and the Gabor-in-RF-ellipse inset) — topology
+  correct, low scientific impact.
+- **olshausen_field_1996 → GREEN.** Deterministic 13/13 + VLM-green on all 3.
+- **spratling_2010** → Phase B running.
+
+**Phase-B lesson → guideline:** schematic figures must render the *specified
+iconography* (the glyphs/panels the visual checklist names), not simplified
+box/text placeholders — correct topology with wrong iconography still fails the
+binding checklist. Added to WORKFLOW.md Phase B.
+
+## Wave 2 — launched 2026-06-02 (6 in parallel)
+
+Phase A for Denison 2021, Verhoef & Maunsell 2017 (C1); Rozell LCA 2008,
+Bell & Sejnowski 1997 (C2); Rao & Ballard 1999, Bogacz 2017 (C3) — with the new
+**content-only spec-review** (the organizer owns the git gate). Rozell-LCA and
+Verhoef declare reuse of primitive stages (olshausen dictionary; R&H normalization
+primitives) per the §1 reuse-surface rule. → outcome next entry.
