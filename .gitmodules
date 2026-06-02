@@ -1,3 +1,12 @@
 [submodule "models/reynolds_heeger_2009"]
 	path = models/reynolds_heeger_2009
 	url = git@github.com:EstevaoUyra/reynolds_heeger_2009.git
+[submodule "models/cagly2012"]
+	path = models/cagly2012
+	url = git@github.com:EstevaoUyra/cagly2012.git
+[submodule "models/carrasco2021"]
+	path = models/carrasco2021
+	url = git@github.com:EstevaoUyra/carrasco2021.git
+[submodule "models/hermann2010"]
+	path = models/hermann2010
+	url = git@github.com:EstevaoUyra/hermann2010.git
