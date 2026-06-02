@@ -3,6 +3,15 @@
 This file is the thin operational entry point for agents working in this
 repo. For full guidance, follow the pointers below.
 
+> **Start with [VISION.md](VISION.md)** for *why this project exists* — the
+> four pillars (faithful · understandable · modifiable-by-scientific-judgment ·
+> process-as-deliverable), ordered and in tension. Then **read
+> [STATUS.md](STATUS.md)** for *what is actually built*: DESIGN/WORKFLOW/
+> REPO_STRUCTURE describe the *target* design; parts (the framework runner,
+> stuck detector, the citation/assumption static check, `logs/*.csv`) are **not
+> built**. STATUS.md is the canonical map of what actually exists and wins on
+> any conflict.
+
 ## Identify your phase first
 
 Your invocation context tells you which phase you're in. Read the
@@ -28,7 +37,8 @@ If you're unsure which phase you're in, ask the user. Don't guess.
   spec question; don't silently fix the spec.
 - **NEVER skip the citation/assumption docstring.** Every function in
   `implementation/src/` needs `Citation:` or `Assumption:` (or both) in
-  its docstring. The static check enforces presence.
+  its docstring. This is currently a **convention, not enforced** — the
+  static check is not built (STATUS.md). Self-discipline carries it.
 - **NEVER turn a sanity check into an assertion.** The moment you write
   `assert`, it's a test. Move it to `tests/`.
 - **NEVER bypass the STUCK gate.** If `STUCK` exists for a test, stop

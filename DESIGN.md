@@ -9,32 +9,53 @@ WORKFLOW.md or REPO_STRUCTURE.md. When the *underlying reason* for a
 design choice is unclear, the answer is here. When this document is
 wrong, update it before writing code.
 
+> **See also:** [VISION.md](VISION.md) (the four pillars — what the project is
+> *for*; the apex doc for intent), [STATUS.md](STATUS.md) (what is actually
+> built) and
+> [ARCHITECTURE.md](ARCHITECTURE.md) (the contract structure every
+> reproduction must produce — the stage pipeline, the
+> protocol→measurement→view figure split, calibration-as-data, the closed
+> loop, and the verifiable+modifiable acceptance criteria). The end goal
+> is not faithful reproduction alone; it is a substrate a scientist can
+> verify and modify. ARCHITECTURE.md supersedes the older structural
+> assumptions sprinkled through §§2–8 below where they conflict.
+
 ---
 
 ## 1. Goals and non-goals
 
 ### Goals
 
-- Given a published article describing a computational model, produce:
-  - A structured specification of the model.
-  - A clean Python implementation that passes a generated test suite.
-  - A set of reproduced figures that visually correspond to those in
-    the paper.
-  - A log of every assumption made (where the paper underspecified) and
-    every suspected paper issue (where the paper appears wrong or
-    ambiguous).
-- Surface underspecification as a first-class output, not as silent
-  decisions buried in code.
-- Provide a library structure such that researchers can extend or
-  modify any model without re-reading the entire paper.
-- Detect when the agent is stuck and escalate to a human, rather than
-  burning iterations.
+The project's *purpose* — the four pillars (faithful · understandable ·
+modifiable-by-scientific-judgment · process-as-deliverable), their ordering,
+and their tensions — lives in [VISION.md](VISION.md). This document covers the
+**mechanisms** that serve those pillars. Concretely, each model run must
+produce:
+
+- A structured specification of the model.
+- A clean Python implementation that passes a generated test suite.
+- A set of reproduced figures that visually correspond to those in the paper.
+- A log of every assumption made (where the paper underspecified) and every
+  suspected paper issue (where the paper appears wrong or ambiguous).
+
+Two cross-cutting commitments shape the mechanisms below: *surface
+underspecification as a first-class output, not silent decisions buried in
+code*, and *detect when the agent is stuck and escalate to a human rather than
+burning iterations*. The library-structure goal — that a researcher can extend
+or modify a model without re-reading the paper — is Pillar 3, developed in
+VISION.md and ARCHITECTURE.md.
 
 ### Non-goals (v1)
 
-- **Stochastic models.** Deterministic models only for the first
-  version. The framework should not preclude stochastic support, but
-  it will not be built out until the deterministic path is solid.
+- **Stochastic models / fitting loops.** v1 reproduces the
+  **deterministic forward/inference path**. A model whose parameters come
+  from a stochastic fit or offline training (GEM/EM, NLLS+bootstrap) is in
+  scope **only with the fitting stage stubbed**: the learned parameters
+  are supplied as a frozen, persisted artifact (ARCHITECTURE.md §1) and
+  the forward path consumes them deterministically. Reproducing the
+  fitting/optimization/bootstrap itself is deferred. (Decision 2026-05-18,
+  prompted by hermann2010 and cagly2012, both of which wrap the forward
+  model in an outer fit/compare loop.)
 - **Full autonomy.** A human is in the loop for: approving the
   article-aware artifacts (spec, pseudocode, extracted data, reproduced
   figures), deciding the verdict on adversarial-judge reviews, and
