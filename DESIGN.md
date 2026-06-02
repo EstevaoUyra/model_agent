@@ -9,7 +9,9 @@ WORKFLOW.md or REPO_STRUCTURE.md. When the *underlying reason* for a
 design choice is unclear, the answer is here. When this document is
 wrong, update it before writing code.
 
-> **See also:** [STATUS.md](STATUS.md) (what is actually built) and
+> **See also:** [VISION.md](VISION.md) (the four pillars — what the project is
+> *for*; the apex doc for intent), [STATUS.md](STATUS.md) (what is actually
+> built) and
 > [ARCHITECTURE.md](ARCHITECTURE.md) (the contract structure every
 > reproduction must produce — the stage pipeline, the
 > protocol→measurement→view figure split, calibration-as-data, the closed
@@ -24,20 +26,24 @@ wrong, update it before writing code.
 
 ### Goals
 
-- Given a published article describing a computational model, produce:
-  - A structured specification of the model.
-  - A clean Python implementation that passes a generated test suite.
-  - A set of reproduced figures that visually correspond to those in
-    the paper.
-  - A log of every assumption made (where the paper underspecified) and
-    every suspected paper issue (where the paper appears wrong or
-    ambiguous).
-- Surface underspecification as a first-class output, not as silent
-  decisions buried in code.
-- Provide a library structure such that researchers can extend or
-  modify any model without re-reading the entire paper.
-- Detect when the agent is stuck and escalate to a human, rather than
-  burning iterations.
+The project's *purpose* — the four pillars (faithful · understandable ·
+modifiable-by-scientific-judgment · process-as-deliverable), their ordering,
+and their tensions — lives in [VISION.md](VISION.md). This document covers the
+**mechanisms** that serve those pillars. Concretely, each model run must
+produce:
+
+- A structured specification of the model.
+- A clean Python implementation that passes a generated test suite.
+- A set of reproduced figures that visually correspond to those in the paper.
+- A log of every assumption made (where the paper underspecified) and every
+  suspected paper issue (where the paper appears wrong or ambiguous).
+
+Two cross-cutting commitments shape the mechanisms below: *surface
+underspecification as a first-class output, not silent decisions buried in
+code*, and *detect when the agent is stuck and escalate to a human rather than
+burning iterations*. The library-structure goal — that a researcher can extend
+or modify a model without re-reading the paper — is Pillar 3, developed in
+VISION.md and ARCHITECTURE.md.
 
 ### Non-goals (v1)
 

@@ -3,11 +3,14 @@
 This file is the thin operational entry point for agents working in this
 repo. For full guidance, follow the pointers below.
 
-> **Read [STATUS.md](STATUS.md) first.** DESIGN/WORKFLOW/REPO_STRUCTURE
-> describe the *target* design; parts (the framework runner, stuck
-> detector, the citation/assumption static check, `logs/*.csv`) are **not
-> built**. STATUS.md is the canonical map of what actually exists and wins
-> on any conflict.
+> **Start with [VISION.md](VISION.md)** for *why this project exists* — the
+> four pillars (faithful · understandable · modifiable-by-scientific-judgment ·
+> process-as-deliverable), ordered and in tension. Then **read
+> [STATUS.md](STATUS.md)** for *what is actually built*: DESIGN/WORKFLOW/
+> REPO_STRUCTURE describe the *target* design; parts (the framework runner,
+> stuck detector, the citation/assumption static check, `logs/*.csv`) are **not
+> built**. STATUS.md is the canonical map of what actually exists and wins on
+> any conflict.
 
 ## Identify your phase first
 

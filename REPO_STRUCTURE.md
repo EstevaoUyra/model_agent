@@ -1,8 +1,9 @@
 # Repository structure
 
-This document is the reference for **what lives where**. For *how* to do
-work, see [WORKFLOW.md](WORKFLOW.md). For *why* the design is shaped this
-way, see [DESIGN.md](DESIGN.md).
+This document is the reference for **what lives where**. For *what the project
+is for*, see [VISION.md](VISION.md). For *how* to do work, see
+[WORKFLOW.md](WORKFLOW.md). For *why* the design is shaped this way, see
+[DESIGN.md](DESIGN.md).
 
 > ⚠️ **Reality check — see [STATUS.md](STATUS.md).** The framework-layout
 > block below lists `logging/`, `stuck_detector/`, `review/` and a filled
@@ -24,9 +25,13 @@ model_agent/                            # repo root (this monorepo)
   pyproject.toml                        # framework package config + extras
   pytest.ini                            # custom pytest markers
   AGENTS.md                             # thin entry point for agent sessions
+  VISION.md                             # what the project is for (four pillars; apex doc)
+  STATUS.md                             # what is actually built (canonical on reality)
+  DESIGN.md                             # rationale for the system's mechanisms
+  ARCHITECTURE.md                       # the contract shape every model must take
+  ARCHITECTURE_WATCHLIST.md             # what would falsify the structural bets
   REPO_STRUCTURE.md                     # this document
   WORKFLOW.md                           # how to reproduce a model end-to-end
-  DESIGN.md                             # rationale for the system
 
   neuromodels/                          # the framework
     framework/
