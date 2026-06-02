@@ -137,12 +137,23 @@ the rule-(b) threshold-in-ledger slip; gate caught them, revised → approved).
 **Phase B outcome (so far):** **rozell2008 GREEN** (3/3; the olshausen
 dictionary-PRIMITIVE reuse ran clean with no calibrated-protocol leak — §1
 reuse-surface validated across models; honest SQ-004 on a convergence-criterion
-inconsistency; the fresh-figure-regen produced first-pass green). **bell 2/3**
-(figure_3/5 green; figure_4 = the ICA *basis* rendered as noise — a real catch:
-a hand-built filter stub has a *noise inverse*, only a real ICA has both
-localized; targeted fix `w3sb590yw` rebuilds the stub via FastICA + reconciles a
-checklist↔ledger contradiction). The 4-model Phase B (`wf4k2u2e8`) is still
-running.
+inconsistency; the fresh-figure-regen produced first-pass green). **bell → GREEN (organizer-verified).** figure_4 noise was a **STALE PNG
+artifact, NOT a model defect**: the committed model's filters are localized=0.951
+/ oriented=0.993 (verified by metric AND a fresh organizer re-render showing clean
+Gabors). My "noise-inverse stub" hypothesis was wrong — the reconcile agent
+correctly found the basis is oriented-but-NOT-localized (the paper's filter-vs-
+basis distinction) and usefully ADDED a spectral-concentration floor that rejects
+a noise basis. **4-model Phase B done:** denison2021, verhoef_maunsell_2017,
+bogacz2017 GREEN; rao_ballard_1999 3/4 (figure_3 `r^td` overlap fix `w8kcqidxn`).
+**8 models GREEN total.**
+
+**Phase-B lesson #3 STRENGTHENED (stale figures recurred: spratling fig5, bell
+fig4).** The impl/fix agents' "regenerate before VLM" step is unreliable — a stale
+PNG wasted a whole bell-fig4 fix cycle (the model was already correct). *Robust
+fix:* the VLM-backstop must render figures **deterministically** (a verifier/
+organizer render step), not trust an agent's claim; the **measurement record is
+the source of truth** — a det-green / VLM-red split means "re-render and re-check
+first" (stale figures cause false-NEEDS-WORK, never false-GREEN).
 
 **Decision (user-offered): a 3rd validation wave** — Wave 3 (6) Phase A launched
 (`w7q9o2uux`: Zhu&Rozell, Spratling2012, Ni/Ray2012, Hara/Gardner2016,

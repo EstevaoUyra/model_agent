@@ -120,8 +120,13 @@ loop:
    (`skills/compare-figure`): **≥3 subagents + a parent image-read** for changed
    / contested / soft-blocked figures, 1 for stable-green. Persist the
    per-subagent splits, not just the adjudicated result. **Regenerate every figure
-   from the committed model immediately before the VLM reads it** — never let the
-   VLM judge a possibly-stale render (Wave-1 spratling figure_5).
+   from the committed model immediately before the VLM reads it** — and do it as a
+   **deterministic verifier/organizer render step, not as a claim by the impl
+   agent** (it recurred: Wave-2 bell figure_4 was a stale noise PNG while the model
+   produced localized=0.95 filters — wasting a fix cycle). The **measurement
+   record is the source of truth**: when the deterministic test on the record
+   passes but the VLM disagrees, RE-RENDER and re-check the PNG before trusting the
+   VLM. Stale figures cause false-needs-work, never false-green.
 4. Diagnose each issue, tagged `model | figure_generation | spec_scope`, and
    route the fix accordingly. **Before sweeping calibration knobs**, write the
    closed form for the recorded quantity and identify which knob can actually
