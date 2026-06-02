@@ -37,12 +37,14 @@ If you're unsure which phase you're in, ask the user. Don't guess.
   spec question; don't silently fix the spec.
 - **NEVER skip the citation/assumption docstring.** Every function in
   `implementation/src/` needs `Citation:` or `Assumption:` (or both) in
-  its docstring. This is currently a **convention, not enforced** — the
-  static check is not built (STATUS.md). Self-discipline carries it.
+  its docstring. A **presence** check (built in the autonomous program)
+  enforces presence; *quality* is a periodic human audit (STATUS.md).
 - **NEVER turn a sanity check into an assertion.** The moment you write
   `assert`, it's a test. Move it to `tests/`.
-- **NEVER bypass the STUCK gate.** If `STUCK` exists for a test, stop
-  working on that test and surface the situation to the human.
+- **NEVER burn iterations past the cap.** The stuck-detector isn't built;
+  honor the documented iteration cap. In the autonomous program a STUCK
+  model is **deferred to a later wave** (program plan §6), never pushed on
+  indefinitely, and never a reason to halt the program.
 
 ## Quick reference: where things go
 
@@ -53,7 +55,7 @@ If you're unsure which phase you're in, ask the user. Don't guess.
 | Phase B test                                   | `implementation/tests/`                 |
 | Phase B exploration script                     | `implementation/sanity_checks/`         |
 | Escalate spec ambiguity (impl agent)           | `logs/spec_questions.md` (append-only)  |
-| Record suspected paper error (human only)      | `logs/paper_issues.md`                  |
+| Record suspected paper error                   | `assumptions.yaml` / `spec_questions.md` |
 
 For the full directory layout and boundary rules, see
 [REPO_STRUCTURE.md](REPO_STRUCTURE.md).
@@ -75,8 +77,9 @@ python models/<model>/implementation/sanity_checks/check_<topic>.py
 
 - Phase A: after spec+pseudocode complete, after data+figures complete,
   after `APPROVED` is written.
-- Phase B: framework runner handles attempt commits; you make milestone
-  commits when a component or figure protocol's tests all pass.
+- Phase B: there is no runner — you make milestone commits when a component
+  or a figure protocol's tests all pass (on the model's feature branch;
+  commit only inside the model repo, never the parent).
 
 For full commit cadence and escalation flows, see
 [WORKFLOW.md](WORKFLOW.md).

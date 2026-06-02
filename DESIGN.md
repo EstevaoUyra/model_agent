@@ -129,6 +129,11 @@ not as a default.
 
 ## 4. Stuck detection — why git diff, not self-report
 
+> **Not built (STATUS.md).** No diff-based detector or `STUCK` emission exists.
+> v1 honors a documented **iteration cap**; the autonomous reproduction program
+> **defers a STUCK model to a later wave** rather than halting (program plan §6).
+> The rationale below is retained as the design intent for this deferred feature.
+
 Self-reported "what I changed" from the agent is unreliable: agents
 rationalize, summarize wrong, or omit. The aggregated log uses **git
 diff as the load-bearing signal**. The agent's `agent_rationale` is
@@ -176,7 +181,7 @@ go forever without escalation.
 
 If the human edits any file in `article_aware/` after Phase B has
 started, every prior test pass was validated against the *old* spec.
-The runner records `spec_commit_hash` on every test row; queries that
+The pytest plugin records `spec_commit_hash` on every test row; queries that
 ask "what is currently passing" filter to rows whose `spec_commit_hash`
 matches the current head of `article_aware/`.
 
@@ -231,7 +236,8 @@ collapsing into each other.
 Every function in `implementation/src/` carries either `Citation:`
 (into the paper, via the `C-NNN` IDs in `citations.yaml`) or
 `Assumption:` (into `assumptions.yaml` via `A-NNN` IDs), or both. A
-static check enforces *presence*. The full rule and examples are in
+presence check (built as part of the autonomous program — STATUS.md) enforces
+*presence* only. The full rule and examples are in
 [WORKFLOW.md](WORKFLOW.md#step-4--implement-the-model-bottom-up).
 
 What this rule does *not* do: verify *quality*. The cited paragraph

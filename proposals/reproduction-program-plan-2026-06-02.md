@@ -42,6 +42,13 @@ The earlier-designed faithfulness machinery *is* the substitute:
   silently passed**.
 - **The single human call = the consolidated triage report** (§9), sorted
   confidence × impact, so one review session adjudicates the whole corpus.
+- **The organizer owns the git ground-truth and the gate (added Wave 1).**
+  Critique / spec-review / re-review agents judge *content faithfulness only* —
+  they do NOT verify commit/push state or write `APPROVED`. The organizer verifies
+  git inside each model repo and writes the gate. (Wave 1: a re-review agent
+  inferred a model's git state from the parent repo and false-blocked an
+  approvable model — agents must `git -C` the model repo, never infer from the
+  parent where it is a nested untracked repo.)
 
 ## 2. The unit — one model's reproduction pipeline
 
@@ -52,17 +59,17 @@ setup → Phase A (extract + literature-grounding) → [autonomous spec-review p
       → commit+push milestones throughout
 ```
 
-Built and hardened on the **pilot**, this becomes a **reusable workflow script**
-— i.e. the "framework runner" the docs describe but STATUS.md says was never
-built is now *realized as the reproduction workflow*, reused every wave. That is
-Pillar 4 paying for itself.
+Built and hardened during **Wave 1** (and refined every iteration after), this
+becomes a **reusable workflow script** — i.e. the "framework runner" the docs
+describe but STATUS.md says was never built is now *realized as the reproduction
+workflow*, reused and improved every wave. That is Pillar 4 paying for itself.
 
 Phase-A and Phase-B run as **separate agents with separate briefs and directory
 scope**; Phase-B agents stay paper-blind (brief-enforced, as today).
 
-## 3. The spiral — waves of 3, with revisits and a process retro
+## 3. The spiral — waves of ~3, improved every iteration, re-run until solid
 
-Each **wave = 3 models**, run as ~3 workflows with the organizer adjudicating
+Each **wave = ~3 models**, run as ~3 workflows with the organizer adjudicating
 between them:
 
 1. **W-extract** — parallel fan-out (one agent / paper) → Phase-A artifacts →
@@ -70,10 +77,25 @@ between them:
 2. **W-reproduce** — per-model bounded closed loop, models in parallel
    (pipeline) → status (green / partial / blocked).
 3. **W-validate** — parallel fan-out → per-model triage reports.
-4. **Process retro (organizer)** — a design-pass-style consolidation: where
-   agents fought the scaffold, footguns hit, caps tripped → concrete skill/canon
-   edits → committed. **This is the "improve the process" step; each wave's retro
-   upgrades the next.**
+4. **Improve (organizer)** — consolidate what was learned into concrete edits to
+   the **agent guidelines, briefs, skills, and docs** → committed.
+
+**Two principles make a separate one-paper "pilot" unnecessary (user direction,
+2026-06-02):**
+
+- **Improve at every iteration, not only between waves.** Course correction is
+  continuous: the moment an agent fights the scaffold, a footgun hits, or a
+  guideline proves thin, the guidelines/skills/briefs are updated and the fix
+  applies immediately downstream. The improvement loop *is* the validation
+  mechanism — a one-paper pilot is both too narrow (it won't surface the range of
+  problems we will certainly hit) and redundant (the loop already course-
+  corrects).
+- **Re-iterate the same group more than once if needed.** A wave is *not*
+  one-pass. If the retro surfaces fixable issues, re-run the group with the
+  improved guidelines until it is solid (or a STUCK / falsification trigger
+  fires, §6). **Wave 1 therefore doubles as the machinery shakedown** — expect
+  more re-iterations early; that is by design, not failure. **No mid-program
+  human checkpoint**; the human is called once, at the end (§9).
 
 Then spawn the next wave, and at planned points **revisit** earlier waves:
 re-run the upgraded process and wire up **cross-cluster benchmarks** (extra-
@@ -86,15 +108,22 @@ originals."
 Each cluster has a **shared engine**; reproduce it first so dependents reuse
 *primitive stages*, never a calibrated protocol (the hermann-vs-carrasco lesson).
 
-| Stage | Models | Why |
-|---|---|---|
-| **Pilot** | Lee & Maunsell 2009 (C1) | cheap, familiar mechanism; debuts literature-grounding + proves the workflow & commit/push machinery end-to-end |
-| **Wave 1** (anchors, breadth-first) | Olshausen–Field 1996/97 (C2 dictionary) · Spratling 2010 DIM (C3 engine) · Denison 2021 (C1 dynamic) | exercises all 3 motifs early → fastest process-gap surfacing |
-| **Wave 2** | Rozell LCA (C2 engine) · Rao & Ballard 1999 (C3 anchor) · Verhoef & Maunsell 2017 (C1, has code) | engines + a coded C1 |
-| **Wave 3** | Zhu & Rozell 2013 (C2, reuses LCA) · Bogacz 2017 (C3 ref solver) · Ni/Ray 2012 (C1 tuned) | reuse-heavy; **revisit Wave 1** here |
-| **Wave 4+** | Bell–Sejnowski (C2) · Spratling 2012 (C3) · Hara/Gardner 2016, Pestilli 2009, Boynton 2009, Heeger 1992 / CHM 1997 precursors (C1) … | drain the remaining lineage; periodic revisits |
+**Schedule — 3 → 6 → rest, widening parallelism (user direction 2026-06-02).**
+Each pass is slow, so fan out wide: validate on 3, then 6, then everything.
 
-Order within the table is a hypothesis; the retro may reorder. ~7–8 waves total.
+| Wave | Size | Models | Why |
+|---|---|---|---|
+| **Wave 1** (running) | 3 | Lee & Maunsell 2009 (C1) · Olshausen–Field 1996/97 (C2 dictionary) · Spratling 2010 DIM (C3 engine) | one anchor per motif; machinery shakedown |
+| **Wave 2** | 6 ∥ | Denison 2021, Verhoef & Maunsell 2017 (C1) · Rozell LCA 2008, Bell & Sejnowski 1997 (C2) · Rao & Ballard 1999, Bogacz 2017 (C3) | engines + anchors + independents, 2 per cluster |
+| **Wave 3** | all remaining ∥ | rest of the C1 lineage (Ni/Ray 2012, Hara/Gardner 2016, Pestilli 2009, Boynton 2009, Heeger 1992, CHM 1997, Ni & Maunsell 2017/2019, Doostani 2023, …) + Zhu & Rozell 2013 (C2) + Spratling 2012 (C3) | drain the corpus; reuse-heavy dependents land after their engines exist |
+
+The retro/improvement still runs between waves, so 3 + 6 = **9 models of
+process-learning before the final big batch**. The workflow concurrency cap
+(~10–16) lets the final wave's ~12–14 run largely in parallel with light
+queuing. Engines/anchors are front-loaded so dependents (Zhu & Rozell after
+Rozell-LCA; the C1 extensions after R&H/Lee&Maunsell) can reuse primitive stages.
+Order is a hypothesis; the per-iteration improvement may reorder it, and any
+model that resists is deferred to a later wave (§6).
 
 ## 5. Process guardrails carried from the open-branch learnings
 
@@ -147,9 +176,13 @@ for, the **falsification triggers** and genuine blockers:
 - **Calibration `audited:false` not materially below the ad-hoc baseline**, or
   **agents spending more effort serving the scaffold than reproducing** → the
   contract is theatre/too heavy → escalate.
-- **Genuine STUCK** on a model (iteration cap + repeated-diff signal) → log
-  `STUCK`, **skip that model, keep going**, report it at the end (don't burn
-  iterations).
+- **A model that won't reproduce is NOT a stop condition (user direction,
+  2026-06-02).** At the iteration cap / repeated-diff signal, log `STUCK`,
+  **leave it and move on** — **re-queue it for a later wave**, where more
+  neighbors (cross-cluster benchmarks) and the improved process may unblock it.
+  **Never halt the program for one or two problem models.** A few models still
+  unreproduced at the end is an **acceptable, recorded outcome** — learning, not
+  failure.
 - A **hard-rule conflict** or something genuinely weird → stop and ask.
 
 Otherwise: run to completion, deliver §9.
@@ -188,7 +221,9 @@ and keeps each retro's improvements compounding.
 
 1. A **consolidated confidence × impact triage report** over all ~21–23 models:
    per-model verdict, the low-confidence/high-impact leaves flagged for your
-   eyes, open SQs and `audited:false` calibration across the corpus.
+   eyes, open SQs and `audited:false` calibration across the corpus, **and an
+   explicit list of any models left unreproduced/deferred with what each one
+   taught us** (expected, not a blocker).
 2. The **process-improvement ledger** (every wave retro consolidated) — what the
    program taught the method.
 3. **All repos committed & pushed**; parent pointers current.

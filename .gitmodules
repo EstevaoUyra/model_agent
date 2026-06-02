@@ -10,3 +10,72 @@
 [submodule "models/hermann2010"]
 	path = models/hermann2010
 	url = git@github.com:EstevaoUyra/hermann2010.git
+[submodule "models/bell_sejnowski_1997"]
+	path = models/bell_sejnowski_1997
+	url = git@github.com:EstevaoUyra/bell_sejnowski_1997.git
+[submodule "models/bogacz2017"]
+	path = models/bogacz2017
+	url = git@github.com:EstevaoUyra/bogacz2017.git
+[submodule "models/boynton_2009"]
+	path = models/boynton_2009
+	url = git@github.com:EstevaoUyra/boynton_2009.git
+[submodule "models/carandini_heeger_movshon_1997"]
+	path = models/carandini_heeger_movshon_1997
+	url = git@github.com:EstevaoUyra/carandini_heeger_movshon_1997.git
+[submodule "models/denison2021"]
+	path = models/denison2021
+	url = git@github.com:EstevaoUyra/denison2021.git
+[submodule "models/doostani_2023"]
+	path = models/doostani_2023
+	url = git@github.com:EstevaoUyra/doostani_2023.git
+[submodule "models/ghose_maunsell_2008"]
+	path = models/ghose_maunsell_2008
+	url = git@github.com:EstevaoUyra/ghose_maunsell_2008.git
+[submodule "models/hara_gardner_2016"]
+	path = models/hara_gardner_2016
+	url = git@github.com:EstevaoUyra/hara_gardner_2016.git
+[submodule "models/heeger_1992"]
+	path = models/heeger_1992
+	url = git@github.com:EstevaoUyra/heeger_1992.git
+[submodule "models/karklin_lewicki_2009"]
+	path = models/karklin_lewicki_2009
+	url = git@github.com:EstevaoUyra/karklin_lewicki_2009.git
+[submodule "models/lee_maunsell_2009"]
+	path = models/lee_maunsell_2009
+	url = git@github.com:EstevaoUyra/lee_maunsell_2009.git
+[submodule "models/ni_maunsell_2017"]
+	path = models/ni_maunsell_2017
+	url = git@github.com:EstevaoUyra/ni_maunsell_2017.git
+[submodule "models/ni_maunsell_2019"]
+	path = models/ni_maunsell_2019
+	url = git@github.com:EstevaoUyra/ni_maunsell_2019.git
+[submodule "models/ni_ray_maunsell_2012"]
+	path = models/ni_ray_maunsell_2012
+	url = git@github.com:EstevaoUyra/ni_ray_maunsell_2012.git
+[submodule "models/olshausen_field_1996"]
+	path = models/olshausen_field_1996
+	url = git@github.com:EstevaoUyra/olshausen_field_1996.git
+[submodule "models/pestilli_ling_carrasco_2009"]
+	path = models/pestilli_ling_carrasco_2009
+	url = git@github.com:EstevaoUyra/pestilli_ling_carrasco_2009.git
+[submodule "models/rao_ballard_1999"]
+	path = models/rao_ballard_1999
+	url = git@github.com:EstevaoUyra/rao_ballard_1999.git
+[submodule "models/reynolds_chelazzi_desimone_1999"]
+	path = models/reynolds_chelazzi_desimone_1999
+	url = git@github.com:EstevaoUyra/reynolds_chelazzi_desimone_1999.git
+[submodule "models/rozell2008"]
+	path = models/rozell2008
+	url = git@github.com:EstevaoUyra/rozell2008.git
+[submodule "models/spratling_2010"]
+	path = models/spratling_2010
+	url = git@github.com:EstevaoUyra/spratling_2010.git
+[submodule "models/spratling_2012"]
+	path = models/spratling_2012
+	url = git@github.com:EstevaoUyra/spratling_2012.git
+[submodule "models/verhoef_maunsell_2017"]
+	path = models/verhoef_maunsell_2017
+	url = git@github.com:EstevaoUyra/verhoef_maunsell_2017.git
+[submodule "models/zhu_rozell_2013"]
+	path = models/zhu_rozell_2013
+	url = git@github.com:EstevaoUyra/zhu_rozell_2013.git

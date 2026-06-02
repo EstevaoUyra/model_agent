@@ -5,7 +5,9 @@ REPO_STRUCTURE.md describe the *target* design; parts of it are not built.
 **On any conflict, STATUS.md wins.** If you are an agent: navigate by this
 file, not by machinery the other docs describe in the present tense.
 
-Last reconciled: 2026-05-18.
+Last reconciled: 2026-06-02. The fictional machinery below was **removed** from
+DESIGN/WORKFLOW/REPO_STRUCTURE (not merely flagged), so those docs now describe
+reality; this file records what remains genuinely deferred.
 
 ---
 
@@ -32,7 +34,12 @@ Last reconciled: 2026-05-18.
 | Conflict rule (det vs VLM) | Lives in the **update-state skill** and the README it writes, not in code. `test-table` reports the two signals separately. |
 | Spec questions | `logs/spec_questions.md` is a hand-maintained markdown ledger (SQ-NNN; `chosen_assumption` and, since SQ-003, `human_resolution`). No tooling. |
 
-## Documented as present but **NOT built** (do not rely on these)
+## Removed from the docs (2026-06-02) / still deferred
+
+These were described as if built; the mentions are now **removed** from
+DESIGN/WORKFLOW/REPO_STRUCTURE. They remain genuinely deferred — named here, not
+pretended built (the autonomous program realizes the runner as its workflow, the
+stuck-detector as the iteration cap, and a presence-only citation check):
 
 | Claimed in docs | Reality |
 |---|---|
