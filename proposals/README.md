@@ -19,6 +19,7 @@ observations → proposals → (human decides) → canon edit.
 | [corpus-expansion-2026-06-02.md](corpus-expansion-2026-06-02.md) | The plan to grow the library beyond 4 models: taxonomy + phylogeny of mechanistic vision models, the 1-deep + 2-complementary cluster shape (attention-normalization · sparse coding · predictive coding), the literature-grounding process upgrade, and the deferred-ontology seeding notes. |
 | [reproduction-program-plan-2026-06-02.md](reproduction-program-plan-2026-06-02.md) | How we drive the ~21–23 corpus models to reproduction via dynamic workflows — mostly autonomously (critique agents substitute for the human gates, one human review at the end), in waves with revisits and a process retro between waves. Folds in the open-branch guardrails (parent-write guard, multi-VLM default, falsification-trigger escalation). **Running.** |
 | [wave-retros.md](wave-retros.md) | The program's running improvement ledger — what each wave taught and the guideline/canon edit it produced. Newest first. |
+| [final-triage-2026-06-02.md](final-triage-2026-06-02.md) | **The end deliverable** — consolidated confidence×impact triage over the reproduced corpus: 23 models (20 fully green + 3 with documented deferrals), the flagged figures/sub-claims, suspected paper issues, lower-confidence items, and process learnings. |
 
 ## Where the rest of the process knowledge lives
 
