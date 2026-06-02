@@ -159,8 +159,16 @@ Otherwise: run to completion, deliver §9.
 - Per model: `gh repo create --private` → scaffold to ARCHITECTURE shape →
   register submodule → **push to its private repo throughout** (Phase-A done,
   each figure green, verdict). Same pattern as cagly/carrasco/hermann.
-- Parent: pointer-bump + **push origin** at each model milestone, serially, by
-  the organizer (never a model agent — §5 guard).
+- Parent: pointer-bump + push at each model milestone, serially, by the
+  organizer (never a model agent — §5 guard).
+- **`main`-push guardrail (discovered 2026-06-02).** A user-level hook refuses
+  any direct `git push origin main` (in the parent *and*, being a user-level
+  hook, in model repos); it directs to a feature branch + PR (`gh pr create` /
+  `gh pr merge` are allowed). So the program pushes to **feature branches** and
+  advances `main` via `gh pr merge` — OR runs with `ALLOW_MAIN_COMMIT` set for
+  the model repos. **This is an OPEN setup decision to settle before "go"**
+  (see the question raised in chat): per-milestone PRs per model is heavier than
+  direct pushes, so we need to pick the mechanism.
 - **Observable without being called:** committed+pushed progress means nothing is
   lost on failure; workflows are resumable; each model's `README.md`
   (update-state) + a **live `PROGRAM_STATUS.md`** + `/workflows` let you peek any
