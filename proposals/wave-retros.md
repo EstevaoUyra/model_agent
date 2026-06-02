@@ -75,12 +75,13 @@ throwaway reference impl.* Wave-2 extractors inherit it.
   specified sigmoid+arrow pools and the Gabor-in-RF-ellipse inset) — topology
   correct, low scientific impact.
 - **olshausen_field_1996 → GREEN.** Deterministic 13/13 + VLM-green on all 3.
-- **spratling_2010** → figure_6/9/11 GREEN; **figure_5b (end-stopping) NOT green**
-  — both VLM voters saw a monotonic-then-plateau curve with no turnover. Targeted
-  fix running (`wl12i10yw`): tighten the loose 5b test, then make the model
-  produce end-stopping; if it can't within the cap, figure_5 is deferred (model
-  stays 3/4 green). (Also logged SQ-001: the Fig.6a plaid rendered mean-preserving
-  to satisfy A-011 — human resolution pending.)
+- **spratling_2010 → GREEN (4/4).** figure_6/9/11 green from Phase B; figure_5
+  resolved — the model already produced genuine end-stopping (interior peak @ d=11,
+  suppression index 0.674); the original Phase-B VLM had read a STALE render.
+  Tightened the 5b test (SI≥0.30, ledger A-012; a monotonic/plateau curve now
+  fails), regenerated, VLM 2/2 pass, **organizer-verified** (pytest 5a+5b 8/8 at
+  HEAD `dac5283`). (Open: SQ-001 — Fig.6a plaid rendered mean-preserving to satisfy
+  A-011; human resolution pending.)
 
 **Phase-B lesson #2 → guideline:** the 5b deterministic test PASSED 22/22 on a
 curve with NO end-stopping — a **loose visual proxy** (it accepted a plateau as a
@@ -91,6 +92,21 @@ end-stopping / saturation / peak) need STRICT structural assertions (interior
 argmax that exceeds both endpoints by a ledger margin), so a monotonic/plateau
 curve fails; and never trust an impl agent's self-figure-assessment — the
 independent VLM is the binding backstop. (Reinforced in WORKFLOW.md.)
+
+**Phase-B lesson #3 → guideline:** the figure the first VLM judged was STALE — the
+impl agent's pre-VLM regeneration was unreliable, so the VLM scored an out-of-date
+render (monotonic) while the committed model actually produced the turnover.
+*Fix:* the VLM step regenerates every figure from the committed model immediately
+before reading it — never judge a possibly-stale render. (Added to WORKFLOW.md.)
+
+### ✅ Wave 1 COMPLETE — 3/3 green
+
+**lee_maunsell_2009, olshausen_field_1996, spratling_2010** — all three motifs
+(attention-normalization · sparse coding · predictive coding) reproduced
+end-to-end through the autonomous pipeline, each organizer-verified. The machinery
+and the four-pillar discipline held; three real *green-but-unfaithful* defects were
+caught and fixed by the critique/VLM layers (olshausen confabulation, lee_maunsell
+contrast-units, spratling end-stopping). **Corpus: 3 / ~22.**
 
 **Phase-B lesson → guideline:** schematic figures must render the *specified
 iconography* (the glyphs/panels the visual checklist names), not simplified

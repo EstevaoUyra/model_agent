@@ -114,7 +114,9 @@ loop:
 3. Generate figure PNGs; run the **multi-subagent VLM compare**
    (`skills/compare-figure`): **≥3 subagents + a parent image-read** for changed
    / contested / soft-blocked figures, 1 for stable-green. Persist the
-   per-subagent splits, not just the adjudicated result.
+   per-subagent splits, not just the adjudicated result. **Regenerate every figure
+   from the committed model immediately before the VLM reads it** — never let the
+   VLM judge a possibly-stale render (Wave-1 spratling figure_5).
 4. Diagnose each issue, tagged `model | figure_generation | spec_scope`, and
    route the fix accordingly. **Before sweeping calibration knobs**, write the
    closed form for the recorded quantity and identify which knob can actually
