@@ -155,45 +155,73 @@ record (§4). Rules:
   too loose by construction — a hard reject. "The right answer passes" is necessary but
   not sufficient; the gap between the two is where leniency hides.
 
-### 3b. Figure / visual tests — `figure_<N>_visual_checklist.md`
+### 3b. Figure tests — digitize the panel, generate the view, three test tiers
 
-The checklist is the binding set of pass/fail visual claims for a figure. **It is
-authored by looking at the paper's figure image**, and it is the standard the
-Faithfulness Auditor (§6) and any VLM check the rendered figure against.
+For a panel that shows **curves**, the binding check is the model's curve compared to
+the paper's **digitized** curve, both rendered through the **same paper-owned view**.
+Phase A produces all of this from the paper panel image:
 
-- **The checklist is generated FROM the paper figure image** (`figure_<N>.<img>`).
-  Each binding item is a claim about *what the paper's figure actually shows*, on the
-  **discriminating dimensions**: the **normalization convention** (state explicitly
-  which curve/quantity is pinned to 1.0 — the single most common silent divergence),
-  **curve shape and width/bandwidth**, **baseline / floor / asymptote**, **panel
-  layout** (enumerate the panels the paper has; *forbid panels it does not* — never
-  pre-bless "the difference curve, if plotted"), and **axes** (range, scale, sign
-  convention, labels, ticks). Comparative phrasing is fine, but it must **fail when the
-  figure stops matching the paper** — "robust to scale" must never mean "tolerant of
-  the divergence that matters."
-- **Scope: model panels only.** If the paper figure overlays empirical *data points /
-  error bars* the model does not produce, their absence is **not** a finding — but the
-  model curves, axes, and layout must match.
-- **No paper figure image ⇒ HARD BLOCKER. Stop — do not work around it.** The figure
-  cannot be reproduced or verified without it; there is **no fallback, no paper-blind
-  checklist, no weaker "tier."** Do NOT author a checklist from the model's intended
-  behavior and call it verification — that loop grounds nothing (the 2026-06-03
-  finding: extractor, VLM, and auditor all end up "verifying" the model against a
-  description of itself). Instead:
-  1. **Raise a blocker** (`PAPER_IMAGES_NOTE.md` in the figures dir) recording what was
-     tried to obtain the image.
-  2. **The work is BLOCKED.** That figure — and the model's sign-off, which depends on
-     it — stays `BLOCKED` and **can only be resumed once the figure image is supplied**
-     (by the human). A blocked figure is never `faithful`, `dispositioned`, or
-     `reproduced`, and the model is **not complete** while any required figure is
-     blocked. Paper *text* is **not** a substitute — the binding check is a visual
-     comparison and requires the image.
-  - (If a "figure" has no paper counterpart at all — a diagnostic the reproduction
-    invented — it is not a reproduction target: move it to `sanity_checks/`; it does
-    not get an in-scope checklist.)
-- **Every in-scope figure is therefore in exactly one of two states: `paper-verified`
-  (checked against the paper image) or `BLOCKED` (no image).** There is no "verified
-  against the checklist" state, and a `BLOCKED` figure blocks the model.
+1. **Digitize each curve** from the paper panel — **~a dozen points along the line**,
+   enough to pin the *shape* (ends, rise, inflection, saturation/peak, asymptote), **not
+   a dense point-by-point trace**. Store in
+   `extracted_data/figure_<N>/panel_<X>_digitized.*`.
+2. **Generate the view** for the panel/figure *from the digitization* — the plotting
+   code (axis limits, scale, styling, layout, `not reproduced` placeholders). The view
+   is a **Phase-A-owned contract**: it declares the measurement-record schema it plots
+   and renders *any* record — the digitized reference OR the implementation's output —
+   identically. **Phase B never touches it**, so presentation cannot deviate (wrong
+   axes, auto-scaling, dropped/spurious panels become *impossible*, not merely caught).
+3. **Self-check the digitization (VLM):** render the digitized reference through the
+   view and VLM-compare it to the **original paper panel**. It must match — this
+   validates the digitization *and* the view; that render becomes the **reference
+   figure**.
+
+**Three test tiers**, all codified on the measurement record, all derived from the
+digitized reference, all with tolerances (close, not exact); each test is *evaluated on
+the implementation's record* with its expected value/threshold *digitized from the
+paper*:
+
+- **Qualitative — MUST PASS.** Precise-but-weak structural claims — e.g. "curve A
+  crosses curve B in the right half", "attended ≥ unattended over the central region",
+  curve orderings, "the two curves converge at the high-contrast end". The robust floor
+  a faithful figure always satisfies.
+- **Hard — MUST PASS.** A **few** strong quantitative claims the agent is **confident**
+  should be enforced — e.g. "A − B ≈ 10 over x∈[0.8,1.0] ± tol", "attended/unattended
+  peak ratio ≈ 1.4 ± tol", "value at x=0.5 ≈ 0.7 ± tol". Write *only* the ones you are
+  sure of; these bind faithfulness quantitatively.
+- **Soft — MEASURED, REPORTED, NEVER BLOCKS.** Written exactly like hard tests, but
+  non-blocking, because the digitization is **not trusted 100%**. Always measured,
+  always reported (in `logs/figure_comparisons/` and the README), never fails the
+  build. They surface candidate quantitative claims to the human, who **promotes a soft
+  test to hard** (a one-line tier flip) or fixes the digitization from what the report
+  shows.
+
+The **tier is a declared, human-editable per-test attribute**, so promotion/demotion is
+one line + a re-run. **Acceptance: qualitative + hard must pass; soft are reported and
+never block.** This is how an imperfect digitization gives real quantitative power
+without spurious failures — hard-enforce the confident few, soft-measure the rest, let
+the human re-tier.
+
+**Scope: model panels only.** If the paper figure overlays empirical *data points /
+error bars* the model does not produce, their absence is **not** a finding — but the
+model curves, axes, and layout must match.
+
+**The per-figure report (README + `logs/figure_comparisons/`) shows four things:**
+(1) the **original** paper figure, (2) the figure **reproduced from the digitization**
+(the reference render), (3) the figure **reproduced from the implementation** (the model
+record through the same view), and (4) the **qualitative / hard / soft test list with
+pass/fail each.** (1)↔(2) shows whether the *digitization* is faithful to the paper;
+(2)↔(3) shows whether the *model* is faithful; the test list is the explicit verdict,
+and the soft rows give the human a one-step way to tighten the gate.
+
+**No paper figure image ⇒ HARD BLOCKER.** You cannot digitize or verify a panel you
+cannot see — there is no fallback, no paper-blind checklist, no weaker tier. Raise the
+blocker (`PAPER_IMAGES_NOTE.md`, recording what was tried); the figure — and the model's
+sign-off — stays `BLOCKED` until the image is supplied, and is never `faithful` /
+`dispositioned` / `reproduced` (the model is incomplete while any required figure is
+blocked). Paper *text* is not a substitute. (A "figure" with no paper counterpart is a
+diagnostic → `sanity_checks/`, not an in-scope panel.) **Every in-scope figure is
+`paper-verified` or `BLOCKED` — no in-between.**
 
 ---
 
@@ -232,8 +260,12 @@ your own `implementation/calibration.yaml` instead).
 - **measurement** — pure functions → a typed, schema-versioned **measurement record**
   (plotted/tested quantities AND structural facts incl. spatial-layout positions). The
   single source of truth.
-- **view** — a thin declarative renderer that *only reads the record* and writes
-  `implementation/figure_outputs/figure_<N>.png`. Recomputes nothing; style lives here.
+- **view** — a thin declarative renderer that *only reads the record* and writes the
+  figure PNG. Recomputes nothing. ⚠️ **The view is Phase-A-owned** (generated from the
+  digitization, §3b): it lives under `article_aware/`, declares the record schema it
+  plots, and renders *both* the digitized reference and the implementation's record
+  **identically**. Phase B owns **protocol + measurement** (it produces the record) and
+  **does not write the view** — so it cannot deviate on axes, layout, or style.
 
 ### 4c. The closed loop
 
@@ -318,9 +350,10 @@ figure blocks the model's `reproduced` sign-off until its paper image is supplie
 
 1. Every stage has contract tests; every plotted quantity a deterministic measurement
    test (a consistency tripwire — §3a — not a fidelity check).
-2. Every in-scope figure checklist was **authored from the paper image** and holds
-   against it; **no required figure is `BLOCKED` for a missing image** (a blocked
-   figure makes the model incomplete — §3b).
+2. Every in-scope figure panel's **qualitative + hard** tests pass against the
+   paper-digitized reference, and the digitization passed its VLM self-check vs the
+   paper panel (§3b); soft tests are reported (never block). **No required figure is
+   `BLOCKED`** for a missing image (a blocked figure makes the model incomplete — §3b).
 3. A **modification smoke test** passes by **editing a real `implementation/
    calibration.yaml` entry on disk and regenerating the figure from the rebuilt
    model** — *not* a resolver monkeypatch (which proves only a value is read), and the
@@ -366,13 +399,15 @@ models/<m>/                  # a private git submodule; the parent bumps the poi
   article_aware/             # PROTECTED — Phase A contract
     spec/{model_spec,calibration,citations,assumptions}.yaml   APPROVED
     pseudocode/<fig>_protocol.md
-    figures/figure_<N>.<img>            whole paper figure  [no image ⇒ blocker, §3b]
+    figures/figure_<N>.<img>            whole paper figure  [no image ⇒ HARD BLOCKER, §3b]
     figures/figure_<N>_layout.yaml      panel grid: positions + reproduced vs `not reproduced`
-    figures/figure_<N>/panel_<X>.<img>  per-panel crop of the paper figure
-    figures/figure_<N>/panel_<X>.md     per-panel description: axis limits (x/y/right, scale) + checklist
-    extracted_data/test_<fig>.py
+    figures/figure_<N>/panel_<X>.<img>           per-panel crop of the paper figure
+    figures/figure_<N>/panel_<X>_digitized.*     ~dozen digitized curve points (the reference, §3b)
+    figures/figure_<N>/panel_<X>.md              per-panel: axis limits + the qual/hard/soft test list
+    figures/views.py                    Phase-A-owned VIEW (§3b/§4b): renders digitized reference AND impl record identically
+    extracted_data/test_<fig>.py        codified qualitative/hard/soft panel tests (per-test tier flag)
   implementation/            # Phase B
-    src/<pkg>/stages/ + manifest.yaml   measurements.py  views.py  protocols.py
+    src/<pkg>/stages/ + manifest.yaml   measurements.py  protocols.py   [the VIEW is Phase-A — §3b/§4b]
     calibration.yaml   artifacts/ (frozen stubs)   tests/   sanity_checks/   figure_outputs/ (gitignored)
   logs/                      # test_runs.jsonl  figure_comparisons/  figure_diagnoses/
                              #   faithfulness_audit/  process_audit/  spec_questions.md
