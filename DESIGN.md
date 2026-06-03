@@ -60,6 +60,18 @@ VISION.md and ARCHITECTURE.md.
   article-aware artifacts (spec, pseudocode, extracted data, reproduced
   figures), deciding the verdict on adversarial-judge reviews, and
   resolving stuck signals.
+
+  > **⚠ Superseded by deviation (2026-06-02 autonomous reproduction program).**
+  > The program ran **fully autonomously**: these human gates were delegated to
+  > the organizer + adversarial critique agents (a spec-review agent wrote
+  > `APPROVED`; the verdict was set by the leaf-rubric / multi-VLM / critique
+  > chain), and the human was called **once, at the end**, with a consolidated
+  > triage report. The rationale below is retained as the v1 design intent; it
+  > was deliberately overridden, not silently changed. See
+  > [proposals/reproduction-program-plan-2026-06-02.md](proposals/reproduction-program-plan-2026-06-02.md)
+  > §0–§1 (the deviation, stated honestly) and
+  > [proposals/faithfulness-enforcement-2026-06-02.md](proposals/faithfulness-enforcement-2026-06-02.md)
+  > (the post-hoc review of what that autonomy cost).
 - **Multi-paper synthesis.** Each model run targets one paper. If the
   spec needs to be enriched from another paper, that is a human
   decision that produces a new round of extraction.
@@ -113,9 +125,9 @@ roles (attacker, defender), both seeing the same three inputs (`rubric`,
 reads both and decides. This isn't majority voting; it's a way to surface
 counter-arguments the human might otherwise miss.
 
-**Judges must not see** the paper, run/test IDs, spec refs, review-queue
-paths, other tests, the other judge's output, or prior judge runs on the
-same test. This isolation prevents pattern-matching to past verdicts.
+**Judges must not see** the paper, run/test IDs, spec refs, file paths that
+leak provenance, other tests, the other judge's output, or prior judge runs on
+the same test. This isolation prevents pattern-matching to past verdicts.
 Operational details (CLI, input file format) are in
 [WORKFLOW.md](WORKFLOW.md#adversarial-judge-usage).
 
@@ -124,6 +136,13 @@ calibration data exists would silently inherit judge biases. Tests reduce
 to deterministic checks wherever possible — judges are reserved for claims
 that genuinely resist coding ("the response profile is sigmoidal-looking"),
 not as a default.
+
+> **⚠ Superseded by deviation (2026-06-02 autonomous program).** Verdict
+> adjudication was delegated to the autonomous critique chain rather than a
+> human (see §1 banner). Note the post-mortem finding that the adversarial
+> judge here was, in practice, *never invoked* during the program — see
+> [proposals/faithfulness-enforcement-2026-06-02.md](proposals/faithfulness-enforcement-2026-06-02.md)
+> (cluster E).
 
 ---
 
@@ -236,8 +255,11 @@ collapsing into each other.
 Every function in `implementation/src/` carries either `Citation:`
 (into the paper, via the `C-NNN` IDs in `citations.yaml`) or
 `Assumption:` (into `assumptions.yaml` via `A-NNN` IDs), or both. A
-presence check (built as part of the autonomous program — STATUS.md) enforces
-*presence* only. The full rule and examples are in
+presence+resolution check
+(`neuromodels/framework/static_checks/check_citations.py`, built 2026-06-02;
+run manually, no CI — STATUS.md) enforces that every tag *resolves* to a ledger
+entry. It does **not** enforce that the tag sits on the right function. The
+full rule and examples are in
 [WORKFLOW.md](WORKFLOW.md#step-4--implement-the-model-bottom-up).
 
 What this rule does *not* do: verify *quality*. The cited paragraph
@@ -276,8 +298,11 @@ see DESIGN.md §9".
 - **Multi-paper synthesis.** Out of scope. Enriching a spec from
   another paper is a human action that produces a new round of
   extraction.
-- **UI for human review.** Human review uses files in `review_queue/`;
-  no web UI is planned for v1.
+- **UI for human review.** No web UI is planned for v1. (An earlier draft
+  named a `review_queue/` directory as the human-review mechanism; it was
+  never built. Human review happens through the per-model `README.md`
+  state report and, in the autonomous program, the final triage report —
+  STATUS.md.)
 - **Framework repository split.** The parent monorepo remains the
   framework repo throughout v1. Lifting the framework into a
   package-only repo is a future refactor.

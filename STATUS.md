@@ -25,6 +25,7 @@ reality; this file records what remains genuinely deferred.
 | VLM verdict home | `models/<m>/logs/figure_comparisons/figure_<N>_<stamp>.json` | append-only; provenance-wrapped (model commit, evaluated_at, n_subagents, parent_adjudication). |
 | Skills (operational layer) | `skills/` | extract-spec, extract-figure, compare-figure, run-tests, write-sanity-check, update-state (+ scripts: failing_tests, log_freshness, persist_verdict, verdict_status). **The skills, not a runner, are how work actually gets done.** |
 | Per-model submodule | `models/<m>/` nested git repo | real; parent bumps the pointer. |
+| Citation/Assumption presence check | `neuromodels/framework/static_checks/check_citations.py` | presence+**resolution** only (tags resolve to a ledger entry); run **manually**, no CI; not a quality/semantic check. See the deferred-table row below. |
 
 ## Partial / advisory only
 
@@ -46,7 +47,8 @@ stuck-detector as the iteration cap, and a presence-only citation check):
 | "framework runner (not raw pytest)", attempt commits | **Does not exist.** Tests run via plain `pytest` (the plugin logs them). No automatic attempt commits. |
 | Stuck detector + `STUCK` gate (DESIGN §4, WORKFLOW) | **Not built.** No diff-based detector, no `STUCK` file emission. |
 | `neuromodels/framework/logging/`, `stuck_detector/`, `review/` | **No such modules.** |
-| Citation/Assumption static check (DESIGN §8, WORKFLOW Step 4) | `neuromodels/framework/static_checks/` is **empty**. Presence is *not* enforced by tooling — it is currently a convention only. |
+| `review_queue/` as the human-review mechanism (was: DESIGN §9) | **Never built.** Human review is the per-model `README.md` state report + (autonomous program) the final triage report. The DESIGN mention is now marked never-built, not present-tense. |
+| Citation/Assumption static check (DESIGN §8, WORKFLOW Step 4) | **Now built** (2026-06-02): `neuromodels/framework/static_checks/check_citations.py` — a *presence+resolution* check (every `C-NNN`/`A-NNN` tag in `src/` resolves to a ledger entry). Run **manually** (`python -m neuromodels.framework.static_checks.check_citations`); **no CI is wired**. It does **not** check the tag is on the right function or that the cited passage supports the behavior — that quality audit stays a periodic human task. Passes on all 27 models as of 2026-06-02. |
 | `logs/test_runs.csv` | It is `test_runs.jsonl` (JSONL via the plugin). |
 | `logs/paper_issues.md`, `relaxed`/`pending_human_review` statuses, `CurveTolerance` machinery | **Not present / not built.** |
 | `article_aware/reproduced_figures/` auto-plotted from extracted data | Directory exists but the auto-plot path is not built; treat as manual/optional. |
@@ -61,6 +63,13 @@ stuck-detector as the iteration cap, and a presence-only citation check):
 - `models/<m>/logs/figure_comparisons/` — the persistent VLM verdict home.
 - The `update-state` skill + its `scripts/` — the reviewable state report
   (`models/<m>/README.md`) and the verdict/freshness tooling.
+- `models/<m>/figures_reproduced/` — a **committed** snapshot of paper-vs-
+  reproduced comparison PNGs (added by the docs/README pass; now in
+  REPO_STRUCTURE.md). It is **not** produced by the render pipeline and its
+  freshness is **not** guaranteed: the authoritative render is the gitignored
+  `implementation/figure_outputs/`. A faithfulness audit reading
+  `figures_reproduced/` could see a stale image — render fresh + read the
+  persisted `logs/figure_comparisons/` verdicts for the binding check.
 
 ---
 
@@ -69,5 +78,7 @@ stuck-detector as the iteration cap, and a presence-only citation check):
 The real loop is: edit `implementation/` → `pytest` (plugin logs to
 `test_runs.jsonl`) → `neuromodels test-table` → `compare-figure-packet` +
 VLM subagents → persist verdict → `update-state` rewrites the model README.
-There is **no runner, no stuck gate, no static check** catching you. Self-
-discipline (and the skills) carry what the docs imply tooling enforces.
+There is **no runner and no stuck gate** catching you. One static check exists
+(`check_citations.py`, run manually — citation/assumption tags resolve to a
+ledger), but it is presence-only and not wired to CI. Self-discipline (and the
+skills) carry what the docs imply tooling enforces.

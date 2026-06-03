@@ -8,9 +8,9 @@ repo. For full guidance, follow the pointers below.
 > process-as-deliverable), ordered and in tension. Then **read
 > [STATUS.md](STATUS.md)** for *what is actually built*: DESIGN/WORKFLOW/
 > REPO_STRUCTURE describe the *target* design; parts (the framework runner,
-> stuck detector, the citation/assumption static check, `logs/*.csv`) are **not
-> built**. STATUS.md is the canonical map of what actually exists and wins on
-> any conflict.
+> stuck detector, `logs/*.csv`) are **not built**. The citation/assumption
+> static check *is* built but presence-only and run manually (no CI). STATUS.md
+> is the canonical map of what actually exists and wins on any conflict.
 
 ## Identify your phase first
 
@@ -37,8 +37,13 @@ If you're unsure which phase you're in, ask the user. Don't guess.
   spec question; don't silently fix the spec.
 - **NEVER skip the citation/assumption docstring.** Every function in
   `implementation/src/` needs `Citation:` or `Assumption:` (or both) in
-  its docstring. A **presence** check (built in the autonomous program)
-  enforces presence; *quality* is a periodic human audit (STATUS.md).
+  its docstring. A **presence+resolution** check exists
+  (`neuromodels/framework/static_checks/check_citations.py`, run manually —
+  `python -m neuromodels.framework.static_checks.check_citations`; no CI is
+  wired): it asserts every `C-NNN`/`A-NNN` tag *resolves* to a ledger entry,
+  **not** that the tag is on the right function or that the cited passage
+  supports the behavior. That *quality* check is a periodic human audit
+  (STATUS.md, DESIGN.md §8).
 - **NEVER turn a sanity check into an assertion.** The moment you write
   `assert`, it's a test. Move it to `tests/`.
 - **NEVER burn iterations past the cap.** The stuck-detector isn't built;

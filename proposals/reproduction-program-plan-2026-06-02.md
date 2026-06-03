@@ -141,6 +141,15 @@ These were notes with a human backstop; **under autonomy they are mandatory.**
   soft-blocked) — it caught a hallucination and a latent failure single runs
   missed. With no human verdict, this is the primary visual backstop. Persist
   per-subagent splits, not just the adjudicated result.
+
+  > **Deviation — what actually ran (recorded 2026-06-02).** This tiering was
+  > *designed* but not implemented. The scripts ran a **flat 3-voter majority**
+  > for every figure regardless of status, with **no parent image-read** and no
+  > status-based tier selection. Per-subagent splits were persisted, but the
+  > stable-green/contested distinction and the mandatory parent read were not
+  > exercised. Honest record per Pillar 4; see
+  > [faithfulness-enforcement-2026-06-02.md](faithfulness-enforcement-2026-06-02.md)
+  > F5.
 - **Visual claims are VLM-binding; tighten deterministic proxies.** A
   "saturation" proxy passed at 0.918 while VLM read non-saturating. Any claim
   whose words are visual ("saturates", "looks sigmoidal") → VLM is the binding
@@ -157,10 +166,12 @@ These were notes with a human backstop; **under autonomy they are mandatory.**
   truth** (§2) + **modification smoke test** (§5(4)) are the validated backbone —
   keep. Surface `audited:false` counts + open SQs in the final report (high count
   is honest, but it is exactly what the human must see).
-- **Citation/Assumption presence check.** STATUS.md: the static check was never
-  built and "self-discipline carries it." With no human auditor, I add the
-  *cheap presence* check (every `src/` function has `Citation:`/`Assumption:`) to
-  the loop — presence only, quality deferred.
+- **Citation/Assumption presence check.** STATUS.md originally recorded this
+  static check as never built ("self-discipline carries it"). With no human
+  auditor, it is now built as a *cheap presence+resolution* check
+  (`neuromodels/framework/static_checks/check_citations.py`): every `C-NNN`/
+  `A-NNN` tag in `src/` must resolve to a ledger entry. Run manually, no CI —
+  presence/resolution only, semantic quality deferred (§10).
 - **test-log provenance ordering.** Enforce commit-code → re-run tests → VLM →
   commit-state; flag dirty-tree rows so verdicts and test rows never disagree on
   provenance.
@@ -235,8 +246,15 @@ solving artifact from the original discussion, now produced at corpus scale.
 
 - **Build-or-cut the vaporware:** the *runner* is realized as the reproduction
   workflow (§2); the *stuck-detector* becomes the documented cap + repeated-diff
-  check I honor (§6); the *citation/assumption static check* I build as the cheap
-  presence check (§5). These were the largest documented-vs-real gaps.
+  check I honor (§6); the *citation/assumption static check* is built as a
+  cheap **presence+resolution** check —
+  `neuromodels/framework/static_checks/check_citations.py`, run manually
+  (`python -m neuromodels.framework.static_checks.check_citations`; no CI wired).
+  It asserts each `C-NNN`/`A-NNN` tag *resolves* to a ledger entry; it does
+  **not** verify the tag is on the right function or that the cited passage
+  supports the behavior (that quality audit stays deferred, §5). As of
+  2026-06-02 it passes on all 27 corpus models. These were the largest
+  documented-vs-real gaps.
 - **Logged for the final review, not blocking:** the named-regime-geometry preset
   refinement (SQ-004), cross-model SQ adjudication, and any contract amendments
   the retros surface.
