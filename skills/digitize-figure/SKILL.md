@@ -54,8 +54,25 @@ Read each tool's docstring first.
 4. **Represent smoothly.** Sample peaks/turns densely and use `resample_pchip` (monotone
    cubic) so bells render rounded and plateaus stay flat — not the pointy apex linear
    interpolation gives.
-5. **Validate** with `overlay`: render your curves on the paper panel, VIEW it, confirm
-   they track. (One validation pass — not an iteration loop, unless the brief says so.)
+5. **Validate against the overlay — adversarially. Your eye is the final arbiter over the
+   tools.** The tools only *propose*; calibration, the tracer, and PCHIP are all approximate
+   exactly where the scan is hard. Render your curves on the paper panel and **look for every
+   place the line leaves the paper's ink** — do not look to confirm it tracks. **"It tracks
+   well" is not an acceptable conclusion**; if the rendered curve does not sit on the paper,
+   the tool output is wrong and you fix it (re-anchor, hand-place points), trusting your eyes
+   over the tool. Enumerate what you checked and the worst residual on each axis:
+   - **Axis / box alignment** — does the curve sit inside the plot box, and do known points
+     (a foot, a peak, a gridline crossing) land on the paper's ticks? A whole-curve shift is a
+     **calibration error** — re-anchor from the axis *ticks*, not the detected frame.
+   - **Each curve, flank and plateau** — the worst local gap from the ink.
+   - **Peaks / apexes** — PCHIP can overshoot a densely-sampled apex into a spike *taller or
+     sharper* than the paper's; compare apex height and width to the ink.
+   - **Crossings / intersections** — where two same-colour curves cross, the tracer jumps
+     between them and produces a non-monotone **wiggle**; check for any kink the paper does not
+     have and bridge it (trace the envelope through the crossing).
+   The overlay you validate must be the **final one that ships** (same calibration and line
+   width) — what a reviewer sees must be exactly what you checked; do not re-render it later
+   with a different calibration.
 
 ## Step 3 — write the digitized JSON **with a provenance block**
 

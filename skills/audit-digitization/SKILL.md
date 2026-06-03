@@ -85,10 +85,17 @@ produce false verdicts in both directions).
 
 ### Step 1 — Faithfulness: digitized reference vs the paper, panel by panel
 
-**Overlay where you can** — render the digitized curve *on top of* the paper panel
-image and judge the gap. An overlay on the actual paper pixels is far more sensitive
-than comparing two separately-drawn plots, and it plays to your strength (judging a
-visual mismatch, not reading absolute coordinates). Then check the binding dimensions:
+**Overlay — and audit the overlay that ships.** Render the digitized curve *on top of*
+the paper panel image and judge the gap; an overlay on the actual paper pixels is far
+more sensitive than two separately-drawn plots, and it plays to your strength (judging a
+visual mismatch, not reading coordinates). Crucially, **also open the final overlay that
+ships** (the one in the README / `_retrial/overlay_*.png`) and check *it* against the
+paper: a clean re-trace of the data is necessary but **not sufficient** — the shipping
+overlay can drift from faithful data through its *own* calibration, PCHIP, or
+tracer-at-a-crossing (a curve shifted off the axis, an apex overshooting into a spike, a
+non-monotone wiggle where two curves cross). **A numeric match does not clear a
+visually-mismatched overlay** — the picture a reader sees is itself binding, and your eye
+over it outranks the tool that drew it. Then check the binding dimensions:
 
 - **Axis calibration** — do the digitized points land at the right *data* coordinates?
   Probe anchors: where the curve crosses a labelled gridline, endpoint heights, the x
