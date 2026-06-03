@@ -34,7 +34,7 @@ missing capability is **BLOCKED**, surfaced explicitly.
 
 ## Step 2 — digitize (Mode 1) with the tools
 
-`from neuromodels.framework.figures import build_calibration, detect_plot_box, trace_darkest_in_band, overlay, resample_pchip`
+`from neuromodels.framework.figures import build_calibration, detect_plot_box, trace_darkest_in_band, overlay, resample_pchip, crop_region`
 Read each tool's docstring first.
 
 1. **Calibrate.** `detect_plot_box` gives a starting hint; **verify it** (its top is often
