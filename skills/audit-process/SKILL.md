@@ -157,3 +157,7 @@ code reviewer (it judges *justifications*, not implementation quality). Not a re
 suite. It is the one instrument that treats the project's own reasoning as the thing
 under audit — pillar 4 made literal: if the process is a deliverable, the process needs
 a critic.
+
+## Commit when done
+
+When your work is complete, **commit your output** on the working branch — your changes, or (for a report-only role) your report — with a message that matches the diff. The process-auditor reads commit messages against diffs, so every agent must leave an atomic, honestly-described commit.

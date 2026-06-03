@@ -488,3 +488,7 @@ Note: this skill now **does** run figure comparisons itself (Step 1b), via
 `compare-figure-packet` + VLM subagents. `skills/compare-figure/SKILL.md`
 remains the reference for the subagent protocol and the catalogue of VLM
 failure modes; this skill is where that protocol is invoked on a schedule.
+
+## Commit when done
+
+When your work is complete, **commit your output** on the working branch — your changes, or (for a report-only role) your report — with a message that matches the diff. The process-auditor reads commit messages against diffs, so every agent must leave an atomic, honestly-described commit.

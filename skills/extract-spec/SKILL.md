@@ -191,3 +191,7 @@ The output variable names are load-bearing: tests in
 When the human is satisfied with the spec + pseudocode + extracted figure
 data + reproduced figures, they write `article_aware/APPROVED` (an empty file
 is fine). Phase B tooling refuses to start without it.
+
+## Commit when done
+
+When your work is complete, **commit your output** on the working branch — your changes, or (for a report-only role) your report — with a message that matches the diff. The process-auditor reads commit messages against diffs, so every agent must leave an atomic, honestly-described commit.

@@ -83,6 +83,11 @@ python models/<model>/implementation/sanity_checks/check_<topic>.py
 
 ## When to commit
 
+- **Every agent commits its own output when done** — its changes, or (for a
+  report-only role) its report — on the working branch, with a message that
+  matches the diff. The process-auditor reads commit messages against diffs, so
+  each pass leaves an atomic, honestly-described trail. Commit only inside the
+  model repo, never the parent.
 - Phase A: after spec+pseudocode complete, after data+figures complete,
   after `APPROVED` is written.
 - Phase B: there is no runner — you make milestone commits when a component
