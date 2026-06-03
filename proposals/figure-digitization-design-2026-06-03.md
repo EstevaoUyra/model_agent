@@ -64,8 +64,14 @@ figure in the corpus. So:
 ### Candidate Mode-1 capabilities (highest-leverage first)
 - **Axis calibration** — VLM supplies pixel coords of known ticks; tool builds the
   pixel→data transform (affine / log-linear / polar). Removes the largest eyeball error.
-- **Curve tracer** — colour/style segmentation + column-wise trace → dense, grounded
-  points (PIL+numpy; no new deps). Handles dashed (gap-fill) and crossings (continuity).
+- **Curve tracer** (`trace_darkest_in_band`) — VLM gives a row-band to isolate a curve;
+  tool returns the precise per-column pixel (PIL+numpy; no new deps). **Limitation, by
+  design:** it separates only by position + darkness — no colour/style channel — so on a
+  grayscale scan it **cannot split two same-colour curves where they overlap** (a
+  contrast-gain pair sits ~coincident). Reliable for single/well-separated curves,
+  envelopes, plateaus, and style-distinct (dashed) curves; degrades to "trace the
+  envelope" on monochrome overlap. The limitation + how-to-use is documented in the
+  function docstring (point of use) and the `audit-digitization` critic's process check.
 - **Point / scatter detector** — blob detection → cloud; report slope + R, not points.
 - **Bar / histogram reader** — rectangle edges → per-category heights / bin counts.
 - **Smooth / parametric representation** — PCHIP (monotone, rounds peaks, fixes
@@ -130,3 +136,11 @@ the prime directive, statuses (`FAITHFUL-DIGITIZATION` / `DIGITIZATION-DIVERGENT
   tests, and stop the digitizer from running its own "self-check."
 - The dozen-point shape check is the comparison granularity for line/curve, **not** the
   digitization density — digitization can be as dense/smooth as the tool produces.
+- **Fix the view's normalization.** The R&H view's `norm_pair` rescales each panel to its
+  own max (→ 1.0), which violates the paper's **shared** scale — R&H Fig 2 plateaus at
+  ~0.58 / ~0.67 on one axis, and that height difference *is* the contrast-gain-vs-
+  response-gain claim. The digitization inherited this and pinned both panels to 1.0; the
+  tracer + overlay caught it, the self-check did not. The rule was already explicit
+  (`extract-figure`: "must match the paper"); the case sharpened it to "reproduce the
+  paper's scale; if the paper's curves don't reach 1.0, yours must not either; never
+  per-panel auto-normalize." The view (Phase-A-owned) must carry the paper's scale.

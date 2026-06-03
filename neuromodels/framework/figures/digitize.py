@@ -145,6 +145,30 @@ def trace_darkest_in_band(image_path, cols, row_lo, row_hi, *, calibration=None,
 
     Returns dict: ``cols``, ``rows`` (pixel), and if ``calibration`` given, ``x``,
     ``y`` (data), plus ``coverage`` (fraction of requested cols that had a curve).
+
+    LIMITATION — monochrome / overlapping curves (READ THIS before using on a
+    scanned paper panel). This tool separates curves only by *where they are*
+    (the band) and *how dark they are* — it has **no colour or line-style
+    channel**. On a grayscale scan, two curves of the same colour that run within
+    a few pixels of each other (e.g. a contrast-gain pair: a small leftward shift
+    keeps attended and ignored nearly coincident) **cannot be told apart** — the
+    darkest-pixel read returns their merged blob, not "the attended one". So:
+
+    - It is reliable for: a single curve in the band; **well-separated** curves
+      (give each its own band); the **envelope / plateau / overall shape** of a
+      bundle; and curves you can isolate by region.
+    - It is NOT reliable for: splitting two same-colour curves where they overlap.
+      There, trace the **envelope** and accept the pair is ~identical in that
+      region, then pin their offset only in the x-range where they **do** visibly
+      separate (e.g. mid-contrast, where a leftward shift opens a gap), and check
+      the result with ``overlay``.
+    - The dashed curve (e.g. % modulation) is separable by its gaps + its distinct
+      region; trace it in its own band.
+
+    This is a VLM-guided tool, not push-button extraction: the agent must choose
+    bands and decide where separation is even possible. If a panel's curves cannot
+    be separated by any band, say so (a digitization caveat) rather than reporting
+    a confident split the pixels do not support.
     """
     g = _load_gray(image_path)
     row_lo, row_hi = int(min(row_lo, row_hi)), int(max(row_lo, row_hi))

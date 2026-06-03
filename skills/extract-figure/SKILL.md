@@ -152,10 +152,20 @@ apply to non-generated empirical panels, which stay out of scope per the model-p
 ruling), these are **binding** and must each be a checklist item judged against the paper
 image:
 
-- **Normalization convention** — state explicitly *which* curve/quantity is pinned to 1.0 (or
-  to its reference), and it must match the paper. "Y = normalized response" with no stated
-  referent is the underspecification that produced the corpus-wide inversion. Use **one
-  convention across the corpus** (record it in the spec, not just the checklist).
+- **Normalization convention** — reproduce the paper's **actual scale**, not a convenient one.
+  State explicitly what the response is normalized *to* (which curve/quantity, or a shared
+  reference), and it must match the paper. Two failure modes, both binding:
+  - *Wrong referent* — pinning the wrong curve to 1.0 (the corpus-wide inversion: neutral
+    pinned to 1.0 so attended overshoots). "Y = normalized response" with no stated referent
+    is the underspecification that caused it.
+  - *Per-panel auto-normalization* — rescaling **each panel/curve to its own max (→ 1.0)**.
+    This is wrong whenever the paper uses a **shared scale across panels** so the panels are
+    **directly comparable**: e.g. R&H Fig 2, where the contrast-gain panel plateaus at ~0.58
+    and the response-gain panel at ~0.67 *on the same axis* — that height **difference is the
+    figure's claim**. Re-normalizing each panel to 1.0 erases it and inflates the level. If the
+    paper's curves do not reach 1.0, **yours must not either.** Never `max`-normalize a panel
+    just because the view code makes it easy; the view must carry the paper's scale.
+  Use **one convention across the corpus** and record it in the spec, not just the checklist.
 - **Curve shape AND width/bandwidth** — a tuning curve 2× too broad fails. Width is binding,
   not an "exact tuning width — non-binding" excuse.
 - **Baseline / floor / asymptote** — the offset a curve sits on is binding.

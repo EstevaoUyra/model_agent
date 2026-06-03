@@ -103,8 +103,15 @@ visual mismatch, not reading absolute coordinates). Then check the binding dimen
 - **Completeness & mapping** — every curve/condition present, the right *number* of
   them, the right color/line-style → condition assignment, error bars/points handled
   per the model-panels-only scope.
-- **Frame** — log/linear, axis range, and the normalization convention (which curve is
-  pinned to 1.0) all matching the paper.
+- **Frame & normalization** — log/linear, axis range, and the **normalization scale**
+  matching the paper. Check *two* things: the right curve is the referent, **and** the
+  digitization did not **per-panel auto-normalize to its own max (→ 1.0)** where the paper
+  uses a **shared scale across panels**. The tell: every panel conveniently peaks at 1.0.
+  Verify against the paper's actual plateau heights — if the paper's curves stop below 1.0
+  (R&H Fig 2 plateaus at ~0.58 / ~0.67 on a shared axis, the height difference being the
+  figure's whole claim), a digitization that reaches 1.0 is `DIGITIZATION-DIVERGENT`, even
+  though it "looks like" the paper panel in isolation. The overlay (Step 1) makes this
+  obvious; a side-by-side of two separately-scaled plots hides it.
 - **Non-curve panels** — confirm the *right kind* of thing was digitized: a scatter's
   slope/point-cloud, a histogram's distribution, a heatmap's 2-D structure, a learned
   dictionary's *emergent statistics*. A dictionary or heatmap "digitized" as a handful
