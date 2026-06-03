@@ -179,7 +179,12 @@ For a Mode-1 panel, Phase A produces the reference like this:
    calibrate the axes, trace each curve (respecting the tracer's monochrome-overlap limit —
    envelope where same-colour curves coincide), **match the paper's normalization scale**
    (never per-panel→1.0 where the paper shares a scale across panels), smooth with PCHIP,
-   and **validate against an overlay on the paper pixels**. Record a **provenance block** in
+   and **validate adversarially against an overlay on the paper pixels — the eye is the
+   arbiter over the tools.** The tools (calibration, tracer, PCHIP) are approximate exactly
+   where the scan is hard; render the curves on the paper, **zoom suspect regions with
+   `crop_region`** (an apex, a crossing, an axis corner), and treat any overshoot, wiggle, or
+   axis-edge shift as a fault to *fix*, not confirm — "it tracks well" is not a verdict. Record
+   a **provenance block** in
    `extracted_data/figure_<N>/panel_<X>_digitized.*` (figure-type → tools → calibration →
    per-curve method → caveats). The **~dozen points are the *comparison granularity*** (the
    shape check below), **not** a cap on extraction — digitize as densely/smoothly as the
@@ -385,9 +390,10 @@ figure blocks the model's `reproduced` sign-off until its paper image is supplie
 1. Every stage has contract tests; every plotted quantity a deterministic measurement
    test (a consistency tripwire — §3a — not a fidelity check).
 2. Every in-scope figure panel's **qualitative + hard** tests pass against the
-   paper-digitized reference, and the digitization passed its VLM self-check vs the
-   paper panel (§3b); soft tests are reported (never block). **No required figure is
-   `BLOCKED`** for a missing image (a blocked figure makes the model incomplete — §3b).
+   paper-digitized reference, and the digitization passed its **separate-critic audit**
+   (`skills/audit-digitization`, never a self-check) vs the paper panel (§3b); soft tests
+   are reported (never block). **No required figure is `BLOCKED`** for a missing image (a
+   blocked figure makes the model incomplete — §3b).
 3. A **modification smoke test** passes by **editing a real `implementation/
    calibration.yaml` entry on disk and regenerating the figure from the rebuilt
    model** — *not* a resolver monkeypatch (which proves only a value is read), and the
