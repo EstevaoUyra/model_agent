@@ -146,23 +146,26 @@ Faithfulness Auditor (§6) and any VLM check the rendered figure against.
 - **Scope: model panels only.** If the paper figure overlays empirical *data points /
   error bars* the model does not produce, their absence is **not** a finding — but the
   model curves, axes, and layout must match.
-- **No paper figure image ⇒ this figure CANNOT be faithfully verified. It is a
-  BLOCKER, not a license to write a paper-blind checklist.** (The 2026-06-03 finding:
-  for paywalled/unavailable papers, checklists were authored *paper-blind* from the
-  model's intended behavior, and the entire chain — extractor, VLM, auditor — then
-  "verified" the model against a description of itself. Self-referential; it grounds
-  nothing.) When the image is unavailable:
-  1. Record it as a blocker in the figures dir (e.g. `PAPER_IMAGES_NOTE.md`) with what
-     was tried.
-  2. Try the paper **text/PDF** — if the figure is described there, the checklist may
-     bind the *text-stated* behavior, tagged `paper-text-verified (no figure image)`.
-  3. If neither image nor text exists (paywalled, or a model-generated diagnostic with
-     no corresponding paper figure), the figure is tagged
-     **`self-referential — NO paper anchor`** and its faithfulness is **`UNVERIFIED-vs-
-     paper`**. It may *not* be reported next to paper-verified figures as if equivalent.
-- **Verification tier is part of every figure's status.** Carry it explicitly
-  (`paper-verified` / `paper-text-verified` / `self-referential`) into the README and
-  any report — a checklist-passed figure is not a paper-compared figure.
+- **No paper figure image ⇒ HARD BLOCKER. Stop — do not work around it.** The figure
+  cannot be reproduced or verified without it; there is **no fallback, no paper-blind
+  checklist, no weaker "tier."** Do NOT author a checklist from the model's intended
+  behavior and call it verification — that loop grounds nothing (the 2026-06-03
+  finding: extractor, VLM, and auditor all end up "verifying" the model against a
+  description of itself). Instead:
+  1. **Raise a blocker** (`PAPER_IMAGES_NOTE.md` in the figures dir) recording what was
+     tried to obtain the image.
+  2. **The work is BLOCKED.** That figure — and the model's sign-off, which depends on
+     it — stays `BLOCKED` and **can only be resumed once the figure image is supplied**
+     (by the human). A blocked figure is never `faithful`, `dispositioned`, or
+     `reproduced`, and the model is **not complete** while any required figure is
+     blocked. Paper *text* is **not** a substitute — the binding check is a visual
+     comparison and requires the image.
+  - (If a "figure" has no paper counterpart at all — a diagnostic the reproduction
+    invented — it is not a reproduction target: move it to `sanity_checks/`; it does
+    not get an in-scope checklist.)
+- **Every in-scope figure is therefore in exactly one of two states: `paper-verified`
+  (checked against the paper image) or `BLOCKED` (no image).** There is no "verified
+  against the checklist" state, and a `BLOCKED` figure blocks the model.
 
 ---
 
@@ -276,19 +279,20 @@ claims that resist coding, never for "does this match the paper."
 ISSUE` (the faithful build contradicts the paper — a first-class deliverable routed to
 the human, never an assumption that flips a test and re-greens) · `ILLUSTRATIVE-NOT-
 REPRODUCED` (a result-bearing stub; the figure shows a constructed answer) ·
-`UNVERIFIED-vs-paper` (no paper material to compare — §3b; tier it, never hide it).
+`BLOCKED` (no paper figure image — §3b; the figure and the model's sign-off are blocked
+until the image is supplied; never reported as faithful or dispositioned).
 
-**Verification tiers** (every figure/model carries one): `paper-verified` (compared to
-the paper image) > `paper-text-verified` (values/text, no figure image) >
-`self-referential` (no paper anchor — checklist authored paper-blind; **not**
-paper-verified). Do not let a lower tier sit next to a higher one unlabeled.
+**Every in-scope figure is `paper-verified` or `BLOCKED` (§3b)** — there is no
+in-between (no "checklist-only" or "self-referential" verified state). A `BLOCKED`
+figure blocks the model's `reproduced` sign-off until its paper image is supplied.
 
 ### Acceptance — a model is `reproduced` only when ALL hold
 
 1. Every stage has contract tests; every plotted quantity a deterministic measurement
    test (a consistency tripwire — §3a — not a fidelity check).
-2. The figure checklists hold (gestalt), and were **authored from the paper image** or
-   the figure is honestly tiered (§3b).
+2. Every in-scope figure checklist was **authored from the paper image** and holds
+   against it; **no required figure is `BLOCKED` for a missing image** (a blocked
+   figure makes the model incomplete — §3b).
 3. A **modification smoke test** passes by **editing a real `implementation/
    calibration.yaml` entry on disk and regenerating the figure from the rebuilt
    model** — *not* a resolver monkeypatch (which proves only a value is read), and the
