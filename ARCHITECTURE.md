@@ -50,8 +50,23 @@ Each stage declares, as data (in the implementation-side stage manifest):
 - `consumes` / `produces` — named, typed quantities with shape **and
   units/dimensions**. Units are part of the contract (LEMS lesson:
   silent unit drift on a swap is the #1 hidden-coupling failure).
-- `citation` / `assumption` — `C-NNN` / `A-NNN` (still a convention; not
-  tooling-enforced — STATUS.md).
+- `citation` / `assumption` — `C-NNN` / `A-NNN`. Presence + resolution is
+  checked by `neuromodels/framework/static_checks/check_citations.py` (every
+  tag resolves to a ledger entry); *semantic* grounding (does the passage
+  support the function?) is the Faithfulness Auditor's job, not the tag's.
+- `seam` — **the scientific ontology of the boundary (Pillar 3), required**:
+  `{ kind: natural | imposed | atomic, rationale: <one sentence> }`.
+  `natural` = a boundary a scientist would conceive of as a swappable
+  hypothesis (the attention field, the suppression kernel, the readout) —
+  rationale names *the hypothesis you could swap here*. `imposed` = a seam of
+  convenience forced by coupled math (the confession; pair with a
+  `boundary: imposed` known-limitation + SQ). `atomic` = do **not** cut here,
+  the science says it is one thing — rationale says why. A `natural` tag whose
+  rationale merely restates a data-flow boundary is a review reject: the seam
+  system encodes *what a scientist would swap*, not where the code factors
+  cleanly. (Before 2026-06-02 only the `imposed` confession was ever filled;
+  `natural`-with-rationale and `atomic` were absent across all manifests —
+  the ontology was half-built.)
 - `params` — the names it reads from the calibration ledger (§3). A stage
   contains **no tunable numeric literals**.
 
@@ -130,7 +145,15 @@ Consequences (all required):
 
 - **Deterministic tests assert on the measurement record** (golden-file /
   regression style). The figure is drawn from the *same* record, so a
-  passing test and the figure can never disagree.
+  passing test and the figure cannot disagree **with each other**. ⚠️ This
+  proves **internal consistency only — NOT fidelity to the paper.** A
+  wrong-but-self-consistent model (right sign, wrong width/baseline/
+  normalization) passes every deterministic test AND draws a wrong figure;
+  this happened at scale (49% major-or-wrong, 2026-06-02). The record-derived
+  test and the record-derived figure are **ONE green light, not two** — they
+  share a source. Fidelity to the paper is established *only* by the
+  Faithfulness Auditor (`skills/audit-faithfulness`), which is the one
+  instrument that compares to the paper, not to the record.
 - The Figure-1 class bug (deterministically perfect, visually broken) is
   structurally prevented: layout positions are *in* the record, so a
   deterministic test guards spatial structure the plot shows.
@@ -138,8 +161,9 @@ Consequences (all required):
   function + refresh its golden record. Changing **style** = view only.
   Neither requires reading the other layer.
 - The VLM is the **backstop for what code cannot assert** (gestalt,
-  "looks sigmoidal", labeling), not the primary check (idea #3:
-  code-first).
+  "looks sigmoidal", labeling) — and it too is *internal* (it checks the
+  checklist). Neither the deterministic test nor the VLM measures distance
+  to the paper; that gap is the auditor's, and it is why the auditor exists.
 
 ## 3. Calibration is data, not constants — in TWO ledgers by Phase owner
 
@@ -158,9 +182,25 @@ defect confirmed independently by the hermann2010 and cagly2012 runs. So:
   writes this.** `source: A-NNN | SQ-NNN`. This is the home for the
   SQ-001/002/004 class.
 
-Both are namespaced per stage (`<stage>.<param>: { value, units, source,
-audited, note }`; flat ledgers rot). Rules:
+Both are namespaced per stage (`<stage>.<param>: { value, units, kind,
+source, audited, quote, note }`; flat ledgers rot). Rules:
 
+- **Every binding entry has a `kind` (2026-06-02).** The first run made every
+  threshold `audited:false` justified by `Ref-impl: 0.26` — the spec's own
+  recipe reproducing its own claim, a closed loop that never touched the paper.
+  Split the two genuinely different things:
+  - `kind: paper_value` — a magnitude the paper *states*. `audited:true`
+    **requires** a `quote:` field holding the verbatim paper string + its
+    `C-NNN` locus. An `audited:true` with no quote fails the static check and
+    is a faithfulness defect (a wrong `audited:true` value shipped: Fig.7's
+    gain params mislabeled onto Fig.8). The human adjudicates *quotes*, not
+    vibes; lineage/author-code corroborates.
+  - `kind: discriminating_threshold` — a margin chosen to separate hypotheses
+    (e.g. "interior peak exceeds both ends by δ"). Its `note` must cite the
+    paper's **qualitative** claim it operationalizes AND the entry must ship a
+    **deliberately-wrong falsification** (a degenerate input that fails the
+    test). **`Ref-impl: X` is forbidden as the sole justification** for any
+    binding magnitude.
 - Model code receives the **merged resolved** ledger; it holds no tunable
   literals (no regime-conditional reaching into a dependency's internals —
   that value is an `implementation/calibration.yaml` entry, not code).
@@ -197,15 +237,29 @@ regenerate figures
 
 ## 5. Acceptance — verifiable AND modifiable
 
-A figure/model is **done** only when all hold:
+A figure/model is **done** (`reproduced`) only when all hold:
 
 1. Every stage has **contract tests** (capability-keyed; reused across swaps).
-2. Every plotted quantity has a **deterministic measurement test**.
-3. The **VLM backstop** passes (≥2 subagents; parent-adjudicates splits).
-4. A **modification smoke test** passes: swap one stage for a trivial
-   variant *via config only*; the pipeline, tests, and figure regenerate
-   with **zero edits to unrelated code**. This is the operational
-   definition of "a scientist can change it."
+2. Every plotted quantity has a **deterministic measurement test** — an
+   internal-consistency tripwire (§2), not a fidelity check.
+3. The **VLM backstop** passes (≥2 subagents; parent-adjudicates splits) —
+   gestalt only.
+4. A **modification smoke test** passes: it must **edit a real
+   `implementation/calibration.yaml` entry on disk and regenerate the figure
+   from the rebuilt model**, with zero edits to unrelated code — *not*
+   monkeypatch the in-memory resolver (that proves only a value is read, not
+   that a scientist's edit re-verifies), and the swapped unit must be a
+   **stage** (selected by enum/artifact), not a scalar knob (nudging a number
+   and asserting it moved exercises no seam). The orchestrator **collects**
+   the outcome (`modification_smoke: {ran, passed, swap_described,
+   regenerated_figure}`) — a self-graded, unreported smoke test is
+   indistinguishable from no test. This is the operational definition of "a
+   scientist can change it."
+5. The **Faithfulness Auditor** (`skills/audit-faithfulness`) returns no
+   unresolved `DIVERGENT` / `ILLUSTRATIVE-NOT-REPRODUCED` / `SUSPECTED-
+   PAPER-ISSUE` finding. This is the ONLY criterion that compares to the
+   paper; (2) and (3) are internal. Any open finding → the model is
+   **`partial`, never `reproduced`**.
 
 If (4) cannot be met without touching unrelated code, the decomposition is
 wrong — fix the contracts, not the test.

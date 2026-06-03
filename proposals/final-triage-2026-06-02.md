@@ -1,5 +1,15 @@
 # Reproduction program — final consolidated triage (2026-06-02)
 
+> **⚠ SUPERSEDED (2026-06-02, same day).** This report is superseded by the
+> corpus figure audit (49% of 77 figures major-or-wrong despite green verdicts),
+> the [figure-faithfulness post-mortem](figure-faithfulness-postmortem-2026-06-02.md),
+> and the [faithfulness enforcement plan](faithfulness-enforcement-2026-06-02.md).
+> Its "20 fully green" / "VLM caught every visually-wrong figure" claims were
+> produced by the lenient VLM-checklist chain now known to be unreliable, and
+> **without** the VISION-mandated researching faithfulness auditor (which never
+> ran). Treat the green claims below as **not trustworthy**; the body is left
+> unedited as the record of what the autonomous program reported.
+
 The single human-review artifact for the autonomous reproduction program
 ([reproduction-program-plan](reproduction-program-plan-2026-06-02.md)). Sorted so
 your attention goes to the **flagged** items; the green corpus is summarized, not

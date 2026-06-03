@@ -133,12 +133,43 @@ Scope the checklist to generated model artifacts:
 Rules for writing checklist items:
 - Written for someone who has **not read the paper** — all necessary context is in the item.
 - Each item is a **single, unambiguous visual claim**. Do not bundle two claims in one item.
-- Prefer **comparative claims** over absolute ones where possible ("right stripe brighter
-  than left" is more robust than "right stripe has value 0.8").
+- Comparative phrasing ("right stripe brighter than left") is fine where it captures the
+  real claim and is robust to render style. But **comparative phrasing must NEVER be used to
+  excuse a discriminating quantitative dimension** (see "Binding the discriminating
+  dimensions" below). "More robust" previously meant "tolerant of quantitative divergence" —
+  that tolerance is exactly what passed 49% of figures that don't look like the paper
+  (2026-06-02 post-mortem). A claim must fail when the figure stops matching the paper.
 - Include a **coordinate convention section** at the top explaining how to interpret
   positional references.
 - Structural absence claims are valid and important ("there is a clear dark gap between the
   two bands — they have not merged").
+
+**Binding the discriminating dimensions (2026-06-02 — non-negotiable).** The first run's
+checklists marked as "NOT binding" exactly the dimensions that distinguish a faithful figure
+from an unfaithful one — and so passed figures with the wrong tuning width, no baseline, the
+inverted normalization, and spurious extra panels. For every **model** panel (this does NOT
+apply to non-generated empirical panels, which stay out of scope per the model-panels-only
+ruling), these are **binding** and must each be a checklist item judged against the paper
+image:
+
+- **Normalization convention** — state explicitly *which* curve/quantity is pinned to 1.0 (or
+  to its reference), and it must match the paper. "Y = normalized response" with no stated
+  referent is the underspecification that produced the corpus-wide inversion. Use **one
+  convention across the corpus** (record it in the spec, not just the checklist).
+- **Curve shape AND width/bandwidth** — a tuning curve 2× too broad fails. Width is binding,
+  not an "exact tuning width — non-binding" excuse.
+- **Baseline / floor / asymptote** — the offset a curve sits on is binding.
+- **Panel layout** — enumerate the panels the paper's figure has; **forbid panels it does
+  not** (do not write "the difference curve, if plotted" — that pre-blesses a spurious panel).
+  A model panel the paper has and the figure drops is also a failure.
+- **Axes** — range, scale (log/linear), sign convention, labels, tick values.
+
+**Validate the checklist for SUFFICIENCY, not just necessity.** Before the spec is approved,
+show that a *deliberately-wrong* figure (wrong width, inverted normalization, an extra panel,
+a degenerate monotone/plateau curve where the paper turns over) **fails** the checklist. A
+checklist a known-bad figure passes is too loose by construction and is a hard reject. "The
+right figure passes" is necessary but not sufficient — the gap between them is where the
+leniency lived.
 
 **Tagging uncertain items:** If you are not confident about a checklist item — because the
 image is ambiguous, because you are inferring from equations rather than clearly seeing the
@@ -242,4 +273,10 @@ article_aware/figures/
       visual observation.
 - [ ] No checklist item contradicts a claim in `figure_N.md`.
 - [ ] The colormap encoding convention (if non-standard) is stated in the checklist.
+- [ ] For every model panel, the discriminating dimensions are binding items: normalization
+      convention (which curve = 1.0, stated), curve shape + width, baseline/floor, panel
+      layout (panels the paper lacks are forbidden), and axes.
+- [ ] **Sufficiency demonstrated**: a deliberately-wrong figure (wrong width / inverted
+      normalization / extra panel / degenerate curve) has been shown to FAIL this checklist.
+      A known-bad figure that passes = reject.
 - [ ] Items where you had genuine visual uncertainty are tagged `<!-- UNSURE -->`.

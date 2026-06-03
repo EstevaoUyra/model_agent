@@ -36,13 +36,16 @@ neuromodels/
     judge/           # adversarial judge, attacker/defender           (CLI: neuromodels judge)
     llm/             # shared LLM provider access
     explore/         # helpers for sanity-check scripts
+    static_checks/   # check_citations.py — manual presence+resolution of C-NNN/A-NNN tags
   cli/               # `neuromodels` CLI entry points
   tests/             # framework tests
 ```
 
-Earlier drafts listed `logging/`, `stuck_detector/`, `review/`, a populated
-`static_checks/`, and a "runner" — **none ever existed**; they have been removed
-here (STATUS.md). The real operational layer is `skills/` + the pytest plugin.
+Earlier drafts listed `logging/`, `stuck_detector/`, `review/`, and a "runner" —
+**none ever existed**; they have been removed here (STATUS.md). `static_checks/`
+now holds one real check — `check_citations.py`, a manually-run, presence-only
+citation/assumption resolver (STATUS.md). The real operational layer is `skills/`
++ the pytest plugin.
 
 ## Per-model — `models/<model>/`
 
@@ -60,8 +63,20 @@ models/<model>/
   implementation/    # Phase B: src/<pkg>/{stages,measurements,views,protocols}, calibration.yaml,
                      #   artifacts/, tests/, sanity_checks/, figure_outputs/ (gitignored)
   logs/              # test_runs.jsonl, figure_comparisons/, figure_diagnoses/, spec_questions.md
+  figures_reproduced/ # COMMITTED snapshot of paper-vs-reproduced comparison PNGs (see below)
   README.md          # the reviewable state report (update-state skill)
 ```
+
+**`figures_reproduced/` (committed snapshot — freshness NOT guaranteed).**
+A per-model directory of paper-vs-reproduced comparison PNGs, committed by the
+docs/README pass (not produced by the render pipeline). The **authoritative**
+render is the gitignored `implementation/figure_outputs/figure_<N>.png` that the
+VLM compares; `figures_reproduced/` is a hand-committed copy for at-a-glance
+review. **Its freshness is not enforced** — a later code change can move
+`figure_outputs/` without anyone re-committing `figures_reproduced/`. **Open
+risk:** a faithfulness audit that reads `figures_reproduced/` may be looking at a
+stale image; for the binding visual check, render `figure_outputs/` fresh and use
+the persisted `logs/figure_comparisons/` verdicts.
 
 ## Boundaries (enforced by tooling, not just prompts)
 
