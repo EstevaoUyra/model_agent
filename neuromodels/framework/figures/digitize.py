@@ -247,7 +247,7 @@ def overlay(image_path, calibration: AxisCalibration, curves: dict, out_path, *,
             gx = np.linspace(xs.min(), xs.max(), n)
         gy = resample_pchip(np.column_stack([xs, ys]), gx, log_x=log_x)
         cols, rows = calibration.to_pixels(gx, gy)
-        ax.plot(cols, rows, "-", lw=1.6, color=_OVERLAY_COLORS[i % len(_OVERLAY_COLORS)],
+        ax.plot(cols, rows, "-", lw=2.5, color=_OVERLAY_COLORS[i % len(_OVERLAY_COLORS)],
                 label=name, alpha=0.85)
     ax.set_xlim(0, g.shape[1])
     ax.set_ylim(g.shape[0], 0)
