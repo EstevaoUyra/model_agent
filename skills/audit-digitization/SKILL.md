@@ -197,3 +197,7 @@ faithful model graded against a bad reference still fails honestly here). Not th
 Process Auditor's full corpus-trajectory remit — its process lens is scoped to *this
 digitization's* tool use, nothing wider. Not the digitizer, and not a render-debugger.
 It guards the ruler before anyone measures with it.
+
+## Commit when done
+
+When your work is complete, **commit your output** on the working branch — your changes, or (for a report-only role) your report — with a message that matches the diff. The process-auditor reads commit messages against diffs, so every agent must leave an atomic, honestly-described commit.

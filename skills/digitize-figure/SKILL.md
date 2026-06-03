@@ -115,3 +115,7 @@ the pixels; an understated caveat is worse than an admitted limit.
   failure this split exists to break.)
 - Not the model implementer, not the figure-description writer (`extract-figure`), not the
   Mode-2/Mode-3 path. If the panel is not a Mode-1 plot, stop and route it, don't force it.
+
+## Commit when done
+
+When your work is complete, **commit your output** on the working branch — your changes, or (for a report-only role) your report — with a message that matches the diff. The process-auditor reads commit messages against diffs, so every agent must leave an atomic, honestly-described commit.
