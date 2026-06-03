@@ -1,10 +1,11 @@
 # VISION — what this project is for
 
-This is the apex document: the *why behind the why*. [DESIGN.md](DESIGN.md)
-explains the rationale behind the system's mechanisms; this explains what the
-whole project is trying to *be*, and what must never be traded away to get
-there. When a design choice is unclear, ask which pillar it serves. When two
-pillars conflict, the ordering here decides.
+This is the apex document: the *why behind the why*. [WORKFLOW.md](WORKFLOW.md)
+explains *how* a model is reproduced (the process, the structure, the test
+generation, the verification regime); this explains what the whole project is trying
+to *be*, and what must never be traded away to get there. When a design choice is
+unclear, ask which pillar it serves. When two pillars conflict, the ordering here
+decides.
 
 > **Status discipline.** This document describes the *target* and the *north
 > star*, not what is built. [STATUS.md](STATUS.md) remains the canonical map of
@@ -100,7 +101,14 @@ The binding constraint today is **the human's time to validate faithfulness.**
 Faithfulness you cannot afford to verify is, operationally, indistinguishable
 from unfaithfulness. So the next thing the process must produce is *not* more
 reproduction quality — it is **faithfulness the human can trust cheaply.**
-*(not built)*
+
+> **Update 2026-06-03 — substantially built.** The intended shape below was realized
+> as the **faithfulness regime**: a paper-aware Faithfulness Auditor + a change-trail
+> Process Auditor (the "role distinct from the adversarial judge" called for below),
+> explicit **verification tiers** (paper-verified / text-verified / self-referential),
+> and a consolidated trust-triage report. See [WORKFLOW.md](WORKFLOW.md) §6 and
+> `proposals/faithfulness-rerun-report-2026-06-03.md`. The text below is retained as
+> the design intent it was built to.
 
 The intended shape, as designed in discussion so far:
 
@@ -138,18 +146,15 @@ The intended shape, as designed in discussion so far:
 
 ## How the other documents serve this
 
-- [DESIGN.md](DESIGN.md) — rationale behind each mechanism (Phase A/B split,
-  adversarial judge, calibration-as-data). Mechanisms in service of these
-  pillars.
-- [ARCHITECTURE.md](ARCHITECTURE.md) — the contract shape every model must take
-  (stage pipeline, protocol→measurement→view, calibration ledgers). The
-  structural expression of Pillars 2 and 3.
-- [STATUS.md](STATUS.md) — what is actually built. **Canonical on reality;
-  wins over the aspirations here.**
-- [WORKFLOW.md](WORKFLOW.md) / [REPO_STRUCTURE.md](REPO_STRUCTURE.md) — how, and
-  where things live.
-- [ARCHITECTURE_WATCHLIST.md](ARCHITECTURE_WATCHLIST.md) — what would falsify
-  the current structural bets (Pillar-4 discipline applied to the architecture).
+- [WORKFLOW.md](WORKFLOW.md) — the single authoritative *how*: the Phase A/B process,
+  the structure each model must take (stage pipeline, protocol→measurement→view,
+  calibration ledgers — the structural expression of Pillars 2 and 3), how tests are
+  generated, the faithfulness regime, the per-model layout, and the falsification
+  triggers. (Consolidated 2026-06-03 from the former DESIGN / ARCHITECTURE /
+  REPO_STRUCTURE / ARCHITECTURE_WATCHLIST.)
+- [STATUS.md](STATUS.md) — what is actually built. **Canonical on reality; wins over
+  the aspirations here.**
+- [AGENTS.md](AGENTS.md) — the thin operational entry point for an agent session.
 
 When this document and a mechanism doc disagree about **intent**, this one
 wins — fix the mechanism. When this document and STATUS.md disagree about

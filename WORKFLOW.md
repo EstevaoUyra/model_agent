@@ -1,316 +1,373 @@
-# Workflow — how to reproduce a model end-to-end
+# How to reproduce a model — the process
 
-Operational guide for one model reproduction. *Where* things live:
-[REPO_STRUCTURE.md](REPO_STRUCTURE.md). *Why* the shape: [DESIGN.md](DESIGN.md).
-*What each model must become*: [ARCHITECTURE.md](ARCHITECTURE.md). *What is
-actually built*: [STATUS.md](STATUS.md). For the **autonomous reproduction
-program** (waves, critique-agent gates, the no-stop policy), see
-[proposals/reproduction-program-plan-2026-06-02.md](proposals/reproduction-program-plan-2026-06-02.md).
+This is **the single authoritative description of how a paper should be reproduced**:
+the phases, the artifacts, how tests are generated, the structure each model must
+take, and how faithfulness is verified. It is the *how*.
 
-Two phases separated by a hard article-access boundary:
+- *Why this project exists / what "faithful" means*: [VISION.md](VISION.md) (the four
+  pillars — the apex standard; faithfulness wins every conflict).
+- *What is actually built (vs. described)*: [STATUS.md](STATUS.md) — **canonical on
+  reality; wins on any conflict.** This document describes the target process; where a
+  mechanism here is not yet tooling, STATUS.md says so.
 
-- **Phase A (article-aware):** read `paper/`, produce the self-sufficient
-  `article_aware/` contract. Gate: `article_aware/APPROVED`.
-- **Phase B (no article access):** implement from the spec alone; iterate
-  against tests + figures. **Never reads `paper/`.**
+> **The one rule that subsumes the rest.** A reproduction is faithful only to the
+> extent it is *checked against the paper*. Every gate, test, and verdict in this
+> document exists to measure **distance to the paper**, not internal self-consistency.
+> The failure this process is built to prevent (post-mortem 2026-06-02): a checklist
+> derived from the model's own intended behavior, satisfied by a figure the model
+> produces, "verifying" nothing. When the paper material to check against does not
+> exist, say so — do not manufacture a green that nobody grounded.
 
-The boundary is the load-bearing design choice: anything not in `article_aware/`
-is, by definition, an underspecification → recorded as an `Assumption`.
+---
 
-## Reality, and the autonomous program — read this first
+## 1. Two phases, one hard boundary
 
-The real loop is **skills + plain `pytest` (a plugin logs to `test_runs.jsonl`)
-+ VLM subagents + a documented iteration cap**, driven by the organizer. The
-"framework runner", the stuck-detector / `STUCK` gate, the citation static-check,
-the `relaxed`/`pending_human_review` statuses, `CurveTolerance`,
-`paper_issues.md`, and `review_queue/` that earlier drafts described **were never
-built and have been removed** (STATUS.md).
+Reproduction is split into two phases separated by a **paper-access boundary**, the
+most important design choice in the system:
 
-Gates are *canonically* human (Phase-A `APPROVED`, faithfulness verdict). In the
-**autonomous reproduction program** they are substituted by **adversarial
-critique agents** — a spec-review panel returns a verdict, the *organizer* writes
-`APPROVED` on it, and the verdict combines the faithfulness rubric + multi-subagent
-VLM + the standing **Faithfulness Auditor** — with the human called **once, at the
-end**. See the program plan.
+- **Phase A — article-aware extraction.** Reads `paper/` (the PDF + extracted text +
+  figure images). Produces the self-sufficient `article_aware/` contract. This is the
+  *only* phase that may read the paper.
+- **Phase B — implementation (paper-blind).** Reads `article_aware/` (read-only) +
+  `logs/`. Implements the model. **Never reads `paper/`.** Anything missing from
+  `article_aware/` is, by definition, an underspecification → logged as an
+  `Assumption`, never recovered by peeking at the paper.
 
-> **2026-06-02 redesign — read this.** The first autonomous run's verdict was a
-> 3-voter VLM majority against a *paper-blind qualitative checklist*. A corpus audit
-> found **49% of figures major-or-wrong despite green verdicts**; the attacker/defender
-> judge meant to counter lenient LLM verdicts **never ran**. The root cause: the
-> process measured *internal self-consistency*, never *distance to the paper* — no
-> agent ever held the full paper and the implementation together. The redesign
-> ([proposals/faithfulness-enforcement-2026-06-02.md](proposals/faithfulness-enforcement-2026-06-02.md))
-> adds the **Faithfulness Auditor** (`skills/audit-faithfulness`, the paper+code
-> critic), makes the previously-"non-binding" figure dimensions binding, splits the
-> reviewer verdict from the gate, and gives failing the gate **consequences** (below).
-> The governing principle, non-negotiable: **a false-pass is far costlier than a
-> false-fail** — in a faithfulness library the verdict's error-bias is the *inverse*
-> of a CI test suite's. Critique comes from agents incentivized to **find divergences**,
-> never to drive tests green.
+The boundary forces the spec to be *complete and executable*: if Phase B could peek,
+the spec would silently degrade into a partial summary. It is enforced by
+**working-directory scope (tool config), not prompt text** — prompts are a hint, tool
+config is the guarantee.
 
-## Roles
+A third, separate role — the **faithfulness regime** (§6) — runs *after* a build and
+*is* allowed the paper. It does not relax the boundary (the blind build already
+happened); it is the instrument that measures the result against the paper.
 
-- **Article extractor (Phase A)** — reads `paper/`, writes `article_aware/`.
-- **Implementation agent (Phase B)** — reads `article_aware/` (read-only) +
-  `logs/`; writes `implementation/`; appends to `logs/spec_questions.md`.
-  **Never reads `paper/`.**
-- **Critique / judge agents** — the spec-review panel and the attacker/defender
-  verdict judges (DESIGN §3); see the program plan for how they substitute for
-  the human gates.
-- **Faithfulness Auditor** (`skills/audit-faithfulness`) — post-build critic that
-  holds the *full paper + implementation + lineage* and finds divergences (the one
-  instrument that compares to the paper). Report-only.
-- **Process Auditor** (`skills/audit-process`) — meta-critic that reads the *change /
-  reasoning trail* (SQs, assumption rationales, diffs, commit reasons, diagnosis logs)
-  — **not** the paper — and flags whether the trajectory is drifting toward leniency.
-  Report-only.
+**Boundaries (enforced by tooling):**
 
-## Phase A — article-aware
+| Role | reads `paper/` | reads `article_aware/` | writes `article_aware/` | writes `implementation/` |
+|---|---|---|---|---|
+| Extractor (Phase A) | **yes** | yes | yes | no |
+| Implementer (Phase B) | **no** | yes (read-only) | no (append `logs/spec_questions.md` only) | yes |
+| Faithfulness Auditor (§6) | **yes** | yes | **no** (report only) | **no** (report only) |
+| Process Auditor (§6) | no (reads the change-trail, not the paper) | yes | no | no |
+| Adversarial judge | no (rubric/context/under-review only) | no | no | no |
 
-Produce everything a paper-blind implementer needs. Follow
-`skills/extract-spec/SKILL.md` and `skills/extract-figure/SKILL.md`. Artifacts
-under `article_aware/`:
+---
 
-- `spec/model_spec.yaml` — state variables, parameters, equations, components,
-  the ordered **paper-derived pipeline (dataflow)**, and `simulation_protocols`
-  (each declaring its `expected_outputs`). Pydantic-validated.
-- `spec/calibration.yaml` — the **paper-derived** parameter ledger
-  (ARCHITECTURE §3); Phase-A-owned, `source: C-NNN`.
+## 2. Phase A — the article-aware contract
+
+Produce everything a paper-blind implementer needs, under `article_aware/`. Follow
+`skills/extract-spec/SKILL.md` and `skills/extract-figure/SKILL.md`.
+
+- `spec/model_spec.yaml` — state variables, parameters, equations (`EQ-NNN`),
+  components, the ordered **paper-derived pipeline** (dataflow; Phase B cannot
+  reverse-engineer order from equations alone), and `simulation_protocols` (each
+  declaring the exact `expected_outputs` its runner returns).
+- `spec/calibration.yaml` — the **paper-derived** parameter ledger (§5). Phase-A-owned.
 - `spec/citations.yaml` (`C-NNN`) · `spec/assumptions.yaml` (`A-NNN`).
-- `pseudocode/<figure>_protocol.md` — inputs, procedure, named outputs, expected
-  behavior, one per protocol.
-- `figures/figure_<N>.md`, `figure_<N>_visual_checklist.md`, and the paper figure
-  image — central to the VLM flow.
-- `extracted_data/test_figure_<N>.py` — qualitative claims as ordinary pytest
-  tests asserting on the protocol's named outputs / the measurement record.
-  Reduce to deterministic wherever possible. **For visual words** ("saturates",
-  "sigmoidal") the VLM is the binding check and the deterministic test is a
-  regression tripwire — and tighten the proxy so passing it implies the visual
-  reads right. **Shape claims** (turnover / end-stopping / peak / saturation) must
-  assert the STRICT structure — e.g. an interior argmax that exceeds *both*
-  endpoints by a ledger margin — so a monotonic/plateau curve fails (Wave-1
-  spratling figure_5b: a loose proxy passed a curve with no end-stopping; the
-  independent VLM, not the impl agent's self-check, caught it). **For schematic figures**, assert spatial-layout structure
-  (positions live in the measurement record) — guards the "Figure-1 class"
-  (deterministically perfect, visually broken).
-- **Literature-grounding / parameter-provenance table** (the adopted process
-  upgrade): for each significant parameter/choice — `value | stated-in-paper |
-  relative-only | inferred | evidence (cited ref / lineage / follow-up / original
-  code) | sensitivity`. This evidence is what lets the final review trust the
-  reproduction cheaply.
+- `pseudocode/<figure>_protocol.md` — inputs, sweeps, procedure, named outputs (the
+  output names are the runner contract), expected behavior.
+- `figures/figure_<N>.md` — role in the paper + **verbatim caption** + per-panel
+  expected behavior derived from the equations.
+- `figures/figure_<N>.<img>` — **the paper's figure image** (see §3, this is
+  load-bearing).
+- `figures/figure_<N>_visual_checklist.md` — the binding visual claims (§3).
+- `extracted_data/test_<figure>.py` — the deterministic claim tests (§3).
+- **Literature-grounding / parameter-provenance table** — per significant
+  parameter: `value | stated-in-paper | relative-only | inferred | evidence (cited
+  ref / author code / lineage) | sensitivity`. This is what lets a human trust the
+  reproduction cheaply (VISION's trust-triage).
 
-**Faithfulness rules (extraction) — Wave-1 retro, non-negotiable.**
+**Faithfulness rules for extraction (non-negotiable):**
 
-- **Never confabulate.** Do not assert a mechanism or a quantitative claim the
-  paper does not state. Every test claim traces to a specific paper passage
-  (cite it) or is an explicit `A-NNN` assumption with provenance — never a
-  fabricated claim wearing a real `C-NNN`. (Wave 1: an extractor invented a false
-  "identity dictionary ⇒ coefficients unchanged" mechanism and a kurtosis claim
-  the paper never makes — caught by the spec-review panel.)
-- **Thresholds live in the ledger.** Binding numeric thresholds go in
-  `calibration.yaml` (`audited:false` + `A-NNN`), not hidden in test code — the
-  human audits the *ledger*, not the code. **Self-check before finishing: grep
-  your tests for hard-coded numeric literals; every binding threshold must be a
-  ledger entry read via the calibration fixture** (only definitional constants
-  like the Gaussian-kurtosis 3.0, and float guards like 1e-9, may stay inline,
-  annotated). Wave-2: 2 of 6 extractions still buried one — the gate caught them;
-  prevent it at the source.
-- **One convention, everywhere.** Unit/scale conventions (contrast
-  fraction-vs-percent, curve-peak-vs-raw-coefficient) must be singular and
-  identical across spec, calibration, and provenance.
-- **Verify internal consistency** with a throwaway reference implementation
-  before finalizing: does the spec's own recipe actually satisfy its qualitative
-  claims?
+- **Never confabulate.** Every test claim traces to a specific paper passage (cite it)
+  or is an explicit `A-NNN` assumption with provenance — never a fabricated claim
+  wearing a real `C-NNN`.
+- **One convention everywhere.** Unit/scale conventions (contrast fraction vs percent;
+  curve-peak vs raw-coefficient; which curve is normalized to 1.0) singular and
+  identical across spec, calibration, pseudocode, and provenance.
+- **Classify every frozen-fit / stubbed-learning stage** (§5): `nuisance_fit` (stub it
+  freely) vs `result_bearing` (the learned object *is* the paper's headline claim —
+  stubbing it means the figure shows a *constructed* answer; mark it
+  `ILLUSTRATIVE-NOT-REPRODUCED`, never plain green).
+- **Verify internal consistency** with a throwaway reference implementation before
+  finalizing — *but never let "the recipe reproduces its own claim" stand in for "the
+  value matches the paper"* (see §5, `discriminating_threshold`).
 
-**Gate:** `article_aware/APPROVED` (empty sentinel). **Verdict and gate are
-separate** (a single agent that judges *and* writes its own gate is grading its own
-homework — it under-blocks to keep the program moving). The reviewer returns only a
-structured verdict; the **organizer writes `APPROVED`** on `verdict==approved`. Use
-**≥2 genuinely independent reviewers** (a real panel, not N=1); disagreement routes
-to the human. Reviewers attack the spec for completeness (can a paper-blind agent
-build it?) and faithfulness (is every assumption evidenced *and quoted*?), and —
-because an extractor and a reviewer reading the same dense passage share misreadings —
-every `audited:true` value is cross-checked against a **captured verbatim quote** and,
-where available, the lineage/author-code, not a single correlated re-read.
+**Gate — `article_aware/APPROVED`.** Verdict and gate are **separate**: a reviewer
+returns a structured verdict; the **organizer writes `APPROVED`** on it. Use **≥2
+independent reviewers** (a real panel, not N=1 self-certifying its own gate);
+disagreement routes to the human. Before `APPROVED`: every checklist must pass the
+**sufficiency test** (§3) and every `audited:true` value must carry a captured verbatim
+quote (§5).
 
-**Sufficiency, not just necessity (the 2026-06-02 lesson).** A checklist or shape
-test is validated by showing a *deliberately-wrong* artifact **fails** it — not only
-that the right one passes. Before `APPROVED`: every shape claim must be shown to fail
-on a degenerate curve (monotone/plateau/flat); every figure checklist must bind the
-discriminating dimensions (normalization convention, width, baseline, panel layout —
-see `skills/extract-figure`). A known-bad artifact that passes is a hard reject.
+---
 
-## Phase B — implementation
+## 3. How tests are generated (the load-bearing section)
 
-Reads only `article_aware/` + `logs/`. Build to the ARCHITECTURE shape
-(`src/<pkg>/stages/` + `manifest.yaml`, `measurements.py`, `views.py`,
-`protocols.py`, `implementation/calibration.yaml`, `artifacts/`). The closed
-loop:
+Two test surfaces. Both must measure distance to the **paper**, not to the model.
 
-1. Implement bottom-up along the spec `pipeline`, smallest helpers first.
-2. Run `pytest` — the plugin logs each test to `logs/test_runs.jsonl`; follow
-   `skills/run-tests`. **Deterministic tests assert on the measurement record**
-   (golden-file style), so a passing test and the figure cannot disagree.
-3. Generate figure PNGs; run the **multi-subagent VLM compare**
-   (`skills/compare-figure`): **≥3 subagents + a parent image-read** for changed
-   / contested / soft-blocked figures, 1 for stable-green. Persist the
-   per-subagent splits, not just the adjudicated result. **Regenerate every figure
-   from the committed model immediately before any agent reads it** — as a
-   **deterministic verifier/organizer render step, never as a claim by the impl
-   agent** (Wave-2 bell figure_4 was a stale noise PNG while the model produced
-   localized=0.95 filters — wasting a fix cycle).
-   **The VLM-checklist verdict establishes internal consistency and gestalt — NOT
-   faithfulness to the paper.** It is a build-loop tripwire, not the faithfulness
-   gate (it passed 49% major-or-wrong figures in the first run). Faithfulness to the
-   paper is established only by the **Faithfulness Auditor** (`skills/audit-faithfulness`),
-   which compares the freshly-rendered figure, the code equations, and the ledger
-   values against the *paper itself*. Do **not** re-derive a "never false-green"
-   reassurance from the re-render discipline — staleness was one failure mode; the
-   dominant one is a self-consistent model that is uniformly wrong, which no amount of
-   re-rendering catches.
-4. Diagnose each issue, tagged `model | figure_generation | spec_scope`, and
-   route the fix accordingly. **Before sweeping calibration knobs**, write the
-   closed form for the recorded quantity and identify which knob can actually
-   move the failing value (avoids the "nothing works, looks stuck" trap).
-5. Repeat until **deterministic green + VLM pass**, or the **iteration cap**
-   trips → escalate (below).
+### 3a. Deterministic claim tests — `extracted_data/test_<figure>.py`
 
-**Figure faithfulness (Wave-1 figure_1 lesson).** For schematic figures the view
-must reproduce the *specified iconography* — the exact glyphs/panels the visual
-checklist names (e.g. a sigmoid + arrow-stack pool, two Gabors in a dashed RF
-ellipse) — not simplified box/text placeholders; correct topology with wrong
-iconography still fails the binding checklist. For multi-panel paper figures,
-render the model panels in the paper's layout so the generated PNG lines up with
-`article_aware/figures/figure_<N>.*`.
+Ordinary pytest files asserting on the protocol's named outputs / the measurement
+record (§4). Rules:
 
-**Calibration.** Implementation-side knobs, 1D-discretization, and frozen-fit
-stub magnitudes go in `implementation/calibration.yaml` (Phase-B-writable,
-ARCHITECTURE §3) — **never as literals in stage code**. Fitting/training is a
-**stubbed** stage: a frozen, **hashed, provenanced** learned-parameter artifact
-under `artifacts/`; the forward path consumes it deterministically.
+- **Assert on the measurement record (golden-file style)** — so a passing test and the
+  rendered figure are drawn from the same record. ⚠️ This proves *internal
+  consistency only*, NOT fidelity to the paper. Count the deterministic test and the
+  figure it shares a record with as **one** signal, never two.
+- **Shape claims assert the STRICT structure.** "End-stopping" = an interior argmax
+  that exceeds *both* endpoints by a ledger margin, so a monotone/plateau curve *fails*.
+  A loose proxy that a degenerate curve passes is a defect.
+- **Binding thresholds live in the ledger, with a `kind`** (§5) — not as literals in
+  test code.
+- **Validate every test for SUFFICIENCY, not just necessity.** Before `APPROVED`,
+  demonstrate that a *deliberately-wrong* input **fails** the test (a monotone curve, an
+  inverted normalization, a degenerate value). A test a known-bad artifact passes is
+  too loose by construction — a hard reject. "The right answer passes" is necessary but
+  not sufficient; the gap between the two is where leniency hides.
 
-**Citation/Assumption docstring discipline.** Every function in
-`implementation/src/` carries `Citation:` (`C-NNN`) and/or `Assumption:`
-(`A-NNN`). A cheap static check (`neuromodels/framework/static_checks/check_citations.py`,
-run manually — no CI wired) verifies **presence + resolution**: every tag resolves to
-a real entry in that model's `citations.yaml` / `assumptions.yaml`. It does **not**
-check that the cited passage actually grounds the function — presence is a weak proxy
-(one `C-NNN` can be sprayed across unrelated functions). Real per-claim grounding is
-the **Faithfulness Auditor's** job, against the paper; the provenance table
-(`stated-in-paper | relative-only | inferred | evidence | sensitivity`) is the
-artifact a human trusts, not the docstring tag.
+### 3b. Figure / visual tests — `figure_<N>_visual_checklist.md`
 
-**Acceptance (ARCHITECTURE §5).** A model is `reproduced` only when ALL hold:
-every stage has contract tests; every plotted quantity a deterministic measurement
-test (an internal-consistency tripwire — it does **not** establish paper fidelity);
-the VLM backstop passes (gestalt); the **modification smoke test** passes by editing
-a **real `implementation/calibration.yaml` entry and regenerating the figure from
-disk** (a resolver monkeypatch does NOT count — it proves only that a value is read,
-not that a scientist's edit re-verifies); and the **Faithfulness Auditor returns no
-unresolved `DIVERGENT` / `ILLUSTRATIVE-NOT-REPRODUCED` / `SUSPECTED-PAPER-ISSUE`
-finding**. Any such finding makes the model **`partial`, never `reproduced`**, until
-the organizer or human dispositions it. If the smoke test can't be met without
-touching unrelated code, the decomposition is wrong — fix the contracts.
+The checklist is the binding set of pass/fail visual claims for a figure. **It is
+authored by looking at the paper's figure image**, and it is the standard the
+Faithfulness Auditor (§6) and any VLM check the rendered figure against.
 
-## Escalation
+- **The checklist is generated FROM the paper figure image** (`figure_<N>.<img>`).
+  Each binding item is a claim about *what the paper's figure actually shows*, on the
+  **discriminating dimensions**: the **normalization convention** (state explicitly
+  which curve/quantity is pinned to 1.0 — the single most common silent divergence),
+  **curve shape and width/bandwidth**, **baseline / floor / asymptote**, **panel
+  layout** (enumerate the panels the paper has; *forbid panels it does not* — never
+  pre-bless "the difference curve, if plotted"), and **axes** (range, scale, sign
+  convention, labels, ticks). Comparative phrasing is fine, but it must **fail when the
+  figure stops matching the paper** — "robust to scale" must never mean "tolerant of
+  the divergence that matters."
+- **Scope: model panels only.** If the paper figure overlays empirical *data points /
+  error bars* the model does not produce, their absence is **not** a finding — but the
+  model curves, axes, and layout must match.
+- **No paper figure image ⇒ this figure CANNOT be faithfully verified. It is a
+  BLOCKER, not a license to write a paper-blind checklist.** (The 2026-06-03 finding:
+  for paywalled/unavailable papers, checklists were authored *paper-blind* from the
+  model's intended behavior, and the entire chain — extractor, VLM, auditor — then
+  "verified" the model against a description of itself. Self-referential; it grounds
+  nothing.) When the image is unavailable:
+  1. Record it as a blocker in the figures dir (e.g. `PAPER_IMAGES_NOTE.md`) with what
+     was tried.
+  2. Try the paper **text/PDF** — if the figure is described there, the checklist may
+     bind the *text-stated* behavior, tagged `paper-text-verified (no figure image)`.
+  3. If neither image nor text exists (paywalled, or a model-generated diagnostic with
+     no corresponding paper figure), the figure is tagged
+     **`self-referential — NO paper anchor`** and its faithfulness is **`UNVERIFIED-vs-
+     paper`**. It may *not* be reported next to paper-verified figures as if equivalent.
+- **Verification tier is part of every figure's status.** Carry it explicitly
+  (`paper-verified` / `paper-text-verified` / `self-referential`) into the README and
+  any report — a checklist-passed figure is not a paper-compared figure.
 
-- **Spec questions** → append to `logs/spec_questions.md` (`SQ-NNN`,
-  append-only, self-contained: `spec_ref`, `question`, `chosen_assumption`, and
-  `human_resolution` once resolved). The agent continues with the chosen
-  assumption.
-- **Cap reached / no progress (the "STUCK" condition).** The stuck-detector
-  isn't built; honor the documented iteration cap + repeated-diff signal. In the
-  autonomous program a STUCK model is **deferred to a later wave** — retried once
-  neighbors and the improved process may unblock it — **never allowed to halt the
-  program**.
+---
 
-- **The non-halt policy belongs to the PROGRAM, never to the VERDICT (2026-06-02).**
-  "Keep moving to the next model" is a program rule; it must not leak into the gate as
-  "log the failure and continue." A failed figure / auditor finding is **load-bearing**:
-  it writes a durable status to a corpus re-queue the organizer's between-wave step
-  reads and re-spawns, and any model with an open finding is reported **`partial`,
-  never `reproduced`**. A computed-but-inert `notGreen` list (the first run's bug) is
-  forbidden. **Distinguish three exits** — the agent that hit the wall may **not**
-  self-certify which:
-  - `UNRESOLVED` — effort exhausted (cap hit). A *process debt*, eligible for re-queue.
-  - `DEFERRED-SCOPE` — a genuine scope boundary. A **human-ratified** decision; an
-    agent may *propose* it, only the human closes it. A deferral stays **open** until
-    retried with the improved process OR human-ratified — closing one as "scope"
-    without a retry is itself the human's call, not a convenient relabel.
-  - `SUSPECTED-PAPER-ISSUE` — the faithful build contradicts the paper. A first-class
-    faithfulness finding routed to the human (VISION: the map of where the paper is
-    wrong is a deliverable), **never** an assumption that flips the test and re-greens.
-- **Falsification triggers** (modification smoke test impossible; calibration
-  ledger not materially cleaner than ad-hoc; agents serving the scaffold more
-  than reproducing) → **stop and escalate a redesign pass**, don't patch around
-  (ARCHITECTURE_WATCHLIST).
+## 4. Phase B — implementation, to the structure contract
 
-## Adversarial judge
+Reads only `article_aware/` + `logs/`. Build to this shape (the contract is
+load-bearing; how a stage computes is the agent's business).
 
-For claims that resist deterministic + VLM checks, a pair of judges (attacker,
-defender) each see exactly `rubric` / `context` / `under_review` and nothing else
-— not the paper, run/test IDs, each other's output, or prior runs. CLI:
-`neuromodels judge run --rubric-file … --context-file … --under-review-file …`.
+### 4a. Model = a typed-contract stage pipeline
 
-**The judge is paper-BLIND by construction, so it is NOT a faithfulness instrument**
-— it adjudicates internal/logical claims, never "does this match the paper." Do not
-route faithfulness verdicts to it; that is the **Faithfulness Auditor's** job (which
-is paper-, code-, and lineage-aware on purpose). Honesty note: in the first
-autonomous run the judge was **never actually invoked** (the per-claim rubric/context
-setup was skipped under throughput pressure), so the real verdict was the lenient VLM
-majority alone — a documented contributor to the 49% miss. Either wire it in for the
-resisting-claim class it was built for, or do not list it as an active gate.
+An ordered list of **named stages**, each declared as data in
+`implementation/src/<pkg>/stages/manifest.yaml`:
 
-## The two standing critics — orthogonal forces toward faithfulness
+- `name`, `consumes`/`produces` (named, typed quantities **with shapes and
+  units** — silent unit drift on a swap is the #1 hidden-coupling failure).
+- `citation`/`assumption` (`C-NNN`/`A-NNN`; resolved by `check_citations.py`, §STATUS).
+- `seam: { kind: natural | imposed | atomic, rationale: <one sentence> }` —
+  Pillar 3's scientific ontology, **required**. `natural` = the swappable hypothesis a
+  scientist would conceive (name it); `imposed` = a convenience seam cut through coupled
+  math (the confession — pair with a known-limitation + SQ); `atomic` = do not cut here,
+  the science says it is one thing. A `natural` tag that merely relabels a data-flow
+  boundary is a review reject.
+- `params` — the ledger names it reads. **A stage holds no tunable numeric literals.**
 
-The first run had no instrument that measured distance to the paper, and none that
-watched *how decisions were made*. Two critic phases close both gaps. They are
-**independent forces looking at completely different data**, and both are
-report-only, find-issues-incentivized (a false-pass is far costlier than a
-false-fail), and never the builder:
+Rules: pure by default (declare/isolate any state); the integrator/solver is its own
+swappable stage; **fitting/training is a separate stage emitting a persisted, hashed,
+provenanced artifact** (`artifacts/`), in v1 stubbed (§5); variants are config, not
+code; a swap = replace one stage honoring its contract, nothing else; a model may
+depend on another model's **primitive forward stages**, never on its *calibrated
+protocol* (that drags un-re-derivable calibration across as magic numbers — own it in
+your own `implementation/calibration.yaml` instead).
 
-| | Faithfulness Auditor | Process Auditor |
+### 4b. Figures = protocol → measurement → view
+
+- **protocol** — runs the sweep, returns raw model outputs (`run_figure_<N>()`).
+- **measurement** — pure functions → a typed, schema-versioned **measurement record**
+  (plotted/tested quantities AND structural facts incl. spatial-layout positions). The
+  single source of truth.
+- **view** — a thin declarative renderer that *only reads the record* and writes
+  `implementation/figure_outputs/figure_<N>.png`. Recomputes nothing; style lives here.
+
+### 4c. The closed loop
+
+Implement bottom-up along the spec pipeline → run `pytest` (the plugin logs to
+`logs/test_runs.jsonl`) → iterate to deterministic-green → render figures (a
+deterministic verifier/organizer render step, **never** a claim by the impl agent;
+regenerate fresh before any agent reads a PNG — stale renders cause false verdicts) →
+the verification regime (§6). Tag each diagnosis `model | figure_gen | spec_scope` and
+route the fix accordingly. Honor the iteration cap, then escalate (§7) — never game a
+test to green.
+
+**Citation/assumption discipline.** Every `src/` function carries `Citation:` and/or
+`Assumption:`. `check_citations.py` (manual, no CI — STATUS.md) checks every tag
+*resolves* to a ledger entry; it does **not** check the passage supports the behavior —
+that is the Faithfulness Auditor's job. Presence is a weak proxy; the provenance table
+(§2) is the real instrument.
+
+---
+
+## 5. Calibration is data — two ledgers, typed provenance
+
+Two ledgers by Phase owner; both namespaced per stage:
+
+- `article_aware/spec/calibration.yaml` — **paper-derived** (`source: C-NNN`).
+  Phase-A-owned, read-only to Phase B.
+- `implementation/calibration.yaml` — implementation-side: 1D-discretization knobs,
+  stub magnitudes, calibration carried from a depended-on model (`source: A-NNN |
+  SQ-NNN`). Phase-B-writable.
+
+**Every binding entry carries a `kind`** (the 2026-06-02 lesson — thresholds had been
+calibrated to the spec's own reference impl, never the paper):
+
+- `kind: paper_value` — a magnitude the paper states. `audited: true` **requires** a
+  `quote:` field with the verbatim paper string + `C-NNN`. An `audited:true` with no
+  quote — or with a synthesized/paraphrased quote, or `source: A-NNN` (an assumption
+  is not a paper quote) — is a faithfulness defect, not a formatting nit.
+- `kind: discriminating_threshold` — a margin separating hypotheses. Its note cites the
+  paper's *qualitative* claim it operationalizes AND it ships a deliberately-wrong
+  falsification (§3a). **`Ref-impl: X` is forbidden as the sole justification** of any
+  binding magnitude.
+
+Model code receives the merged resolved ledger (no literals in stage code); the
+resolved-ledger hash is recorded in every measurement record and verdict. The state
+report counts `audited:false` in both ledgers — a high count is honest, the point is
+containment in one reviewable place.
+
+---
+
+## 6. Verification — the faithfulness regime
+
+Deterministic tests (§3a) and any VLM/checklist check establish *internal consistency
+and gestalt*. **Neither establishes fidelity to the paper.** That is the job of two
+standing, report-only critics with **inverted error-bias** (in a faithfulness library a
+false-pass is far costlier than a false-fail) — incentivized to *find divergences*,
+never the builder, never able to edit what they judge:
+
+| | Faithfulness Auditor (`skills/audit-faithfulness`) | Process Auditor (`skills/audit-process`) |
 |---|---|---|
-| **skill** | `skills/audit-faithfulness` | `skills/audit-process` |
-| **data** | the paper + the implementation (+ lineage) | the change/reasoning trail: SQs, assumption rationales, diffs, commit reasons, diagnosis & test logs |
-| **question** | does the model match the paper? | is the way we got here drifting toward green instead of faithfulness? |
-| **needs the paper?** | yes — it *is* the standard | **no** — it audits the reasoning, not the match |
-| **catches** | wrong equation/value/figure; constructed results; laundered contradictions | goalpost-moving, contradiction-laundering, scope-as-escape, proxy-substitution, the *aggregate drift* |
+| **data** | the full paper + the finished implementation (+ original code/lineage) | the change/reasoning trail: SQs, assumption rationales, diffs, commit reasons, test/diagnosis logs — **not** the paper |
+| **asks** | does the model match the paper? (equations operator-by-operator; ledger values vs paper quotes; rendered figures vs the paper image on the §3b dimensions) | is the *way we got here* drifting toward green instead of faithfulness? |
+| **runs** | post-build (re-renders itself; never trusts a committed PNG) | after a paper accumulates an iteration trail; and a corpus-level pass between waves (cross-model drift) |
 
-**When they run (critic phases).** Both run *after a paper has accumulated an
-iteration trail*, not per-figure:
+They are orthogonal and complementary: one catches wrong science, the other catches
+reasoning drift the first misses (e.g. a fabricated `audited:true` quote whose *value*
+happens to match the figures). The **adversarial judge** is paper-blind by construction
+and therefore **not** a faithfulness instrument — use it only for internal/logical
+claims that resist coding, never for "does this match the paper."
 
-- **At model-close** — both are acceptance inputs (§5). A model with an unresolved
-  Faithfulness finding **or** a `drifting-toward-leniency` process verdict is
-  `partial`, never `reproduced`.
-- **Between waves, at corpus scale** — the Process Auditor runs a corpus-level pass:
-  some drift is only visible across models (the same lenient move repeated — the
-  normalization inversion across pestilli/heeger/doostani had one Phase-A origin no
-  per-model view could see).
+**Auditor output statuses (these have teeth — they are not advisory):**
+`FAITHFUL` · `DIVERGENT` (contract/implementation — must be fixed) · `SUSPECTED-PAPER-
+ISSUE` (the faithful build contradicts the paper — a first-class deliverable routed to
+the human, never an assumption that flips a test and re-greens) · `ILLUSTRATIVE-NOT-
+REPRODUCED` (a result-bearing stub; the figure shows a constructed answer) ·
+`UNVERIFIED-vs-paper` (no paper material to compare — §3b; tier it, never hide it).
 
-They are complementary, not redundant: a model can pass the faithfulness audit today
-yet show a drift trajectory that predicts tomorrow's failure; and when a faithfulness
-miss *does* surface, the process auditor's pinpointed decision is usually the fastest
-explanation of *why* it happened.
+**Verification tiers** (every figure/model carries one): `paper-verified` (compared to
+the paper image) > `paper-text-verified` (values/text, no figure image) >
+`self-referential` (no paper anchor — checklist authored paper-blind; **not**
+paper-verified). Do not let a lower tier sit next to a higher one unlabeled.
 
-## Spec edits invalidate prior passes
+### Acceptance — a model is `reproduced` only when ALL hold
 
-The plugin records `spec_commit_hash` (git tree hash of `article_aware/`) on
-every test row. It is an **advisory** filter (no tooling): if `article_aware/`
-changes mid-Phase-B, rerun affected tests. Selective dependency-aware
-invalidation is deferred.
+1. Every stage has contract tests; every plotted quantity a deterministic measurement
+   test (a consistency tripwire — §3a — not a fidelity check).
+2. The figure checklists hold (gestalt), and were **authored from the paper image** or
+   the figure is honestly tiered (§3b).
+3. A **modification smoke test** passes by **editing a real `implementation/
+   calibration.yaml` entry on disk and regenerating the figure from the rebuilt
+   model** — *not* a resolver monkeypatch (which proves only a value is read), and the
+   swapped unit is a **stage** (enum/artifact), not a scalar knob. The orchestrator
+   *collects* the outcome (a self-graded, unreported smoke test = no test). This is the
+   operational definition of "a scientist can change it."
+4. The **Faithfulness Auditor** returns no unresolved `DIVERGENT` / `ILLUSTRATIVE` /
+   `SUSPECTED-PAPER-ISSUE`, and the **Process Auditor** does not return
+   `drifting-toward-leniency`.
 
-## Sanity checks
+Any open finding → the model is **`partial`, never `reproduced`**, until the organizer
+or human dispositions it. The headline status must derive from a paper-binding
+instrument independent of the checklist chain — **never let the report that spends the
+human's attention be authored by the signal it is supposed to audit.**
 
-Exploratory diagnostics, **never tests** — the moment you write `assert`, it is a
-test. Follow `skills/write-sanity-check`. They live in
-`implementation/sanity_checks/`; generated `_outputs/` are gitignored.
+---
 
-## Commit cadence (program plan §7)
+## 7. Escalation, error-bias, and falsification triggers
 
-Per-model submodule, on its own **feature branch**: after spec+pseudocode; after
-data+figures+`APPROVED`; when a component's tests pass; when a figure goes green
-(deterministic + VLM). **Push throughout.** The model `main` is advanced once, by
-a squash-merge PR, before the final review. **Commit only inside the model repo**
-— never the parent (a real past incident: an agent `--amend`-ed the parent); the
-parent's submodule-pointer bumps are the organizer's serial job.
+- **Spec questions** → append to `logs/spec_questions.md` (`SQ-NNN`, self-contained:
+  `spec_ref`, `question`, `chosen_assumption`, `human_resolution` once resolved). The
+  agent proceeds on the chosen assumption.
+- **The non-halt policy belongs to the PROGRAM, never the VERDICT.** "Move on to the
+  next model" is a program rule; it must not leak into the gate as "log the failure and
+  continue." A failed figure / auditor finding writes a durable status to a re-queue
+  the organizer reads; a computed-but-inert failure list is forbidden. **Distinguish
+  three exits** — the agent that hit the wall may not self-certify which: `UNRESOLVED`
+  (effort exhausted — re-queueable process debt) · `DEFERRED-SCOPE` (human-ratified
+  boundary; an agent may propose, only the human closes) · `SUSPECTED-PAPER-ISSUE`
+  (routed to the human). A deferral stays *open* until retried or human-ratified.
+- **Falsification triggers — stop and escalate a redesign, don't patch around:** the
+  modification smoke test is impossible without touching unrelated code (the
+  decomposition is wrong); the calibration ledger is not materially cleaner than ad-hoc
+  literals; agents spend more effort serving the scaffold than reproducing the paper.
+
+---
+
+## 8. Per-model layout
+
+```
+models/<m>/                  # a private git submodule; the parent bumps the pointer
+  paper/                     # raw PDF + extracted_text + figure images — extractor (Phase A) only
+  article_aware/             # PROTECTED — Phase A contract
+    spec/{model_spec,calibration,citations,assumptions}.yaml   APPROVED
+    pseudocode/<fig>_protocol.md
+    figures/figure_<N>.md  figure_<N>_visual_checklist.md  figure_<N>.<img>   [no image ⇒ blocker, §3b]
+    extracted_data/test_<fig>.py
+  implementation/            # Phase B
+    src/<pkg>/stages/ + manifest.yaml   measurements.py  views.py  protocols.py
+    calibration.yaml   artifacts/ (frozen stubs)   tests/   sanity_checks/   figure_outputs/ (gitignored)
+  logs/                      # test_runs.jsonl  figure_comparisons/  figure_diagnoses/
+                             #   faithfulness_audit/  process_audit/  spec_questions.md
+  figures_reproduced/        # COMMITTED paper-vs-reproduced snapshot (NOT pipeline-produced;
+                             #   freshness NOT guaranteed — the authoritative render is figure_outputs/.
+                             #   An auditor must render fresh, not trust this snapshot.)
+  README.md                  # the reviewable per-model state report
+```
+
+`sanity_checks/` (exploratory, **no `assert`** — the moment you assert, it is a test in
+`tests/`); generated `_outputs/` gitignored.
+
+---
+
+## 9. Git discipline & commit cadence
+
+- Work on a **feature branch inside the model submodule** (`git -C models/<m>`);
+  **never** a parent-repo git op from a model agent. The model `main` advances via a
+  **squash-merge PR**; `guard-main-branch.sh` blocks a direct `git push origin main`.
+- The parent's **submodule-pointer bumps are the organizer's serial job** — commit only
+  inside the model repo; never `--amend` the parent from a model agent.
+- Commit milestones: spec+pseudocode; data+figures+`APPROVED`; a component's tests
+  green; a figure faithful/dispositioned. Push throughout. **Commit all work before
+  the re-audit reads it** (an uncommitted fix the re-audit passed is lost work).
+
+---
+
+*Provenance: this document consolidates the former WORKFLOW + ARCHITECTURE +
+REPO_STRUCTURE + DESIGN + ARCHITECTURE_WATCHLIST (2026-06-03), folding their
+load-bearing content here and deleting the redundant files. Diagnosis behind the
+faithfulness rules: `proposals/figure-faithfulness-postmortem-2026-06-02.md`,
+`proposals/faithfulness-enforcement-2026-06-02.md`,
+`proposals/faithfulness-rerun-report-2026-06-03.md`.*
