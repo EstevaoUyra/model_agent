@@ -107,6 +107,34 @@ quote (§5).
 
 Two test surfaces. Both must measure distance to the **paper**, not to the model.
 
+### Panels are the unit (decompose first)
+
+A paper figure is usually a **composite of panels**; reproduce and verify at the
+**panel** level, then reassemble at the figure level. Do this *before* writing a
+panel's tests.
+
+- **Split out every data-bearing panel** and describe/test it on its own (a
+  schematic/config/legend panel is layout, not a data panel). At extraction, **crop the
+  paper figure into its panels** (`figures/figure_<N>/panel_<X>.<img>` + `panel_<X>.md`)
+  so each is an isolated comparison unit in its own coordinate frame — shrinking every
+  comparison to one panel vs one panel.
+- **Axis limits are a HARD, code-checkable requirement per plot panel.** Each
+  `panel_<X>.md` states the panel's x-range, y-range (including any right/twin axis), and
+  scale (log/linear). The view sets these limits **explicitly — never auto-scale** — and
+  a **deterministic test** asserts the rendered limits equal the paper panel's (read off
+  the Axes or the view config). Pinning the axes to the paper's catches magnitude
+  divergences exactly (a curve that overflows the paper's axis *fails*) and makes
+  **shape** divergences obvious (curves on identical axes).
+- **Figure-level reassembly matches the paper's layout.** The reproduced
+  `figure_<N>.png` concatenates the reproduced panels in the paper's arrangement, with an
+  explicit empty **`not reproduced`** panel wherever the paper had a panel we do not
+  reproduce (empirical-data panels, schematics). The figure image therefore *lines up*
+  with the paper's — omissions visible and honest — never a clean single panel
+  masquerading as the whole figure.
+
+The deterministic (§3a) and figure (§3b) tests below are written **per panel**, inside
+this fixed, paper-matched frame.
+
 ### 3a. Deterministic claim tests — `extracted_data/test_<figure>.py`
 
 Ordinary pytest files asserting on the protocol's named outputs / the measurement
@@ -338,7 +366,10 @@ models/<m>/                  # a private git submodule; the parent bumps the poi
   article_aware/             # PROTECTED — Phase A contract
     spec/{model_spec,calibration,citations,assumptions}.yaml   APPROVED
     pseudocode/<fig>_protocol.md
-    figures/figure_<N>.md  figure_<N>_visual_checklist.md  figure_<N>.<img>   [no image ⇒ blocker, §3b]
+    figures/figure_<N>.<img>            whole paper figure  [no image ⇒ blocker, §3b]
+    figures/figure_<N>_layout.yaml      panel grid: positions + reproduced vs `not reproduced`
+    figures/figure_<N>/panel_<X>.<img>  per-panel crop of the paper figure
+    figures/figure_<N>/panel_<X>.md     per-panel description: axis limits (x/y/right, scale) + checklist
     extracted_data/test_<fig>.py
   implementation/            # Phase B
     src/<pkg>/stages/ + manifest.yaml   measurements.py  views.py  protocols.py
