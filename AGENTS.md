@@ -6,9 +6,10 @@ repo. For full guidance, follow the pointers below.
 > **Start with [VISION.md](VISION.md)** for *why this project exists* — the
 > four pillars (faithful · understandable · modifiable-by-scientific-judgment ·
 > process-as-deliverable), ordered and in tension. Then **read
-> [STATUS.md](STATUS.md)** for *what is actually built*: DESIGN/WORKFLOW/
-> REPO_STRUCTURE describe the *target* design; parts (the framework runner,
-> stuck detector, `logs/*.csv`) are **not built**. The citation/assumption
+> [STATUS.md](STATUS.md)** for *what is actually built*: [WORKFLOW.md](WORKFLOW.md)
+> (the single consolidated process/structure doc) describes the *target*; parts (the
+> framework runner, stuck detector, `logs/*.csv`) are **not built**. The
+> citation/assumption
 > static check *is* built but presence-only and run manually (no CI). STATUS.md
 > is the canonical map of what actually exists and wins on any conflict.
 
@@ -18,9 +19,11 @@ Your invocation context tells you which phase you're in. Read the
 matching section of [WORKFLOW.md](WORKFLOW.md) before doing anything.
 
 - **Phase A (article extraction):** you have access to a paper and need
-  to produce the `article_aware/` artifacts. Read WORKFLOW.md §"Phase A".
+  to produce the `article_aware/` artifacts. Read WORKFLOW.md §2 (Phase A) + §3
+  (how tests are generated — the figure checklist is authored *from the paper image*).
 - **Phase B (model implementation):** you have access to
-  `article_aware/` but **NOT** to `paper/`. Read WORKFLOW.md §"Phase B".
+  `article_aware/` but **NOT** to `paper/`. Read WORKFLOW.md §4 (Phase B) + §5
+  (calibration).
 - **Adversarial judge:** you receive only `rubric` / `context` /
   `under_review`. Don't ask for or look at anything outside that.
 
@@ -43,7 +46,7 @@ If you're unsure which phase you're in, ask the user. Don't guess.
   wired): it asserts every `C-NNN`/`A-NNN` tag *resolves* to a ledger entry,
   **not** that the tag is on the right function or that the cited passage
   supports the behavior. That *quality* check is a periodic human audit
-  (STATUS.md, DESIGN.md §8).
+  (STATUS.md, WORKFLOW.md §4 and §6).
 - **NEVER turn a sanity check into an assertion.** The moment you write
   `assert`, it's a test. Move it to `tests/`.
 - **NEVER burn iterations past the cap.** The stuck-detector isn't built;
@@ -63,7 +66,7 @@ If you're unsure which phase you're in, ask the user. Don't guess.
 | Record suspected paper error                   | `assumptions.yaml` / `spec_questions.md` |
 
 For the full directory layout and boundary rules, see
-[REPO_STRUCTURE.md](REPO_STRUCTURE.md).
+[WORKFLOW.md](WORKFLOW.md) §1 (boundaries) and §8 (per-model layout).
 
 ## Useful commands
 

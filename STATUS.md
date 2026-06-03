@@ -1,13 +1,14 @@
 # STATUS — what is actually built
 
-This file is the **canonical map of reality**. DESIGN.md, WORKFLOW.md, and
-REPO_STRUCTURE.md describe the *target* design; parts of it are not built.
-**On any conflict, STATUS.md wins.** If you are an agent: navigate by this
-file, not by machinery the other docs describe in the present tense.
+This file is the **canonical map of reality**. [WORKFLOW.md](WORKFLOW.md) (the single
+consolidated process/structure doc) and [VISION.md](VISION.md) describe the *target*;
+parts are not built. **On any conflict, STATUS.md wins.** If you are an agent:
+navigate by this file, not by machinery the other docs describe in the present tense.
 
-Last reconciled: 2026-06-02. The fictional machinery below was **removed** from
-DESIGN/WORKFLOW/REPO_STRUCTURE (not merely flagged), so those docs now describe
-reality; this file records what remains genuinely deferred.
+Last reconciled: 2026-06-02 (fictional machinery removed from the process docs); docs
+consolidated 2026-06-03 (DESIGN / ARCHITECTURE / REPO_STRUCTURE / ARCHITECTURE_WATCHLIST
+folded into WORKFLOW.md and deleted — older `§DESIGN`/`§REPO_STRUCTURE` cross-references
+below now live in WORKFLOW). This file records what remains genuinely deferred.
 
 ---
 
@@ -57,15 +58,15 @@ stuck-detector as the iteration cap, and a presence-only citation check):
 
 - `models/<m>/article_aware/figures/` — `figure_<N>.md` (overpowered caption),
   `figure_<N>_visual_checklist.md`, and the original paper figure images.
-  **Central to the VLM flow**; REPO_STRUCTURE.md does not list it.
+  **Central to the VLM / faithfulness flow** (WORKFLOW.md §3 + §8).
 - `models/<m>/implementation/figure_outputs/figure_<N>.png` — generated
   figures the VLM compares (gitignored).
 - `models/<m>/logs/figure_comparisons/` — the persistent VLM verdict home.
 - The `update-state` skill + its `scripts/` — the reviewable state report
   (`models/<m>/README.md`) and the verdict/freshness tooling.
 - `models/<m>/figures_reproduced/` — a **committed** snapshot of paper-vs-
-  reproduced comparison PNGs (added by the docs/README pass; now in
-  REPO_STRUCTURE.md). It is **not** produced by the render pipeline and its
+  reproduced comparison PNGs (added by the docs/README pass; documented in
+  WORKFLOW.md §8). It is **not** produced by the render pipeline and its
   freshness is **not** guaranteed: the authoritative render is the gitignored
   `implementation/figure_outputs/`. A faithfulness audit reading
   `figures_reproduced/` could see a stale image — render fresh + read the
