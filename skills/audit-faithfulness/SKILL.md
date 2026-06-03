@@ -58,8 +58,12 @@ pass. Read this before anything else; it is the whole point of the role.
 - **Lineage & original code, where they exist** — author code, parent/descendant
   models in `models/`, follow-up papers. The VISION names lineage as the faithfulness
   engine: a value corroborated by the author's released code at a cited line is
-  trustworthy in a way `confidence: high` never is. Use it as corroborating evidence,
-  never as something to port.
+  trustworthy in a way `confidence: high` never is. Use it as corroborating evidence
+  **and as a resolver of ambiguity** — when the paper underdetermines or self-contradicts
+  (a panel vs its own prose, an unstated condition mapping, a sign you can't pin), the
+  way the lineage/sibling papers treat the *same mechanism* is a substantially-guided
+  answer, and you are expected to reach for it before calling something a paper issue.
+  Never port a value, but do let the lineage *decide* a question the single paper leaves open.
 
 ## Process
 
@@ -158,9 +162,19 @@ Statuses (these feed the control-flow teeth in WORKFLOW.md — they are not advi
   critical/major/minor.
 - `ILLUSTRATIVE-NOT-REPRODUCED` — a result-bearing stub; the figure shows a
   constructed answer.
-- `SUSPECTED-PAPER-ISSUE` — the faithful build contradicts the paper's stated claim;
-  routed to the human as a first-class faithfulness finding (VISION: "a map of where
-  the paper is underspecified or wrong" is a deliverable).
+- `SUSPECTED-PAPER-ISSUE` — the faithful build contradicts the paper's stated claim.
+  **This is a *last resort*, not a first conclusion — work the escalation ladder before
+  assigning it:** (1) try to resolve the contradiction *within the paper itself* (a panel-
+  vs-prose conflict is often a condition mapping or readout you can pin down from the
+  methods, i.e. a fixable `DIVERGENT`, not a paper flaw); (2) if the paper can't resolve
+  it, **consult the related/lineage papers in the corpus** (`models/` — ancestors,
+  descendants, siblings that share the mechanism, the author's follow-ups) for a
+  substantially-guided answer. A `SUSPECTED-PAPER-ISSUE` is only *earned* after **both**
+  fail; then it routes to the human as a first-class faithfulness finding (VISION: "a map
+  of where the paper is underspecified or wrong" is a deliverable). If the paper or the
+  lineage *does* resolve it, report that conclusion — `DIVERGENT` (a fixable mis-spec) or
+  `FAITHFUL` — not a paper issue. "I couldn't tell from this one paper" is not yet a paper
+  issue.
 - `UNVERIFIED` — could not establish against the paper (say why; do not default to
   faithful).
 
