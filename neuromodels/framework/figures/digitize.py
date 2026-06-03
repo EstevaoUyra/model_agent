@@ -112,25 +112,61 @@ def _load_gray(image_path) -> np.ndarray:
     return np.asarray(Image.open(image_path).convert("L"), float) / 255.0
 
 
-def detect_plot_box(image_path, *, dark_below: float = 0.5, frac: float = 0.5):
-    """Find the axis rectangle as a convenience for placing anchors.
+def _longest_dark_run(dark: np.ndarray, along_columns: bool) -> np.ndarray:
+    """Longest consecutive run of True along each column (or row)."""
+    lines = dark.T if along_columns else dark
+    out = np.zeros(lines.shape[0], dtype=int)
+    for i, line in enumerate(lines):
+        best = cur = 0
+        for v in line:
+            cur = cur + 1 if v else 0
+            if cur > best:
+                best = cur
+        out[i] = best
+    return out
 
-    Returns ``(col0, row0, col1, row1)`` of the densest dark rows/cols (the axis
-    frame). Heuristic: the plot's left/bottom axes are long dark lines, so the
-    row/column dark-pixel profiles spike there. The VLM should sanity-check the
-    box (and still supply DATA values for the edges); this only saves it from
-    eyeballing pixel positions.
+
+def detect_plot_box(image_path, *, dark_below: float = 0.5, frac: float = 0.5):
+    """Find the axis rectangle as a *starting hint* for placing anchors.
+
+    Returns ``(col0, row0, col1, row1)``. Heuristic: an axis is a **long
+    continuous** dark line, so each column/row is scored by its *longest
+    consecutive* dark run (NOT dark-pixel density — density is fooled by axis
+    labels and tick text, which are dark but short; that was the reported
+    mis-detection). A line qualifies when its longest run spans >= ``frac`` of the
+    dimension; the box is the outermost qualifying lines, with a fall-back to the
+    full extent on any side that collapses.
+
+    KNOWN LIMITS — verify the box, do not trust it blindly:
+    - The **bottom-left origin** (the x-axis row and y-axis column) is usually
+      reliable. The **top is often open** on scanned panels (no top frame line),
+      so ``row0`` may fall back to the image top — read the y-max tick (e.g. the
+      "1" label) position yourself.
+    - A crop that includes a sliver of a **neighbouring panel** can present a
+      second long vertical line; the box may grab it. Check ``col0``/``col1``
+      against the visible plot.
+    In both cases, read the tick pixel positions by viewing and pass anchors to
+    ``build_calibration`` directly — this tool only saves you the common case.
     """
     g = _load_gray(image_path)
     dark = g < dark_below
-    col_profile = dark.mean(axis=0)
-    row_profile = dark.mean(axis=1)
-    cols = np.flatnonzero(col_profile > frac * col_profile.max())
-    rows = np.flatnonzero(row_profile > frac * row_profile.max())
-    if cols.size == 0 or rows.size == 0:
-        h, w = g.shape
-        return (0, 0, w - 1, h - 1)
-    return (int(cols.min()), int(rows.min()), int(cols.max()), int(rows.max()))
+    h, w = dark.shape
+    col_run = _longest_dark_run(dark, along_columns=True)   # len w
+    row_run = _longest_dark_run(dark, along_columns=False)  # len h
+    # An axis line spans a large fraction of its dimension. ABSOLUTE threshold
+    # (fraction of dimension), not relative-to-max — so BOTH the left and right
+    # vertical lines (and top + bottom) qualify even when one is a little shorter.
+    vcols = np.flatnonzero(col_run >= frac * h)
+    hrows = np.flatnonzero(row_run >= frac * w)
+    c0, c1 = (int(vcols.min()), int(vcols.max())) if vcols.size else (0, w - 1)
+    r0, r1 = (int(hrows.min()), int(hrows.max())) if hrows.size else (0, h - 1)
+    # Degeneracy guard: if a side collapsed (only one strong line found), fall
+    # back to the full extent on that axis rather than returning a sliver box.
+    if c1 - c0 < 0.3 * w:
+        c0, c1 = 0, w - 1
+    if r1 - r0 < 0.3 * h:
+        r0, r1 = 0, h - 1
+    return (c0, r0, c1, r1)
 
 
 def trace_darkest_in_band(image_path, cols, row_lo, row_hi, *, calibration=None,

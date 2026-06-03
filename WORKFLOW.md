@@ -155,26 +155,52 @@ record (§4). Rules:
   too loose by construction — a hard reject. "The right answer passes" is necessary but
   not sufficient; the gap between the two is where leniency hides.
 
-### 3b. Figure tests — digitize the panel, generate the view, three test tiers
+### 3b. Figure tests — classify the panel, digitize (tools + a separate critic), three tiers
 
-For a panel that shows **curves**, the binding check is the model's curve compared to
-the paper's **digitized** curve, both rendered through the **same paper-owned view**.
-Phase A produces all of this from the paper panel image:
+A figure's binding check compares the model's output to the paper's **digitized
+reference**, both rendered through the **same Phase-A-owned view**. But **classify the
+panel first** — the type decides which tools apply and what "faithful" even means (full
+taxonomy: `proposals/figure-digitization-design-2026-06-03.md`):
 
-1. **Digitize each curve** from the paper panel — **~a dozen points along the line**,
-   enough to pin the *shape* (ends, rise, inflection, saturation/peak, asymptote), **not
-   a dense point-by-point trace**. Store in
-   `extracted_data/figure_<N>/panel_<X>_digitized.*`.
+- **Mode 1 — quantitative plot** (line/curve, scatter+regression, bar, histogram, polar):
+  recoverable (x, y) — the digitize path below. The faithful quantity is **type-specific**:
+  pointwise curve shape for a tuning/CRF curve, **regression slope/R** for a scatter,
+  distribution stats for a histogram, per-bar heights for a bar chart — not one metric.
+- **Mode 2 — image/structure** (learned-filter dictionary, heatmap, RF map, image patches):
+  no curve to extract; faithfulness is **emergent statistics**, and a stochastic output
+  (a learned dictionary) must **never** be pixel-matched. Needs Mode-2 tooling — if none
+  exists yet, **BLOCKED**, never forced through a curve tracer (a category error).
+- **Mode 3 — schematic** (circuit/architecture diagram, stimulus layout): structural
+  checklist, no digitization.
+
+For a Mode-1 panel, Phase A produces the reference like this:
+
+1. **Digitize with the tools** (`neuromodels/framework/figures`, via `skills/digitize-figure`):
+   calibrate the axes, trace each curve (respecting the tracer's monochrome-overlap limit —
+   envelope where same-colour curves coincide), **match the paper's normalization scale**
+   (never per-panel→1.0 where the paper shares a scale across panels), smooth with PCHIP,
+   and **validate against an overlay on the paper pixels**. Record a **provenance block** in
+   `extracted_data/figure_<N>/panel_<X>_digitized.*` (figure-type → tools → calibration →
+   per-curve method → caveats). The **~dozen points are the *comparison granularity*** (the
+   shape check below), **not** a cap on extraction — digitize as densely/smoothly as the
+   tools allow.
 2. **Generate the view** for the panel/figure *from the digitization* — the plotting
    code (axis limits, scale, styling, layout, `not reproduced` placeholders). The view
    is a **Phase-A-owned contract**: it declares the measurement-record schema it plots
    and renders *any* record — the digitized reference OR the implementation's output —
    identically. **Phase B never touches it**, so presentation cannot deviate (wrong
    axes, auto-scaling, dropped/spurious panels become *impossible*, not merely caught).
-3. **Self-check the digitization (VLM):** render the digitized reference through the
-   view and VLM-compare it to the **original paper panel**. It must match — this
-   validates the digitization *and* the view; that render becomes the **reference
-   figure**.
+   The view must carry the **paper's** scale (a per-panel max-normalize in the view is the
+   same faithfulness bug as in the digitization).
+3. **A SEPARATE critic audits the digitization** (`skills/audit-digitization`) against the
+   paper — panel and figure level, faithfulness *and* whether the right tools were used. It
+   is **never the digitizer and never the organizer** (both are invested in it landing): the
+   digitizer *produces* the reference, a find-issues critic *passes/fails* it. A digitized
+   reference carrying an unresolved finding is **not-yet-binding** — the tiers must not grade
+   against it. (This **replaces the old "self-check"**, which was the digitizer grading its
+   own homework — the leniency hole this split exists to close. The reference being a
+   *ruler*, a wrong one silently mis-calibrates every test, so this audit is *prior* to the
+   model faithfulness audit.)
 
 **Three test tiers**, all codified on the measurement record, all derived from the
 digitized reference, all with tolerances (close, not exact); each test is *evaluated on
@@ -206,13 +232,21 @@ the human re-tier.
 error bars* the model does not produce, their absence is **not** a finding — but the
 model curves, axes, and layout must match.
 
+The **mechanical dozen-point shape check** is a **soft** test generated *from the digitized
+points themselves* (the model curve must pass within tolerance of each reference point
+across the range), not from a few agent-chosen scalars — it is what catches a *shape*
+divergence (a CRF that doesn't plateau, a too-pointy peak) that endpoint/ratio scalars miss.
+The human promotes it to hard per panel once the digitization for that panel is trusted.
+
 **The per-figure report (README + `logs/figure_comparisons/`) shows four things:**
 (1) the **original** paper figure, (2) the figure **reproduced from the digitization**
-(the reference render), (3) the figure **reproduced from the implementation** (the model
-record through the same view), and (4) the **qualitative / hard / soft test list with
-pass/fail each.** (1)↔(2) shows whether the *digitization* is faithful to the paper;
-(2)↔(3) shows whether the *model* is faithful; the test list is the explicit verdict,
-and the soft rows give the human a one-step way to tighten the gate.
+(the reference render, or an overlay of it on the paper), (3) the figure **reproduced from
+the implementation** (the model record through the same view), and (4) the **qualitative /
+hard / soft test list with pass/fail each**, plus the **digitization-audit verdict**
+(`logs/digitization_audit/`). (1)↔(2) is the *critic's* judgement of whether the
+**digitization** is faithful to the paper (never a self-check); (2)↔(3) shows whether the
+*model* is faithful; the test list is the explicit verdict, and the soft rows give the human
+a one-step way to tighten the gate.
 
 **No paper figure image ⇒ HARD BLOCKER.** You cannot digitize or verify a panel you
 cannot see — there is no fallback, no paper-blind checklist, no weaker tier. Raise the

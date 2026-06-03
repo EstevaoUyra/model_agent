@@ -68,11 +68,12 @@ Same incentive structure as the two auditors, with one digitization-specific sha
 - **The digitized data** — `article_aware/figures/figure_<N>/panel_<X>_digitized.json`:
   the points/values, declared axis range + scale (log/linear), and curve→condition names.
 - **The rendered reference** — re-render it yourself (Step 0); read it beside the paper.
-- **The digitization tool-trail / provenance** — which tools the digitizer used (axis
-  calibration, pixel curve-tracer, point detector, distribution/statistics extractor),
-  its recorded *figure-type → tools → why* rationale, and the catalog of digitization
-  tools that were available. **If no provenance was recorded, that absence is itself a
-  finding** (an unauditable tool choice).
+- **The digitization provenance** — the `provenance` block inside the digitized JSON
+  (`skills/digitize-figure` requires it): `figure_type`, `tools`, `tool_rationale`,
+  `calibration` anchors, `per_curve` method (traced / enveloped / interpolated),
+  `normalization` decision, `caveats`. This is the record of *how* the reference was made.
+  **If the `provenance` block is absent, that is itself a finding** (an unauditable tool
+  choice) — and re-measure everything yourself, trusting none of it.
 
 ## Process
 
