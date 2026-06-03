@@ -142,9 +142,12 @@ def detect_plot_box(image_path, *, dark_below: float = 0.5, frac: float = 0.5):
       reliable. The **top is often open** on scanned panels (no top frame line),
       so ``row0`` may fall back to the image top — read the y-max tick (e.g. the
       "1" label) position yourself.
-    - A crop that includes a sliver of a **neighbouring panel** can present a
-      second long vertical line; the box may grab it. Check ``col0``/``col1``
-      against the visible plot.
+    - A crop that includes a sliver of a **neighbouring panel** (a second long
+      vertical line) or a **caption / legend / "Stimuli" box below the panel** (a
+      second long horizontal line — this fooled Fig 4E, where the real x-axis is
+      ~27% higher than the legend-box edge the detector grabbed) can capture the
+      wrong frame. Verify ``col0``/``col1``/``row0``/``row1`` against the visible
+      plot — a wrong frame silently rescales every value.
     In both cases, read the tick pixel positions by viewing and pass anchors to
     ``build_calibration`` directly — this tool only saves you the common case.
     """
