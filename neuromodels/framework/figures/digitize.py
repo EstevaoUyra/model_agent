@@ -251,6 +251,72 @@ def resample_pchip(points, x_grid, *, log_x: bool = False) -> np.ndarray:
 
 
 # --------------------------------------------------------------------------- #
+# Region crop: zoom a part of an image, defined in AXIS coordinates, for the eye.
+# --------------------------------------------------------------------------- #
+
+def _offset_upscale_calibration(cal: AxisCalibration, col_off, row_off, upscale):
+    """A calibration valid for a crop taken at (col_off, row_off) and upscaled."""
+    u = float(upscale or 1)
+    sx, ix, scx = cal.x
+    sy, iy, scy = cal.y
+    return AxisCalibration(x=(sx / u, sx * col_off + ix, scx),
+                           y=(sy / u, sy * row_off + iy, scy))
+
+
+def crop_region(image_path, x_range, y_range, *, calibration=None, plot_box=None,
+                as_fraction=False, out_path=None, upscale=3, pad_px=6):
+    """Crop a region defined in **axis coordinates** and upscale it for detailed inspection.
+
+    A magnifying glass for the VLM: name a region in the plot's own units and get a
+    zoomed-in image, so a suspected problem (an apex overshoot, a crossing wiggle, an
+    axis-edge misalignment) can be *looked at* up close instead of squinting at the whole
+    small panel. Works on **any** image — paper panel, digitized reference render,
+    implementation render, or overlay — as long as the calibration matches THAT image
+    (run `detect_plot_box` + `build_calibration` on the specific image you are cropping;
+    an overlay PNG has a different pixel frame than the paper crop it was drawn from).
+
+    Two ways to specify the region:
+    - **data coords** (default): pass ``calibration``; ``x_range``/``y_range`` are DATA
+      values, e.g. ``x_range=(0.01, 0.1)`` contrast, ``y_range=(0.0, 0.2)`` response.
+    - **axis fraction**: pass ``as_fraction=True`` (``plot_box`` auto-detected if omitted);
+      ``x_range``/``y_range`` are fractions [0,1] of the plot box from the LEFT (x) and the
+      BOTTOM (y) — e.g. ``x_range=(0, 0.5), y_range=(0, 0.2)`` is the bottom-left
+      "0–50% of x, 0–20% of y".
+
+    Returns ``{path, pixel_box, [calibration]}`` — and when a calibration is available, a
+    ``calibration`` valid for the CROP, so `trace_darkest_in_band` (etc.) can run on the
+    zoom and return correct data coordinates.
+    """
+    img = Image.open(image_path).convert("RGB")
+    W, H = img.size
+    if as_fraction:
+        c0, r0, c1, r1 = plot_box if plot_box is not None else detect_plot_box(image_path)
+        col_lo = c0 + x_range[0] * (c1 - c0)
+        col_hi = c0 + x_range[1] * (c1 - c0)
+        row_lo = r1 - y_range[1] * (r1 - r0)   # y fraction measured from the bottom
+        row_hi = r1 - y_range[0] * (r1 - r0)
+    else:
+        if calibration is None:
+            raise ValueError("data-coord crop needs a calibration (or pass as_fraction=True)")
+        cols, rows = calibration.to_pixels(list(x_range), list(y_range))
+        col_lo, col_hi = sorted(float(c) for c in cols)
+        row_lo, row_hi = sorted(float(r) for r in rows)
+    col_lo = max(0, int(round(col_lo - pad_px)))
+    col_hi = min(W - 1, int(round(col_hi + pad_px)))
+    row_lo = max(0, int(round(row_lo - pad_px)))
+    row_hi = min(H - 1, int(round(row_hi + pad_px)))
+    crop = img.crop((col_lo, row_lo, col_hi + 1, row_hi + 1))
+    if upscale and upscale != 1:
+        crop = crop.resize((crop.width * int(upscale), crop.height * int(upscale)), Image.LANCZOS)
+    out = str(out_path) if out_path else (str(image_path).rsplit(".", 1)[0] + "_crop.png")
+    crop.save(out)
+    res = {"path": out, "pixel_box": (col_lo, row_lo, col_hi, row_hi)}
+    if calibration is not None:
+        res["calibration"] = _offset_upscale_calibration(calibration, col_lo, row_lo, upscale)
+    return res
+
+
+# --------------------------------------------------------------------------- #
 # Overlay: render extracted data back on the paper panel for the critic.
 # --------------------------------------------------------------------------- #
 

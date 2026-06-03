@@ -9,6 +9,7 @@ the tools do the metric work (calibrate, trace, render, smooth).
 from .digitize import (
     AxisCalibration,
     build_calibration,
+    crop_region,
     detect_plot_box,
     overlay,
     resample_pchip,
@@ -18,6 +19,7 @@ from .digitize import (
 __all__ = [
     "AxisCalibration",
     "build_calibration",
+    "crop_region",
     "detect_plot_box",
     "overlay",
     "resample_pchip",

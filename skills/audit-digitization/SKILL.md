@@ -95,7 +95,11 @@ overlay can drift from faithful data through its *own* calibration, PCHIP, or
 tracer-at-a-crossing (a curve shifted off the axis, an apex overshooting into a spike, a
 non-monotone wiggle where two curves cross). **A numeric match does not clear a
 visually-mismatched overlay** — the picture a reader sees is itself binding, and your eye
-over it outranks the tool that drew it. Then check the binding dimensions:
+over it outranks the tool that drew it. **Zoom in** with `crop_region(image, x_range,
+y_range, calibration=...)` — it crops a region in *axis coordinates* (an apex, a crossing,
+an axis corner) and upscales it, so a wiggle or an overshoot you would miss at panel size
+becomes obvious; it returns a crop calibration so you can re-trace the zoom to quantify the
+gap. Then check the binding dimensions:
 
 - **Axis calibration** — do the digitized points land at the right *data* coordinates?
   Probe anchors: where the curve crosses a labelled gridline, endpoint heights, the x

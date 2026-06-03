@@ -70,6 +70,11 @@ Read each tool's docstring first.
    - **Crossings / intersections** — where two same-colour curves cross, the tracer jumps
      between them and produces a non-monotone **wiggle**; check for any kink the paper does not
      have and bridge it (trace the envelope through the crossing).
+   **Zoom in to look properly** — do not judge fine fit from the whole small panel.
+   `crop_region(image, x_range, y_range, calibration=...)` crops a region in **axis
+   coordinates** (the apex `y∈[0.8,1.0]`, a crossing `x∈[0.05,0.2]`, an axis corner) and
+   upscales it; use it on the overlay (and the paper) wherever you suspect a problem. It
+   returns a calibration for the crop, so you can even re-trace the zoom to pin the fix.
    The overlay you validate must be the **final one that ships** (same calibration and line
    width) — what a reviewer sees must be exactly what you checked; do not re-render it later
    with a different calibration.
