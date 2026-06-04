@@ -13,6 +13,11 @@ repo. For full guidance, follow the pointers below.
 > static check *is* built but presence-only and run manually (no CI). STATUS.md
 > is the canonical map of what actually exists and wins on any conflict.
 
+**The reproduced corpus is indexed in [PAPERS.md](PAPERS.md)** — every paper in
+`models/`, grouped by cluster, with citation, DOI, and recorded status. The
+genealogy/rationale lives in
+[proposals/corpus-expansion-2026-06-02.md](proposals/corpus-expansion-2026-06-02.md).
+
 ## Identify your phase first
 
 Your invocation context tells you which phase you're in. Read the
