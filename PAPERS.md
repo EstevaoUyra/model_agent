@@ -9,11 +9,17 @@ the *what we hold*; that proposal is the *why and what next*.
 > **Audit honesty — read this before trusting any status.** A `faithful` claim in a
 > model's README is **not a certification**. Only the **hardened audit** —
 > independent VLM figure-comparison (`logs/figure_comparisons/`) + the digitization
-> gate — certifies, and **only 3 models have it**: `reynolds_heeger_2009`,
-> `hermann2010`, `carrasco2021` — *all of which came back `partial` or
-> `illustrative`, none `faithful`.* Three more have a partial **VLM-only** check.
-> **The other 21 are `self-reported`** — the builder's own claim, not independently
-> verified. Treat `self-reported` as *"implemented; not independently audited."*
+> gate — certifies, and **only 4 models have it**: `reynolds_heeger_2009`,
+> `hermann2010`, `carrasco2021`, `hara_gardner_2016` — *all of which came back
+> `partial` or `illustrative`, none `faithful`.* Three more have a partial
+> **VLM-only** check. **The other 20 are `self-reported`** — the builder's own
+> claim, not independently verified. Treat `self-reported` as *"implemented; not
+> independently audited."*
+>
+> ⚠️ **`hara_gardner_2016` is misattributed.** The paper is **Schwedhelm, Krishna &
+> Treue (2016)** (same DOI), not Hara/Pestilli/Gardner — a corpus-build labeling
+> error. The submodule's own citations are corrected; the repo dir name and the
+> corpus plan still carry the wrong label (dir rename pending).
 
 **Audit column** — `hardened`: full independent pipeline (verdict shown) ·
 `VLM`: independent figure-comparison only (partial) · `self-reported: X`: the
@@ -56,7 +62,7 @@ Rao & Ballard 1999 ─→ Spratling 2010/2012 · Bogacz 2017 (free-energy)      
 | [ghose_maunsell_2008](models/ghose_maunsell_2008) | Ghose & Maunsell (2008). Spatial summation explains attentional modulation to multiple stimuli in V4. *J. Neurosci.* | [10.1523/JNEUROSCI.0138-08.2008](https://doi.org/10.1523/JNEUROSCI.0138-08.2008) | own | self-reported: faithful | 6 |
 | [boynton_2009](models/boynton_2009) | Boynton (2009). A framework for describing the effects of attention on visual responses. *Vis. Res.* | [10.1016/j.visres.2008.11.001](https://doi.org/10.1016/j.visres.2008.11.001) | own | self-reported: faithful | 8 |
 | [pestilli_ling_carrasco_2009](models/pestilli_ling_carrasco_2009) | Pestilli, Ling & Carrasco (2009). A population-coding model of attention's influence on contrast response. *Vis. Res.* | [10.1016/j.visres.2008.09.018](https://doi.org/10.1016/j.visres.2008.09.018) | own | self-reported: illustrative | 12 |
-| [hara_gardner_2016](models/hara_gardner_2016) | Hara, Pestilli & Gardner (2016). An extended normalization model of feature-based attention. *PLoS Comput. Biol.* | [10.1371/journal.pcbi.1005225](https://doi.org/10.1371/journal.pcbi.1005225) | reuses R&H | self-reported: partial | 5 |
+| [hara_gardner_2016](models/hara_gardner_2016) ⚠️ | Schwedhelm, Krishna & Treue (2016). An extended normalization model of attention accounts for feature-based attentional enhancement of both response and coherence gain. *PLoS Comput. Biol.* | [10.1371/journal.pcbi.1005225](https://doi.org/10.1371/journal.pcbi.1005225) | reuses R&H | **hardened: partial (6)** | 3 |
 | [denison2021](models/denison2021) | Denison, Carrasco & Heeger (2021). A dynamic normalization model of temporal attention. *Nat. Hum. Behav.* | [10.1038/s41562-021-01129-1](https://doi.org/10.1038/s41562-021-01129-1) | own (dynamic) | self-reported: partial | 4 |
 | [doostani_2023](models/doostani_2023) | Doostani, Hossein-Zadeh, Vaziri-Pashkam & Carrasco (2023). Normalization predicts human visual cortex in object-based attention. *eLife* | [10.7554/eLife.75726](https://doi.org/10.7554/eLife.75726) | reuses R&H | self-reported: illustrative | 9 |
 | [verhoef_maunsell_2017](models/verhoef_maunsell_2017) | Verhoef & Maunsell (2017). Attention operates uniformly throughout the RF and surround. *eLife* | [10.7554/eLife.17256](https://doi.org/10.7554/eLife.17256) | own | VLM: faithful | 6 |
@@ -84,8 +90,8 @@ Rao & Ballard 1999 ─→ Spratling 2010/2012 · Bogacz 2017 (free-energy)      
 ---
 
 **Tally.** 27 papers — Cluster 1: 18 (14 own-model · 4 reuse R&H) · Cluster 2: 5 ·
-Cluster 3: 4. **Independent audit:** 3 hardened (all `partial`/`illustrative`, none
-faithful), 3 VLM-only; **21 self-reported.** No model is currently a
+Cluster 3: 4. **Independent audit:** 4 hardened (all `partial`/`illustrative`, none
+faithful), 3 VLM-only; **20 self-reported.** No model is currently a
 *certified-faithful* reproduction. Cross-cluster note: end-stopping &
 surround-suppression are reproduced by all three motifs (R&H normalization ·
 Zhu–Rozell LCA · Rao–Ballard predictive coding) — a natural cross-validation set.
