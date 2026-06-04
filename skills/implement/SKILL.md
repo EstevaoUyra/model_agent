@@ -20,6 +20,15 @@ paper-aware roles; you implement the mechanism and report what emerges.
 
 ## What you build (and what you must not touch)
 
+**Build it yourself, from scratch.** Implement every stage from *this* contract — do
+**not** import or copy another model's implementation during the build, even for a stage
+the spec marks as shared/lineage. An independent build is what makes the reproduction a
+real test of the paper; a reused forward model just *assumes* the other paper equals this
+one (and inherits its bugs). Cross-model reuse is a **separate, later, audited** step
+(WORKFLOW §4d → the `audit-reuse` skill), done only after this model is faithful on its
+own — never part of getting it working. If the spec points at an ancestor's stage, still
+build your own and flag the intended reuse as a spec question for the later reuse pass.
+
 - `implementation/src/<pkg>/` — the model (`model.py`), `protocols.py`, `measurements.py`.
   Structure it as a readable stage pipeline; a scientist should read a stage and see the
   science (Pillar 2). Each protocol → measurement → a **record** the view plots.
