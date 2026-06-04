@@ -75,6 +75,43 @@ assumption — record it. If you want to validate later that an assumption was
 load-bearing, the `affects` field tells you which tests to rerun under
 alternative choices.
 
+#### Pick the right provenance class — do not launder one as another
+
+Every value carries a `source:` pointing at one of four first-class ledgers.
+Choose by where the value actually comes from:
+
+- **`C-NNN`** (`citations.yaml`) — this paper's text/figures/Online
+  Methods/Supplementary.
+- **`CODE-NNN`** (`code_refs.yaml`) — the original authors' code in `paper/code/`
+  (acquired in Phase 0). A value that is `CODE-NNN` with **no** `C-NNN` is
+  *code-alone* — the paper does not specify it; that is a faithfulness signal,
+  not an embarrassment, so tag it honestly.
+- **`LINEAGE-NNN`** (`lineage_refs.yaml`) — a value **inherited from another
+  paper in the genealogy** (e.g. this paper reuses an ancestor's forward model).
+  The entry must name the ancestor `model:` and a `ref:` into that model's spec
+  (a `C-/A-/CODE-NNN` ID or a calibration key), so the decision is traceable to
+  a concrete entry — not just "from R&H". **Do not bury an inheritance in an
+  `A-NNN` note** ("= R&H Fig 2 width"); that hides the genealogy link. Use
+  `LINEAGE-NNN`.
+- **`A-NNN`** (`assumptions.yaml`) — none of the above: *we* chose it.
+
+`source:` may be a list when more than one applies (e.g.
+`source: [C-012, CODE-003]` — paper says it qualitatively, code gives the
+number). `neuromodels provenance` buckets these and traces each lineage value
+through to its ancestor's ground; `check_citations` enforces that every tag —
+including the cross-model lineage `ref` — resolves.
+
+```yaml
+# lineage_refs.yaml — values inherited from a genealogy ancestor
+- id: LINEAGE-001
+  model: reynolds_heeger_2009          # ancestor model dir under models/
+  ref: feature_tuning.sigma_deg        # a ledger ID or calibration key THERE
+  text: >-
+    Feature-tuning Gaussian sigma reused unchanged because this paper's forward
+    model IS the R&H 2009 normalization model (C-003).
+  notes: <why this is inheritance, not an independent choice>
+```
+
 ### Step 3 — Model spec (`spec/model_spec.yaml`)
 
 Structured Pydantic-validated YAML with these required top-level fields:
