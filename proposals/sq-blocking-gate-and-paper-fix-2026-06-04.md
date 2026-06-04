@@ -101,18 +101,19 @@ throw), the run ends in a single idempotent `finalize()` invoked from a
   section: what is blocked/flagged, *why* (which audit / paper-fix), the open
   findings, and exactly where to look (`logs/spec_audit/`,
   `logs/faithfulness_audit/`, the SQ). The README is the human's entrypoint.
-- **Everything is committed, pushed, PR'd, and MERGED TO MAIN — without exception.**
-  The model repo's remaining work is committed (and pushed if it has a remote); the
-  parent repo bumps that submodule pointer off the latest `origin/main`, opens a PR
-  whose body is the entrypoint summary, **and merges it to main** (`gh pr merge`) so
-  the result *lands* on main — blocked included. If the merge can't complete cleanly
-  (conflict / failing checks) it leaves the PR open and reports why, rather than
-  forcing it. main always reflects the latest honest state; the PR/README is the
-  audit trail + human entrypoint.
+- **Lands in the model's OWN repo (the submodule) — never the parent.** The work is
+  committed on the model's feature branch, then landed on the **submodule's own main
+  via a PR *in the submodule repo*** (`gh pr create` + `gh pr merge`, server-side) —
+  blocked included. The finalize step **never touches model_agent** (no parent commit,
+  branch, push, or PR): parent submodule-pointer bumps are a separate, deliberate step
+  (AGENTS.md: *"commit only inside the model repo, never the parent"*). If the merge
+  can't complete cleanly it leaves the PR open and reports why, rather than forcing it.
+  The submodule's main + its README/PR are the latest honest state + the audit trail.
 
-> Note: this makes **every** full-pass run push, PR, **and merge to main** — an
-> outward-facing side effect by design (a blocked exit lands on main too, labeled
-> blocked by its README). To gate that, add a status check before the merge.
+> Note: this makes **every** full-pass run open + merge a PR **in the model's own repo
+> (the submodule)** — never on model_agent (a blocked exit lands on the submodule's
+> main too, labeled blocked by its README). The parent index's pointers are bumped
+> separately and deliberately, not by a reproduction run.
 
 ## Control flow (fresh `from="extract"` pass)
 ```
@@ -134,7 +135,7 @@ Verify   figure faithfulness audit
 Report   finalize() — runs on EVERY exit (normal · blocked · thrown), via try/finally:
            (1) update-state README = current figure-reproduction state + changelog,
                + a "👉 DECISION NEEDED" entrypoint on top when the exit needs a human;
-           (2) commit ALL remaining work + push + open PR + MERGE TO MAIN (PR body = the entrypoint).
+           (2) commit ALL remaining work + a PR onto the submodule's OWN main (never the parent).
            WITHOUT EXCEPTION.
 ```
 
