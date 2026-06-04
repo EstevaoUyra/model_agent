@@ -148,11 +148,25 @@ a correct contract — in April, not after a six-week gain-knob spiral.
   silent knob. Filing the SQ must stay the lower-friction path.
 
 ## Refinements from the first run (2026-06-04)
-The first `from="fix"` run on RH2009 surfaced two bugs, both now fixed:
-- **`from="fix"` starts at IMPLEMENTATION, not test-authoring.** It was re-encoding
-  the *stale* faithfulness audit as tests instead of building the freshly
-  *corrected contract*. Round 1 now implements the current contract (deleting any
-  knobs it no longer sanctions); tests come from the contract; round 2 audits.
+The first `from="fix"` run on RH2009 surfaced these, all now fixed:
+- **Test-first, sourced from the RECENT change — not a stale audit.** `from="fix"`
+  was authoring tests from the *stale* `logs/faithfulness_audit/` instead of from
+  the freshly-applied *paper-fix* (the resolved SQ + the corrected mechanism's
+  must-pass targets) — writing tests for the wrong thing. Test-authoring-before-
+  implementation stays (good practice); only its *source* was wrong. Now it
+  encodes the most recent change, falling back to the latest audit only if there
+  is no recent contract change.
+- **Two distinct audits — do not conflate them.** The *implementation* audit
+  (`audit-faithfulness`, after implement) stays **comprehensive — it looks at
+  absolutely everything** vs the paper (catches regressions, full picture). A
+  separate **`audit-tests`** (new skill) is **specific to the just-authored
+  tests**: it judges whether each test *faithfully represents the paper /
+  references* (a digitized point, `C-/CODE-/LINEAGE-NNN`) — not a tautology, an
+  unsourced threshold, the implementation's own output, or a too-loose bound. It
+  runs author-tests → `audit-tests` → re-ground (capped) **before** implementation,
+  so a test that becomes a gate is itself paper-grounded (the heeger-drift guard:
+  tests flipped to match the render). The motivating audit is *context only*; the
+  comprehensive implementation audit is NOT reused for it.
 - **`audit-spec` is the ARBITER of "is there an open SQ", not the figure-auditor's
   tag.** The figure-auditor proposes `CONTRACT_BUG`; `audit-spec` adjudicates. If
   it returns FAITHFUL, the contract is clean → the divergence is an

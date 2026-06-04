@@ -89,6 +89,27 @@ const SPEC_VERDICT = {
   required: ['status', 'findings'],
 }
 
+// audit-tests verdict — are the authored tests themselves paper-grounded?
+const TESTS_VERDICT = {
+  type: 'object', additionalProperties: false,
+  properties: {
+    status: { enum: ['FAITHFUL', 'DIVERGENT'] },
+    findings: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false,
+        properties: {
+          test: { type: 'string' },
+          issue: { type: 'string' }, // tautology / unsourced threshold / wrong referent / too loose
+          fix: { type: 'string' },
+        },
+        required: ['test', 'issue'],
+      },
+    },
+  },
+  required: ['status', 'findings'],
+}
+
 // ── shared run state — read by finalize() on EVERY exit path ──
 let figResults = []
 let digBlocked = []
@@ -122,6 +143,31 @@ const paperFix = async (findings, label, phaseName) => {
     `truth (paper/code + related-paper lineage). You did NOT author it; adversarial. Tag each finding ` +
     `scope=model|figure. Findings just applied: ${JSON.stringify(findings)}`,
     { label: `audit-spec ${label}`, phase: phaseName, model: OPUS, schema: SPEC_VERDICT })
+}
+
+// author tests for a change, then INDEPENDENTLY audit (audit-tests) that those tests faithfully
+// REPRESENT THE PAPER/REFERENCES — not tautologies, unsourced thresholds, or the implementation's
+// own output. Re-ground flagged tests (capped). This is SPECIFIC to the just-authored tests; it is
+// NOT the comprehensive implementation audit (that runs after implement, on everything).
+const authorTests = async (authorPrompt, label) => {
+  await agent(authorPrompt, { label: `test-author ${label}`, phase: 'Verify', model: OPUS })
+  for (let i = 1; i <= MAX_PAPERFIX; i++) {
+    const tv = await agent(
+      `${SK('audit-tests')} Independently audit the tests just added/changed this pass for ${MODEL}. ` +
+      `Judge whether EACH faithfully represents something from the paper + references (digitized ` +
+      `figures, paper/code, lineage) — not a tautology, not the implementation's own output, not an ` +
+      `unsourced threshold, not too loose to discriminate. The motivating audit is CONTEXT ONLY; you ` +
+      `judge the TESTS. You did NOT author them; adversarial.`,
+      { label: `audit-tests ${label} r${i}`, phase: 'Verify', model: OPUS, schema: TESTS_VERDICT })
+    if (tv.status === 'FAITHFUL') return tv
+    await agent(
+      `${SK('author-tests')} Re-ground these ${MODEL} tests that audit-tests found do NOT represent the ` +
+      `paper/references — fix each referent/threshold/assertion so it traces to a real paper or ` +
+      `reference quantity (cite it: C-/CODE-/LINEAGE-NNN or a digitized panel point). Findings: ${JSON.stringify(tv.findings)}`,
+      { label: `test-reground ${label} r${i}`, phase: 'Verify', model: OPUS })
+  }
+  log(`audit-tests: ${label} tests still not fully paper-grounded after ${MAX_PAPERFIX} re-grounds — proceeding, flagged`)
+  return { status: 'DIVERGENT', findings: [] }
 }
 
 // finalize — runs on EVERY exit (normal, blocked, or thrown) via the try/finally below.
@@ -240,13 +286,16 @@ try {
   let paperFixIters = 0
   for (let round = 1; round <= MAX_ROUNDS; round++) {
     if (FROM === 'fix' && round === 1) {
-      // from='fix' STARTS AT IMPLEMENTATION: build/repair the model to match the CURRENT
-      // contract (which may have just been corrected by a paper-fix), deleting any
-      // implementation-side knobs the contract no longer sanctions. Tests come from the
-      // contract itself; round 2 runs a FRESH audit of the freshly-built implementation.
+      // TEST-FIRST, sourced from the MOST RECENT change (NOT a stale audit). If a paper-fix
+      // just corrected the contract, encode WHAT THAT CHANGE REQUIRES — the freshly-resolved
+      // SQ's must-pass targets + the corrected mechanism's expected behaviour. Then implement
+      // to pass them. Round 2 audits the freshly-built implementation.
+      await authorTests(
+        `${SK('author-tests')} Encode as deterministic tests the requirements of the MOST RECENT change to ${MODEL}. If the contract was just corrected by a paper-fix (recent commits / a freshly-RESOLVED SQ in logs/spec_questions.md carrying a must-pass target), encode THAT — the corrected mechanism's expected behaviour and its new must-pass targets (BUG → must-pass; disposition → red tripwire). Fall back to the latest faithfulness audit's OPEN findings ONLY if there is no recent contract change. Do NOT re-encode stale or already-passing audits.`,
+        'r1 (recent change)')
       await agent(
-        `${SK('implement')} Build/repair ${MODEL} to match the CURRENT contract in article_aware/ — it may have just been corrected by a paper-fix. Apply the contract's mechanism and DELETE any implementation-side knobs the contract no longer sanctions; iterate locally against the full suite (including the contract's own must-pass tests) until green or stuck. Escalate any genuine contract-level gap via logs/spec_questions.md.`,
-        { label: 'phaseB-fix r1 (build corrected contract)', phase: 'Verify', model: IMPL })
+        `${SK('implement')} Build/repair ${MODEL} to PASS the just-authored tests and match the current contract — DELETE any implementation-side knobs the contract no longer sanctions. Iterate locally against the full suite until green or stuck. Escalate any genuine contract-level gap via logs/spec_questions.md.`,
+        { label: 'phaseB-fix r1', phase: 'Verify', model: IMPL })
       continue
     }
 
@@ -265,9 +314,9 @@ try {
     const codeBugs = faith.findings.filter((f) => f.tag === 'CODE_BUG')
     if (specFaults.length === 0 && codeBugs.length === 0) break // dry & contract-clean
 
-    await agent(
+    await authorTests(
       `${SK('author-tests')} Encode these ${MODEL} audit findings as deterministic tests (BUG → must-pass; GENUINE_DIVERGENCE/PAPER_ISSUE → red tripwire). Findings: ${JSON.stringify(faith.findings)}`,
-      { label: `test-author r${round}`, phase: 'Verify', model: OPUS })
+      `r${round}`)
 
     // PRIORITY (point 3): an open SPEC fault / SQ BLOCKS implementation — we NEVER implement
     // against an open SQ. Resolve the contract first via the paper-fix ladder, re-audit, and
