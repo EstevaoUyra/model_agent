@@ -292,9 +292,10 @@ Rules: pure by default (declare/isolate any state); the integrator/solver is its
 swappable stage; **fitting/training is a separate stage emitting a persisted, hashed,
 provenanced artifact** (`artifacts/`), in v1 stubbed (§5); variants are config, not
 code; a swap = replace one stage honoring its contract, nothing else; a model may
-depend on another model's **primitive forward stages**, never on its *calibrated
-protocol* (that drags un-re-derivable calibration across as magic numbers — own it in
-your own `implementation/calibration.yaml` instead).
+depend on another model's **primitive forward stages** — **but not by default; see
+§4d** (build your own first, reuse later, audit the reuse) — and **never** on its
+*calibrated protocol* (that drags un-re-derivable calibration across as magic numbers
+— own it in your own `implementation/calibration.yaml` instead).
 
 ### 4b. Figures = protocol → measurement → view
 
@@ -324,6 +325,30 @@ test to green.
 *resolves* to a ledger entry; it does **not** check the passage supports the behavior —
 that is the Faithfulness Auditor's job. Presence is a weak proxy; the provenance table
 (§2) is the real instrument.
+
+### 4d. Code reuse across reproductions — build first, reuse later, audit the reuse
+
+**Default: build your own implementation from this paper's spec, from scratch.** The
+independent reimplementation is what makes the reproduction a real test of the paper. If
+you *start* by importing another model's forward model, you have not reproduced this
+paper — you have **assumed** the other model equals it. (Cautionary case: `hermann2010`
+reused Reynolds & Heeger 2009 *by default* and silently inherited R&H's broken
+suppression-saturation — a bug it never independently surfaced, because it never built
+its own forward model to disagree.)
+
+**Reuse is wanted — but it is a deliberate, LATER step, never the starting point.** Only
+after this model is built and **audited faithful on its own** may you replace a
+from-scratch stage with a reused one from an ancestor model. And only through a **reuse
+audit** (the `audit-reuse` skill): an *independent* model confirms the to-be-reused
+implementation **matches THIS paper's description** of that stage — same equations, same
+parameters, same behavior on this paper's protocols — *before* the reuse is adopted.
+Record the adopted reuse as **lineage provenance** (`lineage_refs.yaml`, `LINEAGE-NNN`,
+§5). If the audit finds a mismatch, do not reuse (or reuse only the matching sub-stage).
+
+Why this ordering: reuse-by-default couples models, propagates the ancestor's bugs and
+divergences downstream, and skips the very independent check the reproduction exists to
+provide. **Build → audit faithful → then reuse-audit → then reuse** keeps reuse's
+benefits (consistency, less duplicated work, an explicit genealogy) without its risk.
 
 ---
 
