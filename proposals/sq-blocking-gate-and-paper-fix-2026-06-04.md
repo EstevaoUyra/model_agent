@@ -101,13 +101,18 @@ throw), the run ends in a single idempotent `finalize()` invoked from a
   section: what is blocked/flagged, *why* (which audit / paper-fix), the open
   findings, and exactly where to look (`logs/spec_audit/`,
   `logs/faithfulness_audit/`, the SQ). The README is the human's entrypoint.
-- **Everything is committed, pushed, and PR'd — without exception.** The model
-  repo's remaining work is committed (and pushed if it has a remote); the parent
-  repo bumps that submodule pointer, commits, pushes, and opens/updates a PR whose
-  body is the entrypoint summary. The PR is the durable human entrypoint.
+- **Everything is committed, pushed, PR'd, and MERGED TO MAIN — without exception.**
+  The model repo's remaining work is committed (and pushed if it has a remote); the
+  parent repo bumps that submodule pointer off the latest `origin/main`, opens a PR
+  whose body is the entrypoint summary, **and merges it to main** (`gh pr merge`) so
+  the result *lands* on main — blocked included. If the merge can't complete cleanly
+  (conflict / failing checks) it leaves the PR open and reports why, rather than
+  forcing it. main always reflects the latest honest state; the PR/README is the
+  audit trail + human entrypoint.
 
-> Note: this makes **every** full-pass run push and open/update a PR — an
-> outward-facing side effect by design.
+> Note: this makes **every** full-pass run push, PR, **and merge to main** — an
+> outward-facing side effect by design (a blocked exit lands on main too, labeled
+> blocked by its README). To gate that, add a status check before the merge.
 
 ## Control flow (fresh `from="extract"` pass)
 ```
@@ -129,7 +134,7 @@ Verify   figure faithfulness audit
 Report   finalize() — runs on EVERY exit (normal · blocked · thrown), via try/finally:
            (1) update-state README = current figure-reproduction state + changelog,
                + a "👉 DECISION NEEDED" entrypoint on top when the exit needs a human;
-           (2) commit ALL remaining work + push + open/update PR (PR body = the entrypoint).
+           (2) commit ALL remaining work + push + open PR + MERGE TO MAIN (PR body = the entrypoint).
            WITHOUT EXCEPTION.
 ```
 

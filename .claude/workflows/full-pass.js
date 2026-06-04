@@ -1,6 +1,6 @@
 export const meta = {
   name: 'full-pass',
-  description: 'A pass over a paper. from="extract" (default): full fresh pass extract → digitization gate → implement → verify → report. from="fix" (built+audited model): skip Phase A + digitization, enter at the test-writer using the existing audit → fix → re-audit → report. EVERY exit finalizes: README human-entrypoint + commit + push + PR, without exception.',
+  description: 'A pass over a paper. from="extract" (default): full fresh pass extract → digitization gate → implement → verify → report. from="fix" (built+audited model): skip Phase A + digitization, enter at the test-writer using the existing audit → fix → re-audit → report. EVERY exit finalizes: README human-entrypoint + commit + push + PR + MERGE TO MAIN, without exception.',
   phases: [
     { title: 'Acquire' },
     { title: 'Extract' },
@@ -192,16 +192,20 @@ const finalize = async () => {
     `section from the findings' source_hints; (5) a changelog — append ONE succinct line, full detail to ` +
     `logs/changelog.md. Findings: ${JSON.stringify(openFindings)}. Process: ${JSON.stringify(proc ?? {})}.`,
     { label: 'state-update', phase: 'Report', model: OPUS })
-  // (2) Commit + push + PR — WITHOUT EXCEPTION, every exit. The PR IS the human entrypoint.
+  // (2) Commit + push + PR + MERGE TO MAIN — WITHOUT EXCEPTION, every exit. The result LANDS
+  //     on main (blocked included); the README/PR is the human entrypoint / audit trail.
   await agent(
-    `Finalize ${MODEL} for human review — leave NOTHING uncommitted (this runs on EVERY exit). ` +
+    `Finalize ${MODEL} and LAND THE RESULT ON MAIN — leave NOTHING uncommitted (this runs on EVERY exit). ` +
     `In the model repo (${ROOT}/${MODEL}): stage and commit ALL remaining changes on the current branch ` +
     `(one honest commit whose message matches the diff), then push the branch if it has a remote. Then in ` +
-    `the PARENT repo (${ROOT}): on a branch, bump ONLY the ${MODEL} submodule pointer (git add ${MODEL}; do ` +
-    `NOT stage unrelated parent changes), commit, push, and open OR update a PR (use gh; if one already ` +
-    `exists for the branch, update it). PR title summarizes the exit ("${exit.overall}"); PR body = the ` +
-    `README's DECISION-NEEDED / state summary so the PR is the human entrypoint. Report the PR URL.`,
-    { label: 'finalize: commit+push+PR', phase: 'Report', model: OPUS })
+    `the PARENT repo (${ROOT}): fetch origin, create a bump branch off the latest origin/main, bump ONLY ` +
+    `the ${MODEL} submodule pointer (git add ${MODEL}; do NOT stage unrelated parent changes), commit, ` +
+    `push, and open a PR (gh; title summarizes the exit "${exit.overall}", body = the README's ` +
+    `DECISION-NEEDED / state summary). Then MERGE IT INTO MAIN: gh pr merge --merge --delete-branch — so ` +
+    `the result lands on main, every exit, blocked included. If the merge cannot complete cleanly (conflict ` +
+    `or failing checks), leave the PR OPEN and report why instead of forcing it. Report the PR URL and ` +
+    `whether it merged to main.`,
+    { label: 'finalize: commit+push+PR+merge', phase: 'Report', model: OPUS })
 }
 
 // Phase-A audit failed within the cap → the WHOLE workflow EXITS, BLOCKED (point 2). Sets the
