@@ -1,7 +1,8 @@
 export const meta = {
   name: 'full-pass',
-  description: 'One full reproduction pass over a paper: extract → digitization gate → implement → verify → report. Per-figure pipeline, two capped loops, schema-routed, never pauses.',
+  description: 'A pass over a paper. from="extract" (default): full fresh pass extract → digitization gate → implement → verify → report. from="fix" (built+audited model): skip Phase A + digitization, enter at the test-writer using the existing audit → fix → re-audit → report. EVERY exit finalizes: README human-entrypoint + commit + push + PR, without exception.',
   phases: [
+    { title: 'Acquire' },
     { title: 'Extract' },
     { title: 'Digitization gate' },
     { title: 'Implement' },
@@ -10,19 +11,23 @@ export const meta = {
   ],
 }
 
-// args: { model: 'models/<name>', figures: ['2','3','4','5','6','7'] }
+// args: { model: 'models/<name>', figures: ['2',...], from?: 'extract' | 'fix' }
 // Robust to args arriving as either a parsed object or a JSON-encoded string.
 const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
 const MODEL = A.model
-const FIGURES = A.figures
+const FIGURES = A.figures || []
+const FROM = A.from || 'extract' // 'extract' = fresh full pass | 'fix' = built+audited: enter at the test-writer
 const MAX_ROUNDS = 3
+const MAX_PAPERFIX = 2 // paper-fix ↔ implement iterations per contract fault before honest BLOCKED
 const SK = (name) => `Read and FOLLOW /Users/estevaouyra/dev/model_agent/skills/${name}/SKILL.md.`
 const ROOT = '/Users/estevaouyra/dev/model_agent'
 
-// Model policy: ONLY the implementer needs the 1M window — it holds the whole codebase +
-// test suite while iterating. It inherits the session model (opus[1m]) by NOT overriding.
-// Every other agent runs on plain `opus` (no 1M needed).
-const OPUS = 'opus'
+// Model policy: the implementer needs the 1M window (it holds the whole codebase + suite
+// while iterating); every other role runs plain opus. Pin BOTH as EXPLICIT model IDs —
+// the tier enum ('opus') only sets the tier and the agent then INHERITS this session's 1M
+// window, so every agent ends up on opus[1m]. Full IDs are the only lever that strips 1M.
+const OPUS = 'claude-opus-4-8'     // non-implementer roles: opus, NO 1M
+const IMPL = 'claude-opus-4-8[1m]' // implementer only: opus + 1M
 
 // ── structured verdicts that drive the routing (so the script branches on data, not prose) ──
 const DIG_VERDICT = {
@@ -44,6 +49,7 @@ const FAITH_VERDICT = {
         properties: {
           figure: { type: 'string' },
           tag: { enum: ['CONTRACT_BUG', 'CODE_BUG', 'GENUINE_DIVERGENCE', 'PAPER_ISSUE', 'FAITHFUL'] },
+          scope: { enum: ['model', 'figure'] }, // model-fault blocks ALL figures; figure-fault blocks one
           detail: { type: 'string' },
           fix: { type: 'string' },             // spec-level fix (for the *_BUG tags)
           source_hint: { type: 'string' },     // "potential source", for the README
@@ -62,88 +68,232 @@ const PROC_VERDICT = {
   },
   required: ['trajectory'],
 }
-
-// ════════════════ PHASE A — extract (① spec  ∥  ②③④ per-figure pipeline) ════════════════
-phase('Extract')
-
-// ① spec-extractor — runs concurrently with the figure pipeline; joined before ⑤
-const specDone = agent(
-  `${SK('extract-spec')} Extract the article-aware contract for ${MODEL} (equations, parameters with evidenced/lineage-grounded assumptions, calibration ledger, citations, spec-questions).`,
-  { label: 'spec-extract', phase: 'Extract', model: OPUS })
-
-// ②→③↔④ per figure, concurrent across figures (the 3↔4 loop lives inside each lane)
-const figResults = await pipeline(FIGURES,
-  // stage ② figure-extract
-  (fig) => agent(
-    `${SK('extract-figure')} Describe figure ${fig} of ${MODEL}: panels, axis limits, model-panels-only scope. If the paper image is missing, return BLOCKED.`,
-    { label: `fig-extract:${fig}`, phase: 'Extract', model: OPUS }),
-  // stage ③↔④ digitize then audit, loop-until-dry capped at MAX_ROUNDS
-  async (_extracted, fig) => {
-    let verdict = null
-    for (let round = 1; round <= MAX_ROUNDS; round++) {
-      const fixNote = verdict ? `Fix the prior audit defect: ${verdict.worst_defect}` : 'First digitization.'
-      await agent(
-        `${SK('digitize-figure')} Digitize figure ${fig} of ${MODEL} (all panels). ${fixNote}`,
-        { label: `digitize:${fig} r${round}`, phase: 'Digitization gate', model: OPUS })
-      verdict = await agent(
-        `${SK('audit-digitization')} Audit the digitization of figure ${fig} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer.`,
-        { label: `dig-audit:${fig} r${round}`, phase: 'Digitization gate', model: OPUS, schema: DIG_VERDICT })
-      if (verdict.status === 'FAITHFUL' || verdict.status === 'BLOCKED') break
-    }
-    return { fig, status: verdict.status, defect: verdict.worst_defect }
-  })
-
-await specDone
-const digBlocked = figResults.filter((r) => r.status !== 'FAITHFUL') // BLOCKED / unresolved-after-cap → flagged, surfaced; does not gate ⑤
-log(`Digitization gate: ${figResults.filter(r => r.status === 'FAITHFUL').length}/${FIGURES.length} faithful; ${digBlocked.length} flagged`)
-
-// ════════════════ BARRIER ── PHASE B — implement (paper-blind, opus[1m]) ════════════════
-phase('Implement')
-await agent(
-  `${SK('implement')} Build ${MODEL} from the contract — model + protocols + measurements — iterating locally against the test suite until green or stuck; render the figures.`,
-  { label: 'implement', phase: 'Implement' }) // no model override → inherits opus[1m]
-
-// ════════════════ VERIFY ── ⑥∥⑦, then route+fix, loop-until-dry capped at MAX_ROUNDS ════════════════
-phase('Verify')
-let faith, proc
-const flagged = []
-for (let round = 1; round <= MAX_ROUNDS; round++) {
-  ;[faith, proc] = await parallel([
-    () => agent(
-      `${SK('audit-faithfulness')} Re-render and audit the CURRENT ${MODEL} implementation vs the paper + the digitized references. Tag each divergence CONTRACT_BUG | CODE_BUG | GENUINE_DIVERGENCE | PAPER_ISSUE (a paper-issue only after the lineage ladder). You are NOT the builder. Give a fix (spec-level) for every *_BUG and a source_hint for every divergence.`,
-      { label: `faith-audit r${round}`, phase: 'Verify', model: OPUS, schema: FAITH_VERDICT }),
-    () => agent(
-      `${SK('audit-process')} Read the ${MODEL} change-trail this pass: is the trajectory toward-paper or toward-green? You are paper-blind.`,
-      { label: `proc-audit r${round}`, phase: 'Verify', model: OPUS, schema: PROC_VERDICT }),
-  ])
-  flagged.push(...faith.findings.filter((f) => f.tag === 'GENUINE_DIVERGENCE' || f.tag === 'PAPER_ISSUE'))
-  const contractBugs = faith.findings.filter((f) => f.tag === 'CONTRACT_BUG')
-  const codeBugs = faith.findings.filter((f) => f.tag === 'CODE_BUG')
-  if (contractBugs.length === 0 && codeBugs.length === 0) break // dry
-
-  // ⑩ test-author (Phase A): turn the audit findings into deterministic tests so the
-  // implementer can iterate LOCALLY (no VLM). bugs → must-pass; genuine/paper-issue → red tripwire.
-  await agent(
-    `${SK('author-tests')} Encode these ${MODEL} audit findings as deterministic tests (BUG → must-pass; GENUINE_DIVERGENCE/PAPER_ISSUE → red tripwire). Findings: ${JSON.stringify(faith.findings)}`,
-    { label: `test-author r${round}`, phase: 'Verify', model: OPUS })
-
-  // route the FIX: contract bugs → Phase A re-author contract; then Phase B implements + iterates locally
-  if (contractBugs.length) {
-    await agent(
-      `Phase-A contract editor for ${MODEL}. Apply these CONTRACT findings to article_aware/ ONLY (spec, pseudocode, tests, citations, assumptions, the view), then state the Phase-B build order. GUARD: specify the paper's mechanism; never tune to fit. Findings: ${JSON.stringify(contractBugs)}`,
-      { label: `phaseA-fix r${round}`, phase: 'Verify', model: OPUS })
-  }
-  await agent(
-    `${SK('implement')} Apply the updated contract + these code findings to ${MODEL}, iterating locally against the full suite (including the new audit-derived tests) until green or stuck. Code findings: ${JSON.stringify(codeBugs)}`,
-    { label: `phaseB-fix r${round}`, phase: 'Verify' }) // no model override → inherits opus[1m]
-  // loop re-audits with a fresh ⑥ (builder never self-certifies)
+// audit-spec verdict — drives the Phase-A gate and the paper-fix verify step.
+const SPEC_VERDICT = {
+  type: 'object', additionalProperties: false,
+  properties: {
+    status: { enum: ['FAITHFUL', 'DIVERGENT', 'BLOCKED'] },
+    findings: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false,
+        properties: {
+          scope: { enum: ['model', 'figure'] }, // model-fault blocks ALL figures; figure-fault blocks one
+          detail: { type: 'string' },
+          fix: { type: 'string' },
+        },
+        required: ['scope', 'detail'],
+      },
+    },
+  },
+  required: ['status', 'findings'],
 }
 
-// ════════════════ REPORT — ⑨ state-updater (README = current state) ════════════════
-phase('Report')
-const exit = { overall: faith.overall, trajectory: proc.trajectory, flagged_count: flagged.length, blocked: digBlocked.map(b => b.fig) }
-await agent(
-  `${SK('update-state')} Rewrite the ${MODEL} README as the CURRENT STATE. Order: (1) a current-exit block AT THE TOP (before the model description) — exit=${JSON.stringify(exit)} and the queued human-decisions; (2) model description; (3) per figure the three views side by side (paper · digitized · implemented) + the audit/check tables; (4) a "potential sources of the issues" section built from the findings' source_hints; (5) a changelog — append ONE succinct line here, full detail to logs/changelog.md. Findings: ${JSON.stringify(faith.findings)}. Process: ${JSON.stringify(proc)}.`,
-  { label: 'state-update', phase: 'Report', model: OPUS })
+// ── shared run state — read by finalize() on EVERY exit path ──
+let figResults = []
+let digBlocked = []
+let faith = null
+let proc = null
+const flagged = []
+let exit = { overall: 'unknown', trajectory: 'unknown', flagged_count: 0, blocked: [] }
+let openFindings = []
+let humanEntrypoint = null // { kind, reason, findings } — set when the exit needs a human
+let finalized = false
 
-return { exit, flagged, blocked: digBlocked, process: proc }
+// paper-fix subroutine: resolve a CONTRACT/PAPER fault via a RESOLUTION LADDER from
+// already-acquired ground truth, then INDEPENDENTLY verify with audit-spec (builder ≠
+// resolver ≠ auditor). Caller bounds retries with MAX_PAPERFIX; returns the spec verdict.
+const paperFix = async (findings, label, phaseName) => {
+  await agent(
+    `${SK('extract-spec')} Phase-A RESOLVER for ${MODEL}. Resolve each finding via this LADDER, in ` +
+    `order, stopping at the first that resolves it — do NOT re-acquire (use what is on disk; re-fetch ` +
+    `only an item listed in paper/SOURCES.md "exists-but-not-obtained"):\n` +
+    `  (1) this paper's own code/supplement (paper/code + SOURCES.md) → author CODE-NNN;\n` +
+    `  (2) RELATED genealogy papers via lineage → author LINEAGE-NNN pointing at the ancestor's entry;\n` +
+    `  (3) a HUMAN decision — LAST RESORT ONLY.\n` +
+    `Correct article_aware/ ONLY; tag code-alone honestly; NEVER tune a per-figure knob to fit a ` +
+    `model-level fault. A CONTRACT_BUG you cannot resolve via (1)/(2) → leave an OPEN SQ ` +
+    `(owner+expiry), BLOCKED. A PAPER_ISSUE you cannot resolve via (1)/(2) → DISPOSITION it as a ` +
+    `documented paper defect (red tripwire + human decision-request with owner+expiry); that is a ` +
+    `FAITHFUL contract state, not a block. Commit. Findings: ${JSON.stringify(findings)}`,
+    { label: `paperfix-resolve ${label}`, phase: phaseName, model: OPUS })
+  return await agent(
+    `${SK('audit-spec')} Independently audit the CORRECTED ${MODEL} contract vs the paper + ground ` +
+    `truth (paper/code + related-paper lineage). You did NOT author it; adversarial. Tag each finding ` +
+    `scope=model|figure. Findings just applied: ${JSON.stringify(findings)}`,
+    { label: `audit-spec ${label}`, phase: phaseName, model: OPUS, schema: SPEC_VERDICT })
+}
+
+// finalize — runs on EVERY exit (normal, blocked, or thrown) via the try/finally below.
+// (1) rewrite the README as the current state + a human entrypoint; (2) commit + push + PR.
+// Idempotent (runs once). The README and the PR are the human's entrypoint into the run.
+const finalize = async () => {
+  if (finalized) return
+  finalized = true
+  phase('Report')
+  // (1) README — ALWAYS the per-figure reproduction state + changelog; and when this exit needs
+  //     a decision (paper-fix/audit block, or flagged dispositions) a clear entrypoint on top.
+  await agent(
+    `${SK('update-state')} Rewrite the ${MODEL} README as CURRENT STATE and the human entrypoint. ` +
+    `ALWAYS include, in order: (1) a current-exit block at the very top — exit=${JSON.stringify(exit)}; ` +
+    (humanEntrypoint
+      ? `(1b) directly under it, a clearly-marked "👉 DECISION NEEDED" section — what is blocked/flagged ` +
+        `and WHY (${humanEntrypoint.kind}: ${humanEntrypoint.reason}), the specific open findings, and ` +
+        `exactly where to look (logs/spec_audit/, logs/faithfulness_audit/, the SQ in logs/spec_questions.md); `
+      : ``) +
+    `(2) the model description; (3) per figure the three views side by side (paper · digitized · ` +
+    `implemented) + the audit/check tables — the figure-reproduction state; (4) a "potential sources" ` +
+    `section from the findings' source_hints; (5) a changelog — append ONE succinct line, full detail to ` +
+    `logs/changelog.md. Findings: ${JSON.stringify(openFindings)}. Process: ${JSON.stringify(proc ?? {})}.`,
+    { label: 'state-update', phase: 'Report', model: OPUS })
+  // (2) Commit + push + PR — WITHOUT EXCEPTION, every exit. The PR IS the human entrypoint.
+  await agent(
+    `Finalize ${MODEL} for human review — leave NOTHING uncommitted (this runs on EVERY exit). ` +
+    `In the model repo (${ROOT}/${MODEL}): stage and commit ALL remaining changes on the current branch ` +
+    `(one honest commit whose message matches the diff), then push the branch if it has a remote. Then in ` +
+    `the PARENT repo (${ROOT}): on a branch, bump ONLY the ${MODEL} submodule pointer (git add ${MODEL}; do ` +
+    `NOT stage unrelated parent changes), commit, push, and open OR update a PR (use gh; if one already ` +
+    `exists for the branch, update it). PR title summarizes the exit ("${exit.overall}"); PR body = the ` +
+    `README's DECISION-NEEDED / state summary so the PR is the human entrypoint. Report the PR URL.`,
+    { label: 'finalize: commit+push+PR', phase: 'Report', model: OPUS })
+}
+
+// Phase-A audit failed within the cap → the WHOLE workflow EXITS, BLOCKED (point 2). Sets the
+// shared blocked state + human entrypoint; the try/finally runs finalize (README + commit + PR).
+const blockedExit = (reason, findings) => {
+  log(`WORKFLOW EXIT — Phase-A contract BLOCKED: ${reason}`)
+  exit = { overall: 'blocked', trajectory: proc?.trajectory ?? 'n/a', flagged_count: flagged.length, blocked: ['model:contract'] }
+  openFindings = findings
+  humanEntrypoint = { kind: 'contract-blocked (paper-fix/audit-spec)', reason, findings }
+  return { from: FROM, exit, blocked: ['model:contract'], spec: findings }
+}
+
+try {
+  // ════════════════ PHASE A + initial implement — only on a FRESH pass ════════════════
+  if (FROM === 'extract') {
+    // ⓪ acquire-sources — Phase 0, BLOCKS Phase A: gather all paper materials + original code
+    // into paper/ and write paper/SOURCES.md, so the extractor never builds on incomplete sources.
+    phase('Acquire')
+    await agent(
+      `${SK('acquire-sources')} Acquire all upstream sources for ${MODEL}: published materials ` +
+      `(main, Online Methods, Supplementary) into paper/, original author code into paper/code/ ` +
+      `(Phase-A spec source, Phase-B forbidden, gitignored), and write paper/SOURCES.md accounting for ` +
+      `every artifact (obtained / exists-but-not-obtained / confirmed-absent). Seed code_refs.yaml if code found.`,
+      { label: 'acquire-sources', phase: 'Acquire', model: OPUS })
+
+    // ① spec-extractor — runs concurrently with the figure pipeline; joined before the gate
+    phase('Extract')
+    const specDone = agent(
+      `${SK('extract-spec')} Extract the article-aware contract for ${MODEL} (equations, parameters with evidenced/lineage-grounded assumptions, calibration ledger, citations, spec-questions).`,
+      { label: 'spec-extract', phase: 'Extract', model: OPUS })
+
+    // ②→③↔④ per figure, concurrent across figures (the 3↔4 loop lives inside each lane)
+    figResults = await pipeline(FIGURES,
+      (fig) => agent(
+        `${SK('extract-figure')} Describe figure ${fig} of ${MODEL}: panels, axis limits, model-panels-only scope. A panel that is a RENDERED MODEL OUTPUT is a reproduction target even inside a schematic. If the paper image is missing, return BLOCKED.`,
+        { label: `fig-extract:${fig}`, phase: 'Extract', model: OPUS }),
+      async (_extracted, fig) => {
+        let verdict = null
+        for (let round = 1; round <= MAX_ROUNDS; round++) {
+          const fixNote = verdict ? `Fix the prior audit defect: ${verdict.worst_defect}` : 'First digitization.'
+          await agent(
+            `${SK('digitize-figure')} Digitize figure ${fig} of ${MODEL} (all panels). ${fixNote}`,
+            { label: `digitize:${fig} r${round}`, phase: 'Digitization gate', model: OPUS })
+          verdict = await agent(
+            `${SK('audit-digitization')} Audit the digitization of figure ${fig} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer.`,
+            { label: `dig-audit:${fig} r${round}`, phase: 'Digitization gate', model: OPUS, schema: DIG_VERDICT })
+          if (verdict.status === 'FAITHFUL' || verdict.status === 'BLOCKED') break
+        }
+        return { fig, status: verdict.status, defect: verdict.worst_defect }
+      })
+
+    await specDone
+    digBlocked = figResults.filter((r) => r.status !== 'FAITHFUL') // flagged, surfaced; does not gate the gate
+    log(`Digitization gate: ${figResults.filter(r => r.status === 'FAITHFUL').length}/${FIGURES.length} faithful; ${digBlocked.length} flagged`)
+
+    // audit-spec GATE — the CONTRACT itself is audited before any implementation (the safeguard
+    // that was missing). A divergence is resolved via paper-fix (≤MAX_PAPERFIX) BEFORE Phase B, so
+    // the implementer never builds against a known-wrong contract and can't paper a bug with a knob.
+    let specGate = await agent(
+      `${SK('audit-spec')} Audit the freshly-extracted ${MODEL} contract vs the paper + acquired ground truth (paper/code). Adversarial; you did NOT author it. Tag each finding scope=model|figure.`,
+      { label: 'audit-spec (gate)', phase: 'Extract', model: OPUS, schema: SPEC_VERDICT })
+    for (let i = 1; i <= MAX_PAPERFIX && specGate.status !== 'FAITHFUL'; i++) {
+      specGate = await paperFix(specGate.findings, `gate r${i}`, 'Extract')
+    }
+    // point 2: if the contract can't be made faithful within the cap, EXIT — never implement
+    // against a known-wrong contract. (finalize still runs via finally.)
+    if (specGate.status !== 'FAITHFUL') return blockedExit('Phase-A spec gate did not pass within MAX_PAPERFIX', specGate.findings)
+
+    // BARRIER ── PHASE B implement (paper-blind, opus[1m])
+    phase('Implement')
+    await agent(
+      `${SK('implement')} Build ${MODEL} from the contract — model + protocols + measurements — iterating locally against the test suite until green or stuck; render the figures.`,
+      { label: 'implement', phase: 'Implement', model: IMPL })
+  } else {
+    log(`from='${FROM}': skipping extract + digitization gate + initial implement — reusing the existing contract, binding references, and audit.`)
+  }
+
+  // ════════════════ VERIFY ── ⑥∥⑦, route+fix, loop-until-dry capped at MAX_ROUNDS ════════════════
+  // from='fix' enters HERE at the test-writer: round 1 encodes the EXISTING audit and fixes,
+  // without an initial ⑥ (we trust the on-disk audit as current); round 2+ re-audits normally.
+  phase('Verify')
+  let paperFixIters = 0
+  for (let round = 1; round <= MAX_ROUNDS; round++) {
+    if (FROM === 'fix' && round === 1) {
+      await agent(
+        `${SK('author-tests')} Read the LATEST existing ${MODEL} faithfulness audit (logs/faithfulness_audit/ + the README current-state) and encode its OPEN findings as deterministic tests (BUG → must-pass; GENUINE_DIVERGENCE/PAPER_ISSUE → red tripwire). Do NOT re-audit; the on-disk audit is your input.`,
+        { label: 'test-author r1 (existing audit)', phase: 'Verify', model: OPUS })
+      await agent(
+        `${SK('implement')} Apply the existing ${MODEL} audit's open findings, iterating locally against the full suite (incl. the new audit-derived tests) until green or stuck. Escalate any contract-level issue via logs/spec_questions.md.`,
+        { label: 'phaseB-fix r1', phase: 'Verify', model: IMPL })
+      continue // round 2+ runs a FRESH ⑥/⑦ re-audit (the builder never self-certifies)
+    }
+
+    ;[faith, proc] = await parallel([
+      () => agent(
+        `${SK('audit-faithfulness')} Re-render and audit the CURRENT ${MODEL} implementation vs the paper + the digitized references. Tag each divergence CONTRACT_BUG | CODE_BUG | GENUINE_DIVERGENCE | PAPER_ISSUE (a paper-issue only after the lineage ladder), and scope=model|figure (a forward-model/mechanism fault blocks ALL figures; a per-figure issue blocks one). You are NOT the builder. Give a fix (spec-level) for every *_BUG and a source_hint for every divergence.`,
+        { label: `faith-audit r${round}`, phase: 'Verify', model: OPUS, schema: FAITH_VERDICT }),
+      () => agent(
+        `${SK('audit-process')} Read the ${MODEL} change-trail this pass: is the trajectory toward-paper or toward-green? You are paper-blind.`,
+        { label: `proc-audit r${round}`, phase: 'Verify', model: OPUS, schema: PROC_VERDICT }),
+    ])
+    flagged.push(...faith.findings.filter((f) => f.tag === 'GENUINE_DIVERGENCE'))
+    // CONTRACT_BUG and PAPER_ISSUE are both SPEC faults → the paper-fix ladder (point 1:
+    // PAPER_ISSUE is resolvable from related papers; human is last resort).
+    const specFaults = faith.findings.filter((f) => f.tag === 'CONTRACT_BUG' || f.tag === 'PAPER_ISSUE')
+    const codeBugs = faith.findings.filter((f) => f.tag === 'CODE_BUG')
+    if (specFaults.length === 0 && codeBugs.length === 0) break // dry & contract-clean
+
+    await agent(
+      `${SK('author-tests')} Encode these ${MODEL} audit findings as deterministic tests (BUG → must-pass; GENUINE_DIVERGENCE/PAPER_ISSUE → red tripwire). Findings: ${JSON.stringify(faith.findings)}`,
+      { label: `test-author r${round}`, phase: 'Verify', model: OPUS })
+
+    // PRIORITY (point 3): an open SPEC fault / SQ BLOCKS implementation — we NEVER implement
+    // against an open SQ. Resolve the contract first via the paper-fix ladder, re-audit, and
+    // only build CODE bugs once the contract is clean.
+    if (specFaults.length) {
+      paperFixIters++
+      const sv = await paperFix(specFaults, `r${round}`, 'Verify')
+      // point 2: Phase-A audit not faithful within the cap → the WHOLE workflow exits BLOCKED.
+      if (sv.status !== 'FAITHFUL' && paperFixIters >= MAX_PAPERFIX) {
+        return blockedExit('paper-fix verify did not pass within MAX_PAPERFIX', sv.findings)
+      }
+      continue // re-audit against the corrected contract; do NOT implement while an SQ is open
+    }
+
+    // contract is clean → safe to build the CODE bugs
+    await agent(
+      `${SK('implement')} Apply these CODE findings to ${MODEL}, iterating locally against the full suite (including the new audit-derived tests) until green or stuck. Code findings: ${JSON.stringify(codeBugs)}`,
+      { label: `phaseB-fix r${round}`, phase: 'Verify', model: IMPL })
+  }
+
+  // ── normal completion — set the shared exit state for finalize() ──
+  exit = { overall: faith?.overall ?? 'unknown', trajectory: proc?.trajectory ?? 'unknown', flagged_count: flagged.length, blocked: digBlocked.map(b => b.fig) }
+  openFindings = faith?.findings ?? []
+  if (flagged.length) humanEntrypoint = { kind: 'review', reason: `${flagged.length} flagged disposition(s) to confirm`, findings: flagged }
+} finally {
+  // README human-entrypoint + commit + push + PR — on EVERY exit, without exception.
+  await finalize()
+}
+
+return { from: FROM, exit, flagged, blocked: exit.blocked, process: proc }

@@ -14,6 +14,7 @@ from neuromodels.framework.compare_figures import (
     write_model_figure_packet,
 )
 from neuromodels.framework.judge import JudgeInput, JudgeResult, run_judge
+from neuromodels.framework.provenance import build_provenance, render_markdown as render_provenance
 from neuromodels.framework.test_table import render_table
 
 
@@ -100,6 +101,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     table_parser.set_defaults(func=run_test_table_command)
 
+    prov_parser = subparsers.add_parser(
+        "provenance",
+        help="Bucket calibrated values by source (paper / paper+code / code-alone / assumption)",
+    )
+    prov_parser.add_argument(
+        "--model-dir",
+        type=Path,
+        default=Path.cwd(),
+        help="Model directory containing article_aware/spec/calibration.yaml",
+    )
+    prov_parser.add_argument("--output", choices=["json", "markdown"], default="markdown")
+    prov_parser.set_defaults(func=run_provenance_command)
+
     return parser
 
 
@@ -165,6 +179,19 @@ def run_test_table_command(args: argparse.Namespace) -> int:
     except Exception as exc:
         print(f"neuromodels test-table: error: {exc}", file=sys.stderr)
         return 1
+    return 0
+
+
+def run_provenance_command(args: argparse.Namespace) -> int:
+    try:
+        report = build_provenance(args.model_dir)
+    except Exception as exc:
+        print(f"neuromodels provenance: error: {exc}", file=sys.stderr)
+        return 1
+    if args.output == "json":
+        print(json.dumps(report.to_dict(), indent=2))
+    else:
+        print(render_provenance(report))
     return 0
 
 
