@@ -9,6 +9,9 @@ take, and how faithfulness is verified. It is the *how*.
 - *What is actually built (vs. described)*: [STATUS.md](STATUS.md) — **canonical on
   reality; wins on any conflict.** This document describes the target process; where a
   mechanism here is not yet tooling, STATUS.md says so.
+- *The agent graph (visual companion)*: [WORKFLOW-graph.md](WORKFLOW-graph.md) — the
+  `full-pass` agents as a directed graph (each agent once; caps as loops). **Any change
+  to the workflow here must be reflected in that graph, and vice versa.**
 
 > **The one rule that subsumes the rest.** A reproduction is faithful only to the
 > extent it is *checked against the paper*. Every gate, test, and verdict in this
