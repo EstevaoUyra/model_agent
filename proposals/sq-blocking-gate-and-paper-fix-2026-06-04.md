@@ -147,6 +147,21 @@ a correct contract — in April, not after a six-week gain-knob spiral.
   divergence as a violation, and (b) the `audited:false` exit clause catching the
   silent knob. Filing the SQ must stay the lower-friction path.
 
+## Refinements from the first run (2026-06-04)
+The first `from="fix"` run on RH2009 surfaced two bugs, both now fixed:
+- **`from="fix"` starts at IMPLEMENTATION, not test-authoring.** It was re-encoding
+  the *stale* faithfulness audit as tests instead of building the freshly
+  *corrected contract*. Round 1 now implements the current contract (deleting any
+  knobs it no longer sanctions); tests come from the contract; round 2 audits.
+- **`audit-spec` is the ARBITER of "is there an open SQ", not the figure-auditor's
+  tag.** The figure-auditor proposes `CONTRACT_BUG`; `audit-spec` adjudicates. If
+  it returns FAITHFUL, the contract is clean → the divergence is an
+  *implementation* issue → fall through and implement. Previously the loop did
+  `paperFix → continue` on any `CONTRACT_BUG` tag, so a correct contract caused a
+  no-op `paperFix` and an endless re-audit of an un-fixed build (the spin). "Never
+  implement with an open SQ" still holds — an *open SQ* is now defined by
+  `audit-spec` DIVERGENT, not by the figure-auditor's hypothesis.
+
 ## Build status
 - **Exists:** `acquire-sources` (Phase 0), the `CODE-`/`LINEAGE-` provenance
   ledgers + `check_citations` + `neuromodels provenance`.

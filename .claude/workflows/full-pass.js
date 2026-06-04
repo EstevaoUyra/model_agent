@@ -240,13 +240,14 @@ try {
   let paperFixIters = 0
   for (let round = 1; round <= MAX_ROUNDS; round++) {
     if (FROM === 'fix' && round === 1) {
+      // from='fix' STARTS AT IMPLEMENTATION: build/repair the model to match the CURRENT
+      // contract (which may have just been corrected by a paper-fix), deleting any
+      // implementation-side knobs the contract no longer sanctions. Tests come from the
+      // contract itself; round 2 runs a FRESH audit of the freshly-built implementation.
       await agent(
-        `${SK('author-tests')} Read the LATEST existing ${MODEL} faithfulness audit (logs/faithfulness_audit/ + the README current-state) and encode its OPEN findings as deterministic tests (BUG → must-pass; GENUINE_DIVERGENCE/PAPER_ISSUE → red tripwire). Do NOT re-audit; the on-disk audit is your input.`,
-        { label: 'test-author r1 (existing audit)', phase: 'Verify', model: OPUS })
-      await agent(
-        `${SK('implement')} Apply the existing ${MODEL} audit's open findings, iterating locally against the full suite (incl. the new audit-derived tests) until green or stuck. Escalate any contract-level issue via logs/spec_questions.md.`,
-        { label: 'phaseB-fix r1', phase: 'Verify', model: IMPL })
-      continue // round 2+ runs a FRESH ⑥/⑦ re-audit (the builder never self-certifies)
+        `${SK('implement')} Build/repair ${MODEL} to match the CURRENT contract in article_aware/ — it may have just been corrected by a paper-fix. Apply the contract's mechanism and DELETE any implementation-side knobs the contract no longer sanctions; iterate locally against the full suite (including the contract's own must-pass tests) until green or stuck. Escalate any genuine contract-level gap via logs/spec_questions.md.`,
+        { label: 'phaseB-fix r1 (build corrected contract)', phase: 'Verify', model: IMPL })
+      continue
     }
 
     ;[faith, proc] = await parallel([
@@ -274,16 +275,20 @@ try {
     if (specFaults.length) {
       paperFixIters++
       const sv = await paperFix(specFaults, `r${round}`, 'Verify')
-      // point 2: Phase-A audit not faithful within the cap → the WHOLE workflow exits BLOCKED.
-      if (sv.status !== 'FAITHFUL' && paperFixIters >= MAX_PAPERFIX) {
-        return blockedExit('paper-fix verify did not pass within MAX_PAPERFIX', sv.findings)
+      if (sv.status !== 'FAITHFUL') {
+        // audit-spec (the ARBITER, not the figure-auditor's tag) confirms the contract is
+        // GENUINELY still faulted → never implement against an open SQ; re-audit, or BLOCK at cap.
+        if (paperFixIters >= MAX_PAPERFIX) return blockedExit('paper-fix verify did not pass within MAX_PAPERFIX', sv.findings)
+        continue
       }
-      continue // re-audit against the corrected contract; do NOT implement while an SQ is open
+      // audit-spec says the contract is now FAITHFUL → NO open SQ. A figure that still diverges is
+      // an IMPLEMENTATION issue (the figure-auditor's CONTRACT_BUG tag was a hypothesis audit-spec
+      // just refuted) → fall through and IMPLEMENT; do NOT spin re-auditing an un-fixed build.
     }
 
-    // contract is clean → safe to build the CODE bugs
+    // contract is clean (no open SQ) → build the implementation to match it + fix CODE bugs
     await agent(
-      `${SK('implement')} Apply these CODE findings to ${MODEL}, iterating locally against the full suite (including the new audit-derived tests) until green or stuck. Code findings: ${JSON.stringify(codeBugs)}`,
+      `${SK('implement')} Build ${MODEL} to match the current contract and apply these CODE findings, iterating locally against the full suite (including the audit-derived tests) until green or stuck. Code findings: ${JSON.stringify(codeBugs)}`,
       { label: `phaseB-fix r${round}`, phase: 'Verify', model: IMPL })
   }
 
