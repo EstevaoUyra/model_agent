@@ -1,6 +1,6 @@
 export const meta = {
   name: 'full-pass',
-  description: 'A pass over a paper. from="extract" (default): full fresh pass extract → digitization gate → implement → verify → report. from="fix" (built+audited model): skip Phase A + digitization, enter at the test-writer using the existing audit → fix → re-audit → report. EVERY exit finalizes: README human-entrypoint + commit + push + PR, without exception.',
+  description: 'A pass over a paper. from="extract" (default): full fresh pass extract → digitization gate → implement → verify → report. from="fix" (built+audited model): skip Phase A + digitization, enter at the test-writer using the existing audit → fix → re-audit → report. EVERY exit finalizes IN THE MODEL\'S OWN REPO (never the parent): README human-entrypoint + commit + a PR onto the submodule\'s main, without exception.',
   phases: [
     { title: 'Acquire' },
     { title: 'Extract' },
@@ -192,16 +192,24 @@ const finalize = async () => {
     `section from the findings' source_hints; (5) a changelog — append ONE succinct line, full detail to ` +
     `logs/changelog.md. Findings: ${JSON.stringify(openFindings)}. Process: ${JSON.stringify(proc ?? {})}.`,
     { label: 'state-update', phase: 'Report', model: OPUS })
-  // (2) Commit + push + PR — WITHOUT EXCEPTION, every exit. The PR IS the human entrypoint.
+  // (2) Land the result IN THE MODEL'S OWN REPO (the submodule) — commit + a PR onto the
+  //     submodule's main, every exit (blocked included). NEVER touch the parent (model_agent):
+  //     parent submodule-pointer bumps are a separate, deliberate step, not part of a run
+  //     (AGENTS.md: "commit only inside the model repo, never the parent").
   await agent(
-    `Finalize ${MODEL} for human review — leave NOTHING uncommitted (this runs on EVERY exit). ` +
-    `In the model repo (${ROOT}/${MODEL}): stage and commit ALL remaining changes on the current branch ` +
-    `(one honest commit whose message matches the diff), then push the branch if it has a remote. Then in ` +
-    `the PARENT repo (${ROOT}): on a branch, bump ONLY the ${MODEL} submodule pointer (git add ${MODEL}; do ` +
-    `NOT stage unrelated parent changes), commit, push, and open OR update a PR (use gh; if one already ` +
-    `exists for the branch, update it). PR title summarizes the exit ("${exit.overall}"); PR body = the ` +
-    `README's DECISION-NEEDED / state summary so the PR is the human entrypoint. Report the PR URL.`,
-    { label: 'finalize: commit+push+PR', phase: 'Report', model: OPUS })
+    `Finalize ${MODEL} and LAND THE RESULT IN ITS OWN REPO — leave NOTHING uncommitted (runs on EVERY exit). ` +
+    `Work ONLY inside the submodule ${ROOT}/${MODEL}. DO NOT commit, branch, push, or open a PR in the PARENT ` +
+    `(model_agent) repo at ${ROOT} — that is forbidden; parent submodule-pointer bumps are a separate ` +
+    `deliberate step, never part of a reproduction run. In the submodule: stage and commit ALL remaining ` +
+    `changes on the current feature branch (one honest commit matching the diff; the README — the human ` +
+    `entrypoint, with a "DECISION NEEDED" section if blocked — is part of it). Push the feature branch. Then ` +
+    `LAND IT ON THE SUBMODULE'S OWN main via a PR IN THE SUBMODULE REPO (cwd = the submodule so gh targets ` +
+    `it): gh pr create --base main --head <feature-branch> (title = the exit "${exit.overall}", body = the ` +
+    `README entrypoint summary), then gh pr merge --merge --delete-branch (server-side → lands on the ` +
+    `submodule's main, blocked included). If the submodule has no remote, commit locally and report. If the ` +
+    `merge cannot complete cleanly, leave the PR open and report why — do NOT force, and do NOT fall back to ` +
+    `the parent. Report the submodule PR URL and whether the submodule's main was updated.`,
+    { label: 'finalize: land in submodule (its own repo)', phase: 'Report', model: OPUS })
 }
 
 // Phase-A audit failed within the cap → the WHOLE workflow EXITS, BLOCKED (point 2). Sets the
