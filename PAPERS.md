@@ -64,7 +64,7 @@ Rao & Ballard 1999 ─→ Spratling 2010/2012 · Bogacz 2017 (free-energy)      
 | [pestilli_ling_carrasco_2009](models/pestilli_ling_carrasco_2009) | Pestilli, Ling & Carrasco (2009). A population-coding model of attention's influence on contrast response. *Vis. Res.* | [10.1016/j.visres.2008.09.018](https://doi.org/10.1016/j.visres.2008.09.018) | own | self-reported: illustrative | 12 |
 | [hara_gardner_2016](models/hara_gardner_2016) ⚠️ | Schwedhelm, Krishna & Treue (2016). An extended normalization model of attention accounts for feature-based attentional enhancement of both response and coherence gain. *PLoS Comput. Biol.* | [10.1371/journal.pcbi.1005225](https://doi.org/10.1371/journal.pcbi.1005225) | reuses R&H | **hardened: partial (6)** | 3 |
 | [denison2021](models/denison2021) | Denison, Carrasco & Heeger (2021). A dynamic normalization model of temporal attention. *Nat. Hum. Behav.* | [10.1038/s41562-021-01129-1](https://doi.org/10.1038/s41562-021-01129-1) | own (dynamic) | self-reported: partial | 4 |
-| [doostani_2023](models/doostani_2023) | Doostani, Hossein-Zadeh, Vaziri-Pashkam & Carrasco (2023). Normalization predicts human visual cortex in object-based attention. *eLife* | [10.7554/eLife.75726](https://doi.org/10.7554/eLife.75726) | reuses R&H | self-reported: illustrative | 9 |
+| [doostani_2023](models/doostani_2023) | Doostani, Hossein-Zadeh & Vaziri-Pashkam (2023). Normalization predicts human visual cortex in object-based attention. *eLife* | [10.7554/eLife.75726](https://doi.org/10.7554/eLife.75726) | reuses R&H | self-reported: illustrative | 9 |
 | [verhoef_maunsell_2017](models/verhoef_maunsell_2017) | Verhoef & Maunsell (2017). Attention operates uniformly throughout the RF and surround. *eLife* | [10.7554/eLife.17256](https://doi.org/10.7554/eLife.17256) | own | VLM: faithful | 6 |
 | [cagly2012](models/cagly2012) | Coen-Cagli, Dayan & Schwartz (2012). Cortical surround interactions and perceptual salience via natural scene statistics (MGSM). *PLoS Comput. Biol.* | [10.1371/journal.pcbi.1002405](https://doi.org/10.1371/journal.pcbi.1002405) | own (MGSM) | VLM: illustrative | 10 |
 
@@ -97,4 +97,17 @@ surround-suppression are reproduced by all three motifs (R&H normalization ·
 Zhu–Rozell LCA · Rao–Ballard predictive coding) — a natural cross-validation set.
 
 *Next targets and the rationale for the corpus shape live in
-[proposals/corpus-expansion-2026-06-02.md](proposals/corpus-expansion-2026-06-02.md).*
+[proposals/corpus-expansion-2026-06-02.md](proposals/corpus-expansion-2026-06-02.md). A
+**due-diligence reproduction-readiness ranking** — every label re-checked against the
+on-disk PDF, code provenance audited by resolving each URL — is in
+[proposals/normalization-reproducibility-ranking-2026-06-04.md](proposals/normalization-reproducibility-ranking-2026-06-04.md).*
+
+> **Code provenance (audited).** Only **2** papers have confirmed *own* downloadable
+> code: `reynolds_heeger_2009` (`attentionModel.zip`) and `denison2021` (OSF `dkx7n`).
+> The R&H `attentionModel.zip` is a **shared engine** (Schwedhelm reuses it; it is not
+> any other paper's own code). `verhoef_maunsell_2017` has **no own code** — the
+> ModelDB entry once attributed to it is a *different* Verhoef & Maunsell paper. All
+> others are closed-form from the paper.
+>
+> *Dir-name note: `hermann2010` is the paper "Herr**mann**", and `hara_gardner_2016`
+> is Schwedhelm et al. — both dir renames deferred; citations above are correct.*
