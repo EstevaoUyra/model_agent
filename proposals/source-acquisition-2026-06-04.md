@@ -63,8 +63,8 @@ paper/
   paper.pdf                 # main article
   online_methods.{pdf,md}   # if separate (Nature/Science online methods)
   supplementary/            # SI tables, figures, methods
-  code/                     # original author code (Phase-A spec source; Phase-B forbidden)
-  SOURCES.md                # provenance manifest (see below)
+  code/                     # original author code — GITIGNORED (Phase-A spec source; Phase-B forbidden)
+  SOURCES.md                # provenance manifest — versioned (see below)
 article_aware/              # Phase B's ONLY allowed input (unchanged)
 ```
 

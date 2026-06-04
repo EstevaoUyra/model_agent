@@ -42,9 +42,17 @@ paper/
   paper.pdf                 # main article
   online_methods.{pdf,md}   # if the venue separates them (Nature/Science)
   supplementary/            # SI: tables, figures, methods (one file each, named)
-  code/                     # original author code (Phase-A spec source; Phase-B FORBIDDEN)
-  SOURCES.md                # provenance manifest (REQUIRED — see below)
+  code/                     # original author code — GITIGNORED (Phase-A spec source; Phase-B FORBIDDEN)
+  SOURCES.md                # provenance manifest (REQUIRED, versioned — see below)
 ```
+
+**`paper/code/` is gitignored** — original author code is not redistributed
+through our history (licensing + bulk). Add `paper/code/` to the model's
+`.gitignore` as part of acquisition. Its existence and source stay fully
+traceable through the **versioned** `paper/SOURCES.md` (the fetch URL + manifest)
+and `article_aware/spec/code_refs.yaml` (`CODE-NNN` entries with file:line), so
+anyone can re-fetch and verify. This also reinforces the Phase-B boundary: a
+fresh checkout has no code for an implementer to peek at.
 
 `article_aware/spec/code_refs.yaml` is **seeded** here if code was acquired (the
 actual `CODE-NNN` entries are authored later, by extract-spec, when it pulls a
@@ -73,8 +81,9 @@ distinguishable from "not looked for."
 - Download paper materials into `paper/` (and `paper/supplementary/`,
   `paper/online_methods.*`). Prefer the publisher/PMC canonical copy; note the
   URL and retrieval date.
-- Download original code into `paper/code/`. Record the exact archive URL,
-  version/commit or file date, and byte size. Do **not** modify it.
+- Download original code into `paper/code/`, and ensure `paper/code/` is in the
+  model's `.gitignore` (it is not committed). Record the exact archive URL,
+  version/commit or file date, and byte size in `SOURCES.md`. Do **not** modify it.
 - If something **exists but cannot be fetched** (paywall, JS wall, dead link),
   do not fake it — record it as a known gap (Step 3) with the URL you found.
 

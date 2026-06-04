@@ -77,8 +77,8 @@ If you're unsure which phase you're in, ask the user. Don't guess.
 | What you want to do                            | Where to write                          |
 |------------------------------------------------|-----------------------------------------|
 | Acquired paper materials / SI / Online Methods | `paper/` (Phase-0; Phase-B forbidden)   |
-| Acquired original author code                  | `paper/code/` (Phase-A source; Phase-B forbidden) |
-| Source provenance manifest                     | `paper/SOURCES.md`                      |
+| Acquired original author code                  | `paper/code/` — **gitignored** (Phase-A source; Phase-B forbidden) |
+| Source provenance manifest (versioned)         | `paper/SOURCES.md`                      |
 | Code-sourced value provenance                  | `article_aware/spec/code_refs.yaml` (`CODE-NNN`) |
 | Value inherited from a genealogy ancestor       | `article_aware/spec/lineage_refs.yaml` (`LINEAGE-NNN`) |
 | Phase A artifact (spec, pseudocode, etc.)      | `article_aware/`                        |
