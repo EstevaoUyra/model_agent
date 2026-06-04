@@ -19,3 +19,15 @@ htmlcov/
 # Local environment files
 .env
 .env.*
+
+# Per-model artifacts NEVER belong at the parent — they live in models/<m>/logs/.
+# A workflow agent that writes/commits these here is a bug (it must work inside its
+# submodule). Ignored so stray writes can't pollute model_agent. (logs/process_audit/
+# is corpus/program-level and intentionally NOT ignored.)
+logs/digitization_audit/
+logs/faithfulness_audit/
+logs/figure_comparisons/
+logs/spec_audit/
+logs/test_runs.jsonl
+.agent_tmp/
+presentation.html
