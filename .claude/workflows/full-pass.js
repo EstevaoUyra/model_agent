@@ -19,8 +19,16 @@ const FIGURES = A.figures || []
 const FROM = A.from || 'extract' // 'extract' = fresh full pass | 'fix' = built+audited: enter at the test-writer
 const MAX_ROUNDS = 3
 const MAX_PAPERFIX = 2 // paper-fix ↔ implement iterations per contract fault before honest BLOCKED
-const SK = (name) => `Read and FOLLOW /Users/estevaouyra/dev/model_agent/skills/${name}/SKILL.md.`
 const ROOT = '/Users/estevaouyra/dev/model_agent'
+// Every skill-based agent works INSIDE its model repo. Skills use model-relative paths
+// (logs/, article_aware/, implementation/, figure_outputs/); the agent runs from the parent,
+// so without this it writes/commits into the PARENT (model_agent) — the bug that polluted
+// model_agent/logs/. This pins every agent to the submodule and forbids parent commits.
+const SK = (name) =>
+  `Read and FOLLOW ${ROOT}/skills/${name}/SKILL.md. Work ONLY inside the model repo ${ROOT}/${MODEL} ` +
+  `(cd into it first): EVERY skill path (logs/, article_aware/, implementation/, figure_outputs/) is ` +
+  `relative to ${ROOT}/${MODEL}, and you COMMIT your output INSIDE ${ROOT}/${MODEL}, NEVER in the parent ` +
+  `model_agent repo at ${ROOT} (reading other models is fine; committing there is forbidden).`
 
 // Model policy: the implementer needs the 1M window (it holds the whole codebase + suite
 // while iterating); every other role runs plain opus. Pin BOTH as EXPLICIT model IDs —

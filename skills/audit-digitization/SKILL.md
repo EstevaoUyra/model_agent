@@ -157,7 +157,9 @@ over-flagging without softening the default "assume the digitization is off."
 
 ## Output
 
-Write a report to `logs/digitization_audit/<date>.md` (and return it). **Per panel and
+Write a report to **this model repo's** `logs/digitization_audit/<date>.md` —
+i.e. `models/<this-model>/logs/...`, **never** the parent `model_agent/logs/`. All
+your paths and commits stay inside the model repo (and return it). **Per panel and
 per figure**, a **status** + concrete evidence (paper feature + digitized value/locus
 + severity):
 
@@ -200,4 +202,4 @@ It guards the ruler before anyone measures with it.
 
 ## Commit when done
 
-When your work is complete, **commit your output** on the working branch — your changes, or (for a report-only role) your report — with a message that matches the diff. The process-auditor reads commit messages against diffs, so every agent must leave an atomic, honestly-described commit.
+When your work is complete, **commit your output** on the working branch — your changes, or (for a report-only role) your report — with a message that matches the diff. **Commit INSIDE this model repo, never the parent `model_agent`** (AGENTS.md). The process-auditor reads commit messages against diffs, so every agent must leave an atomic, honestly-described commit.
