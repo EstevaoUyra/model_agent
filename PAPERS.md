@@ -9,12 +9,16 @@ the *what we hold*; that proposal is the *why and what next*.
 > **Audit honesty — read this before trusting any status.** A `faithful` claim in a
 > model's README is **not a certification**. Only the **hardened audit** —
 > independent VLM figure-comparison (`logs/figure_comparisons/`) + the digitization
-> gate — certifies, and **only 4 models have it**: `reynolds_heeger_2009`,
-> `hermann2010`, `carrasco2021`, `hara_gardner_2016` — *all of which came back
-> `partial` or `illustrative`, none `faithful`.* Three more have a partial
-> **VLM-only** check. **The other 20 are `self-reported`** — the builder's own
-> claim, not independently verified. Treat `self-reported` as *"implemented; not
-> independently audited."*
+> gate — certifies, and **only 4 models have it**: `reynolds_heeger_2009`
+> (**now reproduced/faithful**, 2026-06-10 — model-output figures 2–7 + Fig 1
+> independently certified vs the author code), `carrasco2021` (**Fig 7 reproduced**,
+> 2026-06-10 — driven by the authors' released fits to ~1e-14; Supp Fig 4 stays
+> illustrative), and `hermann2010` / `hara_gardner_2016` (both still `partial`).
+> *The two that reached faithful reproduction did so by grounding in the authors'
+> released code (the single highest-leverage move); the other two remain partial.*
+> Three more have a partial **VLM-only** check. **The other 20 are `self-reported`** —
+> the builder's own claim, not independently verified. Treat `self-reported` as
+> *"implemented; not independently audited."*
 >
 > ⚠️ **`hara_gardner_2016` is misattributed.** The paper is **Schwedhelm, Krishna &
 > Treue (2016)** (same DOI), not Hara/Pestilli/Gardner — a corpus-build labeling
@@ -51,10 +55,10 @@ Rao & Ballard 1999 ─→ Spratling 2010/2012 · Bogacz 2017 (free-energy)      
 |---|---|---|---|---|---|
 | [heeger_1992](models/heeger_1992) | Heeger (1992). Normalization of cell responses in cat striate cortex. *Vis. Neurosci.* | [10.1017/S0952523800009640](https://doi.org/10.1017/S0952523800009640) | own | self-reported: partial | 10 |
 | [carandini_heeger_movshon_1997](models/carandini_heeger_movshon_1997) | Carandini, Heeger & Movshon (1997). Linearity and normalization in macaque V1 simple cells. *J. Neurosci.* | [10.1523/JNEUROSCI.17-21-08621.1997](https://doi.org/10.1523/JNEUROSCI.17-21-08621.1997) | own | self-reported: faithful | 8 |
-| [reynolds_heeger_2009](models/reynolds_heeger_2009) | Reynolds & Heeger (2009). The Normalization Model of Attention. *Neuron* | [10.1016/j.neuron.2009.01.002](https://doi.org/10.1016/j.neuron.2009.01.002) | own (HUB) | **hardened: partial** · *mid-fix* | 14 |
+| [reynolds_heeger_2009](models/reynolds_heeger_2009) | Reynolds & Heeger (2009). The Normalization Model of Attention. *Neuron* | [10.1016/j.neuron.2009.01.002](https://doi.org/10.1016/j.neuron.2009.01.002) | own (HUB) | **hardened: reproduced** (2026-06-10) | 14 |
 | [reynolds_chelazzi_desimone_1999](models/reynolds_chelazzi_desimone_1999) | Reynolds, Chelazzi & Desimone (1999). Competitive mechanisms subserve attention in V2/V4. *J. Neurosci.* | [10.1523/JNEUROSCI.19-05-01736.1999](https://doi.org/10.1523/JNEUROSCI.19-05-01736.1999) | own | self-reported: faithful | 4 |
 | [hermann2010](models/hermann2010) | Herrmann, Montaser-Kouhsari, Carrasco & Heeger (2010). When size matters: attention by contrast or response gain. *Nat. Neurosci.* | [10.1038/nn.2669](https://doi.org/10.1038/nn.2669) | reuses R&H | **hardened: partial** | 4 |
-| [carrasco2021](models/carrasco2021) | Li, Pan & Carrasco (2021). Different computations underlie overt presaccadic and covert spatial attention. *Nat. Hum. Behav.* | [10.1038/s41562-021-01099-4](https://doi.org/10.1038/s41562-021-01099-4) | reuses R&H | **hardened: illustrative** | 2 |
+| [carrasco2021](models/carrasco2021) | Li, Pan & Carrasco (2021). Different computations underlie overt presaccadic and covert spatial attention. *Nat. Hum. Behav.* | [10.1038/s41562-021-01099-4](https://doi.org/10.1038/s41562-021-01099-4) | reuses R&H | **hardened: Fig 7 reproduced** · Supp Fig 4 illustrative (2026-06-10) | 2 |
 | [lee_maunsell_2009](models/lee_maunsell_2009) | Lee & Maunsell (2009). A normalization model of attentional modulation of single-unit responses. *PLoS ONE* | [10.1371/journal.pone.0004651](https://doi.org/10.1371/journal.pone.0004651) | own | self-reported: faithful | 6 |
 | [ni_ray_maunsell_2012](models/ni_ray_maunsell_2012) | Ni, Ray & Maunsell (2012). Tuned normalization explains the size of attention modulations. *Neuron* | [10.1016/j.neuron.2012.01.006](https://doi.org/10.1016/j.neuron.2012.01.006) | own | self-reported: faithful | 6 |
 | [ni_maunsell_2017](models/ni_maunsell_2017) | Ni & Maunsell (2017). Spatially tuned normalization explains attention-modulation variance. *J. Neurophysiol.* | [10.1152/jn.00218.2017](https://doi.org/10.1152/jn.00218.2017) | own | self-reported: faithful | 4 |
