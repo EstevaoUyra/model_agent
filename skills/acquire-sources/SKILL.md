@@ -84,6 +84,12 @@ distinguishable from "not looked for."
 - Download original code into `paper/code/`, and ensure `paper/code/` is in the
   model's `.gitignore` (it is not committed). Record the exact archive URL,
   version/commit or file date, and byte size in `SOURCES.md`. Do **not** modify it.
+  **Flag released fitted results.** When the code ships **fitted parameter values**
+  (per-observer / per-condition fit files) or the **simulated curves a figure plots**
+  (saved model outputs), call that out explicitly in the `SOURCES.md` "Obtained" line —
+  it is the difference between a figure that must be stubbed `ILLUSTRATIVE-NOT-REPRODUCED`
+  and one that extract-spec can reproduce genuinely from author ground truth (`CODE-NNN`,
+  no re-fit). See extract-spec Step 3b.
 - If something **exists but cannot be fetched** (paywall, JS wall, dead link),
   do not fake it — record it as a known gap (Step 3) with the URL you found.
 
