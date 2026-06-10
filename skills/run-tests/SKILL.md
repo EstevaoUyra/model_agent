@@ -8,6 +8,18 @@ invocation in `logs/test_runs.jsonl` for later reflection by the
 
 ---
 
+## Use the project venv interpreter (has matplotlib)
+
+Run tests and figure rendering with the **project venv** —
+`<repo-root>/.venv/bin/python -m pytest …` — not the bare `pytest`/`python` on PATH.
+The PATH interpreter is the system (Homebrew) Python, which lacks **matplotlib**, so
+figure rendering and the render-dependent tests (e.g. `test_panel_axes.py`) fail there
+with `ModuleNotFoundError` — the failure that blocks figure passes on stale renders.
+matplotlib is a **core** dependency (`pyproject.toml`); the venv has it, the system
+Python may not. (In the `full-pass` workflow the interpreter is pinned for you via `PY`.)
+
+---
+
 ## Where tests live
 
 - **`article_aware/extracted_data/test_figure_*.py`** — paper-derived claim

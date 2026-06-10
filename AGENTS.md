@@ -99,14 +99,21 @@ For the full directory layout and boundary rules, see
 ## Useful commands
 
 ```bash
-# Install (editable) with optional sanity-check plotting deps
-pip install -e ".[sanity,test]"
+# Install (editable). matplotlib is a CORE dep (figure rendering is core), so this
+# alone is enough to render + run render-dependent tests. [sanity] adds seaborn.
+pip install -e ".[test]"
 
-# Run all model tests
-pytest models/<model>/implementation/tests/
+# Use the project venv interpreter for tests + rendering — it has matplotlib.
+# The bare `python`/`pytest` on PATH may be the system (Homebrew) Python WITHOUT
+# matplotlib, which fails figure rendering / render-dependent tests (ModuleNotFoundError)
+# and blocks figure passes on stale renders.
+.venv/bin/python -m pytest models/<model>/implementation/tests/
+
+# Render a model's figures (needs matplotlib → use the venv)
+cd models/<model> && PYTHONPATH=implementation/src ../../.venv/bin/python -m <model_pkg>.views
 
 # Run a sanity check
-python models/<model>/implementation/sanity_checks/check_<topic>.py
+.venv/bin/python models/<model>/implementation/sanity_checks/check_<topic>.py
 ```
 
 ## When to commit

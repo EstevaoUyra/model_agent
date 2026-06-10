@@ -20,6 +20,12 @@ const FROM = A.from || 'extract' // 'extract' = fresh full pass | 'fix' = built+
 const MAX_ROUNDS = 3
 const MAX_PAPERFIX = 2 // paper-fix ↔ implement iterations per contract fault before honest BLOCKED
 const ROOT = '/Users/estevaouyra/dev/model_agent'
+// The project venv is the ONLY complete interpreter: it has matplotlib (figure
+// rendering + the render-dependent panel-axes tests) plus neuromodels/scipy/numpy.
+// The bare `python`/`pytest` on PATH is the system Homebrew interpreter, which LACKS
+// matplotlib — running tests/rendering there fails with ModuleNotFoundError and blocks
+// figure passes on stale renders. Every agent MUST use this absolute interpreter path.
+const PY = `${ROOT}/.venv/bin/python`
 // Every skill-based agent works INSIDE its model repo. Skills use model-relative paths
 // (logs/, article_aware/, implementation/, figure_outputs/); the agent runs from the parent,
 // so without this it writes/commits into the PARENT (model_agent) — the bug that polluted
@@ -28,7 +34,10 @@ const SK = (name) =>
   `Read and FOLLOW ${ROOT}/skills/${name}/SKILL.md. Work ONLY inside the model repo ${ROOT}/${MODEL} ` +
   `(cd into it first): EVERY skill path (logs/, article_aware/, implementation/, figure_outputs/) is ` +
   `relative to ${ROOT}/${MODEL}, and you COMMIT your output INSIDE ${ROOT}/${MODEL}, NEVER in the parent ` +
-  `model_agent repo at ${ROOT} (reading other models is fine; committing there is forbidden).`
+  `model_agent repo at ${ROOT} (reading other models is fine; committing there is forbidden). ` +
+  `Use ${PY} for ALL Python — tests and figure rendering: \`${PY} -m pytest ...\`, ` +
+  `\`PYTHONPATH=implementation/src ${PY} -m <model_pkg>.views\`. The bare \`python\`/\`pytest\` on PATH is ` +
+  `the system Homebrew interpreter and LACKS matplotlib, so rendering/render-dependent tests FAIL there.`
 
 // Model policy: the implementer needs the 1M window (it holds the whole codebase + suite
 // while iterating); every other role runs plain opus. Pin BOTH as EXPLICIT model IDs —

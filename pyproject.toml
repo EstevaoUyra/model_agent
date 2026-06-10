@@ -11,12 +11,17 @@ dependencies = [
     "numpy>=1.26",
     "scipy>=1.11",
     "pyyaml>=6.0",
+    # Rendering model figures is a CORE deliverable (every model renders figures and
+    # the faithfulness audit compares them), so matplotlib is a runtime dependency,
+    # not an optional extra. Keeping it in `[sanity]` let envs install without it,
+    # so render-dependent tests/figure rendering failed with ModuleNotFoundError —
+    # the bug that blocked figure passes on stale renders. See AGENTS.md.
+    "matplotlib>=3.8",
 ]
 
 [project.optional-dependencies]
 openai = ["openai>=1.0"]
 sanity = [
-    "matplotlib>=3.8",
     "seaborn>=0.13",
 ]
 test = ["pytest>=8"]
