@@ -162,6 +162,29 @@ paper:
   Faithfulness Auditor is told which figures are constructed. The process must not
   silently treat "stub the result" like "stub a nuisance."
 
+**Before you disposition a `result_bearing` stage `ILLUSTRATIVE-NOT-REPRODUCED`, check
+whether the authors RELEASED the fitted result.** A fit being "out of scope to *run*"
+is **not** the same as the fitted result being unavailable. Author code (Phase 0,
+`paper/code/`) very often ships **both** the fitted parameter values (per-observer /
+per-condition fit files) **and** the simulated curves the figure actually plots. If so,
+the figure is **not** illustrative: drive the forward model with the authors' released
+fitted values (tag them `CODE-NNN` — author ground truth, the highest authority tier),
+and verify the render against the released curves (also `CODE-NNN`). That is a **genuine
+reproduction with no optimizer run** — strictly better than stubbing. `ILLUSTRATIVE-NOT-
+REPRODUCED` applies **only** when the fitted result is genuinely absent (no released
+fits, no released curves) — not merely because *we* won't re-fit. Transcribe the released
+values into `article_aware/extracted_data/` (JSON) so Phase B never reads `paper/code/`,
+and make the figure's test demand a pointwise match to the released curves. If the released
+fit-file and the released figure-curve disagree for some cases, that is a **map-the-source
+finding** (an SQ / bounded exemption), not a reason to loosen the whole tolerance.
+
+> Worked example — `carrasco2021` Fig 7: the first pass dispositioned it
+> `ILLUSTRATIVE-NOT-REPRODUCED` ("per-observer BADS fitting is out of scope"). But the
+> authors' `paper/code/mdata/*.mat` held the fitted `estX` per observer and
+> `paper/code/plotdata/*.mat` held the exact plotted `dp_neural` curves. Feeding those
+> fitted values through the forward model reproduced the published panels to ~1e-14 — a
+> genuine reproduction. The "out of scope" framing missed a released ground truth.
+
 ### Step 4 — Pseudocode (`pseudocode/<figure>_protocol.md`)
 
 Plain markdown, one per simulation protocol. Each file has:
