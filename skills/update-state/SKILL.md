@@ -379,7 +379,32 @@ Format:
 - **Hypothesis** — if obvious, a one-sentence falsifiable theory. If not,
   say so.
 
+### Step 3b — Stale-artifact sweep (when a model was just fixed)
+
+After a model is fixed, the artifacts documenting the OLD broken state go stale
+and must be cleaned — this recurred in ~every model. Run this sweep at finalize:
+
+- **(a) Re-render figures.** The venv has matplotlib, so re-render every figure
+  from the current model rather than trusting a committed snapshot (R&H shipped
+  stale renders that produced false verdicts).
+- **(b) Convert resolved tripwires.** An `xfail(strict)` that now **XPASSes**
+  because the model was fixed turns the suite RED — convert it to a must-pass
+  (or an honest relabel), never leave it to flip the suite red. R&H had 21 such
+  xpasses; ghose left leftover `xfail` decorators that would have turned main
+  RED; denison had co-finding tripwires in this state.
+- **(c) Refresh pre-fix numbers in prose.** Grep docstrings / README / spec
+  prose for pre-fix numbers that now contradict the binding contract and update
+  them (olshausen shipped a stale docstring). The prose must cite the now-binding
+  values, not the values from before the fix.
+
 ### Step 4 — Write README
+
+When a model is **BLOCKED on an obtainable-by-human gated source** (a
+login/paywall/CRCNS-registration rescue artifact per acquire-sources), the
+README must LEAD at the very TOP with a clear **"👉 UNBLOCKER"** banner naming
+exactly what to fetch and where it goes — e.g. "drop the CRCNS MGSM toolbox in
+`paper/code/` and re-run" (cagly2012). The human's single highest-leverage
+action must be impossible to miss, above the per-figure state.
 
 Open `README.md` in the model directory. Replace **Current state**, **Next
 correction**, **Test status**, and **Recent changes** entirely. Preserve

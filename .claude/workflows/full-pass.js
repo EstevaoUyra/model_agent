@@ -149,6 +149,13 @@ const paperFix = async (findings, label, phaseName) => {
     `  (1) this paper's own code/supplement (paper/code + SOURCES.md) → author CODE-NNN;\n` +
     `  (2) RELATED genealogy papers via lineage → author LINEAGE-NNN pointing at the ancestor's entry;\n` +
     `  (3) a HUMAN decision — LAST RESORT ONLY.\n` +
+    `point 2 — ADOPT THE ON-DISK GROUND TRUTH, do not punt: a finding whose resolution TRACES TO ` +
+    `ALREADY-ACQUIRED ground truth (paper / paper/code / SI / lineage on disk) is CODE-RESOLVABLE — ` +
+    `APPLY it (rung 1/2). "Needs a human" is reserved for a GENUINELY FREE or PAPER-CONTRADICTORY ` +
+    `choice the acquired sources truly do not settle (rung 3). Most "routed to human" findings are a ` +
+    `MAX_PAPERFIX cap artifact: R&H's contract divergences, denison's allocation law, the DR-4C sign ` +
+    `were all settled by the on-disk author code and dissolved under one adversarial audit. Open the ` +
+    `acquired code/paper and adopt what it says before declaring anything human-only.\n` +
     `Correct article_aware/ ONLY; tag code-alone honestly; NEVER tune a per-figure knob to fit a ` +
     `model-level fault. A CONTRACT_BUG you cannot resolve via (1)/(2) → leave an OPEN SQ ` +
     `(owner+expiry), BLOCKED. A PAPER_ISSUE you cannot resolve via (1)/(2) → DISPOSITION it as a ` +
@@ -158,7 +165,10 @@ const paperFix = async (findings, label, phaseName) => {
   return await agent(
     `${SK('audit-spec')} Independently audit the CORRECTED ${MODEL} contract vs the paper + ground ` +
     `truth (paper/code + related-paper lineage). You did NOT author it; adversarial. Tag each finding ` +
-    `scope=model|figure. Findings just applied: ${JSON.stringify(findings)}`,
+    `scope=model|figure AND code-resolvable|genuinely-human: code-resolvable = the answer is in the ` +
+    `acquired paper/code/lineage on disk (the resolver must APPLY it, NOT punt); genuinely-human = a ` +
+    `free/paper-contradictory choice the sources truly do not settle. Do NOT call a code-settled ` +
+    `question human; "routed to human" is usually a cap artifact. Findings just applied: ${JSON.stringify(findings)}`,
     { label: `audit-spec ${label}`, phase: phaseName, model: OPUS, schema: SPEC_VERDICT })
 }
 
@@ -188,19 +198,41 @@ const authorTests = async (authorPrompt, label) => {
 }
 
 // finalize — runs on EVERY exit (normal, blocked, or thrown) via the try/finally below.
-// (1) rewrite the README as the current state + a human entrypoint; (2) commit + push + PR.
-// Idempotent (runs once). The README and the PR are the human's entrypoint into the run.
+// (0) stale-artifact sweep; (1) rewrite the README as the current state + a human entrypoint;
+// (2) commit + push + PR. Idempotent (runs once). The README and the PR are the human's entrypoint.
 const finalize = async () => {
   if (finalized) return
   finalized = true
   phase('Report')
+  // (0) STALE-ARTIFACT SWEEP (point 3): after a model is fixed, the artifacts documenting the OLD
+  //     broken state go stale and must be cleaned (recurred in ~every model). (a) RE-RENDER figures
+  //     from the current model (the venv has matplotlib — R&H shipped stale renders → false verdicts);
+  //     (b) CONVERT RESOLVED TRIPWIRES — an xfail(strict) that now XPASSes because the model was fixed
+  //     becomes a must-pass (or an honest relabel), NEVER left to flip the suite RED (R&H 21 xpasses;
+  //     ghose leftover xfail decorators that would've reddened main; denison co-finding tripwires);
+  //     (c) GREP docstrings/README/spec prose for PRE-FIX NUMBERS that contradict the now-binding
+  //     contract and refresh them (olshausen stale docstring). Skip cleanly if nothing changed.
+  await agent(
+    `${SK('run-tests')} Stale-artifact sweep for ${MODEL} before the README/commit. (a) RE-RENDER every ` +
+    `figure from the CURRENT model with ${PY} (never trust a committed snapshot). (b) Find every ` +
+    `xfail(strict) that now XPASSes because the model was fixed and CONVERT it to a must-pass (or an ` +
+    `honest relabel) — an XPASS-strict left in place flips the suite RED; never leave one. (c) Grep ` +
+    `docstrings / README / spec prose for PRE-FIX numbers that contradict the now-binding contract and ` +
+    `refresh them. Commit the sweep. If nothing is stale, say so and make no change.`,
+    { label: 'stale-artifact sweep', phase: 'Report', model: OPUS })
   // (1) README — ALWAYS the per-figure reproduction state + changelog; and when this exit needs
   //     a decision (paper-fix/audit block, or flagged dispositions) a clear entrypoint on top.
   await agent(
     `${SK('update-state')} Rewrite the ${MODEL} README as CURRENT STATE and the human entrypoint. ` +
     `ALWAYS include, in order: (1) a current-exit block at the very top — exit=${JSON.stringify(exit)}; ` +
     (humanEntrypoint
-      ? `(1b) directly under it, a clearly-marked "👉 DECISION NEEDED" section — what is blocked/flagged ` +
+      ? `(1a) if this exit is BLOCKED on an obtainable-by-human gated source (a login/paywall/` +
+        `CRCNS-registration rescue artifact — released fits / learned basis/covariances / ` +
+        `figure-generating data per paper/SOURCES.md), LEAD at the very TOP with a clear "👉 UNBLOCKER" ` +
+        `banner naming EXACTLY what to fetch and where it goes (e.g. "drop the CRCNS MGSM toolbox in ` +
+        `paper/code/ and re-run" — cagly2012); the human's single highest-leverage action must be ` +
+        `impossible to miss, above the per-figure state; ` +
+        `(1b) directly under it, a clearly-marked "👉 DECISION NEEDED" section — what is blocked/flagged ` +
         `and WHY (${humanEntrypoint.kind}: ${humanEntrypoint.reason}), the specific open findings, and ` +
         `exactly where to look (logs/spec_audit/, logs/faithfulness_audit/, the SQ in logs/spec_questions.md); `
       : ``) +
@@ -245,12 +277,31 @@ try {
     // ⓪ acquire-sources — Phase 0, BLOCKS Phase A: gather all paper materials + original code
     // into paper/ and write paper/SOURCES.md, so the extractor never builds on incomplete sources.
     phase('Acquire')
-    await agent(
-      `${SK('acquire-sources')} Acquire all upstream sources for ${MODEL}: published materials ` +
+    // ACQUIRABILITY PRE-FLIGHT (point 6): acquire-sources runs Step 0 first — confirm the PAPER
+    // FULL TEXT is genuinely fetchable (open-access / PMC / on-disk). If it is NOT, it returns
+    // PAPER_UNFETCHABLE and we BLOCK EARLY with a clear "supply the PDF to paper/" message — never
+    // run extract/implement on missing data (several models had no PDF on disk; fail fast & clear).
+    const acq = await agent(
+      `${SK('acquire-sources')} Acquire all upstream sources for ${MODEL}. FIRST do the Step-0 ` +
+      `acquirability pre-flight: confirm the PAPER FULL TEXT is genuinely fetchable (open-access / PMC / ` +
+      `already on disk). If it is NOT (hard paywall, no free full text, no PDF supplied), STOP and return ` +
+      `{paper_fetchable:false} — do not proceed to partial sources. Otherwise acquire published materials ` +
       `(main, Online Methods, Supplementary) into paper/, original author code into paper/code/ ` +
       `(Phase-A spec source, Phase-B forbidden, gitignored), and write paper/SOURCES.md accounting for ` +
-      `every artifact (obtained / exists-but-not-obtained / confirmed-absent). Seed code_refs.yaml if code found.`,
-      { label: 'acquire-sources', phase: 'Acquire', model: OPUS })
+      `every artifact (obtained / exists-but-not-obtained / confirmed-absent). When a gated/login/paywalled ` +
+      `item is the LIKELY RESCUE ARTIFACT (released fits / learned basis / figure-generating data), record ` +
+      `it PROMINENTLY (exact URL + access method + what it unblocks). Seed code_refs.yaml if code found. ` +
+      `Return {paper_fetchable: true|false, reason}.`,
+      { label: 'acquire-sources', phase: 'Acquire', model: OPUS,
+        schema: { type: 'object', additionalProperties: false,
+          properties: { paper_fetchable: { type: 'boolean' }, reason: { type: 'string' } },
+          required: ['paper_fetchable'] } })
+    // point 6: paper unfetchable → BLOCK EARLY with a clear message; never extract/implement on missing data.
+    if (acq && acq.paper_fetchable === false) {
+      return blockedExit(`paper not fetchable — supply the PDF to ${MODEL}/paper/ and re-run`, [
+        { scope: 'model', detail: `Paper full text is not fetchable (${acq.reason || 'no free full text / no PDF on disk'}). ` +
+          `A from=extract pass needs the real paper. Drop the PDF in paper/ and re-run.`, fix: 'supply paper/paper.pdf' }])
+    }
 
     // ① spec-extractor — runs concurrently with the figure pipeline; joined before the gate
     phase('Extract')
