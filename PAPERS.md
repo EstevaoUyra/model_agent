@@ -96,7 +96,7 @@ Rao & Ballard 1999 ─→ Spratling 2010/2012 · Bogacz 2017 (free-energy)      
 | Paper | Citation | DOI | Audit | Figs |
 |---|---|---|---|---|
 | [rao_ballard_1999](models/rao_ballard_1999) | Rao & Ballard (1999). Predictive coding in the visual cortex. *Nat. Neurosci.* | [10.1038/4580](https://doi.org/10.1038/4580) | self-reported: illustrative | 8 |
-| [spratling_2010](models/spratling_2010) | Spratling (2010). Predictive coding as a model of response properties in V1. *J. Neurosci.* | [10.1523/JNEUROSCI.4911-09.2010](https://doi.org/10.1523/JNEUROSCI.4911-09.2010) | **hardened: blocked** (Gabor DC-removal omitted — shared-path; all code-resolvable from author gabor.m · 2026-06-12) | 8 |
+| [spratling_2010](models/spratling_2010) | Spratling (2010). Predictive coding as a model of response properties in V1. *J. Neurosci.* | [10.1523/JNEUROSCI.4911-09.2010](https://doi.org/10.1523/JNEUROSCI.4911-09.2010) | **hardened: partial** (Gabor DC-removal fixed; Fig 9 unpublished-panel + Fig 11 ortho-ordering remain · 2026-06-12) | 8 |
 | [spratling_2012](models/spratling_2012) | Spratling (2012). Predictive coding accounts for V1 response properties from reverse correlation. *Biol. Cybern.* | [10.1007/s00422-012-0477-7](https://doi.org/10.1007/s00422-012-0477-7) | self-reported: faithful | 8 |
 | [bogacz2017](models/bogacz2017) | Bogacz (2017). A tutorial on the free-energy framework for modelling perception and learning. *J. Math. Psychol.* | [10.1016/j.jmp.2015.11.003](https://doi.org/10.1016/j.jmp.2015.11.003) | **hardened: faithful** (independently verified · 2026-06-12) | 6 |
 
