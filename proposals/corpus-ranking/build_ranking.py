@@ -16,7 +16,7 @@ Composite score (balanced blend; user-chosen 2026-06-12). Weights sum to 1.0:
 in_corpus papers are listed in the 200 (for phylogeny) but EXCLUDED from the
 rankable top-100 (already reproduced).
 """
-import math, os
+import math, os, json
 
 # Cluster names
 CLUSTERS = {
@@ -357,6 +357,48 @@ with open("proposals/corpus-top100-ranking.md","w") as f:
     f.write("| Rank | Score | Paper | Cluster | Access | Repro |\n|--:|--:|---|---|---|--:|\n")
     for i,d in enumerate(ranked[100:],101):
         f.write(f"| {i} | {d['score']} | {d['label']} | {CLUSTERS[d['cluster']]} | {oa_cell(d)} | {d['repro']} |\n")
+
+# ---- emit JSON of all 200 papers (key, url, doi + useful fields) ----
+rank_of = {d["key"]: i for i, d in enumerate(top100, 1)}
+# Canonical PDF filename (relative to the gitignored paper_candidates/ folder):
+# top-100 papers -> "NNN_<key>.pdf" (NNN = zero-padded rank, matches the 18 already saved);
+# unranked (rank 101+) papers -> "<key>.pdf".
+def pdf_filename(d):
+    r = rank_of.get(d["key"])
+    return f"{r:03d}_{d['key']}.pdf" if r else f"{d['key']}.pdf"
+records = []
+for d in sorted(data, key=lambda d: (int(d["cluster"][1:]), -d["cites"])):
+    doi = d["doi"] or None
+    records.append({
+        "key": d["key"],
+        "citation": d["label"],
+        "year": d["year"],
+        "venue": d["venue"],
+        "cluster": d["cluster"],
+        "cluster_name": CLUSTERS[d["cluster"]],
+        "doi": doi,
+        "doi_url": (f"https://doi.org/{doi}" if doi else None),
+        "url": d["link"] or None,
+        "open_access": d["oa"],
+        "is_open_access": oa_is_open(d["oa"]),
+        "code": d["code"],
+        "citations": d["cites"],
+        "in_corpus": d["corpus"],
+        "top100_rank": rank_of.get(d["key"]),
+        "pdf_filename": pdf_filename(d),
+        "pdf_saved": os.path.exists(f"paper_candidates/{pdf_filename(d)}"),
+    })
+with open("proposals/corpus-candidates-200.json", "w") as f:
+    json.dump({
+        "generated": "2026-06-12",
+        "source": "proposals/corpus-ranking/build_ranking.py",
+        "note": ("Citation counts are OpenAlex/S2 reads (~2026-06), approximate. doi may be null for "
+                 "pre-DOI works; use url. Save each downloaded PDF as pdf_filename inside the gitignored "
+                 "paper_candidates/ folder (top-100 = 'NNN_<key>.pdf', NNN = rank; others = '<key>.pdf'). "
+                 "pdf_saved=true means it is already on disk."),
+        "count": len(records),
+        "papers": records,
+    }, f, indent=2, ensure_ascii=False)
 
 # ---- emit download manifest for OA top-100 ----
 with open("proposals/corpus-ranking/downloads.tsv","w") as f:
