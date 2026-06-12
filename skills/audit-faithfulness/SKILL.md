@@ -107,6 +107,14 @@ judge on the dimensions the old checklist *excused* — they are now binding:
 
 - **curve shape, width/bandwidth, baseline/floor** — a 2×-too-broad tuning curve or a
   missing baseline is a divergence, not a non-binding magnitude;
+- **absolute magnitude vs the paper's axis** — does the rendered curve sit at the paper's
+  values, or does it overflow / undershoot the paper's pinned limits? When the paper's axis
+  is a **meaningful or fit-to-data scale** (e.g. a d′ fit to behavior), "shape-faithful" is
+  **NOT** sufficient — a scalar 4× miss is a divergence even if the shape correlates
+  perfectly. denison2021 Fig 5 was 4× too high (shape-corr 0.97) and the auto-scaled axis
+  hid it by relabeling 0–10 instead of overflowing the paper's 0–3; only this absolute-value
+  check caught it. If the view auto-scales the magnitude axis instead of pinning the paper's
+  limits, flag that too (it disables the overflow signal);
 - **normalization convention** — which curve is pinned to 1.0 must match the paper
   (the corpus-wide inversion: neutral pinned to 1.0 so attended overshoots);
 - **panel layout** — no panel the paper lacks (the spurious "difference" panels), no

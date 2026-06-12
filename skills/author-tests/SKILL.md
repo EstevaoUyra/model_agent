@@ -47,6 +47,13 @@ Each finding from [`audit-faithfulness`](../audit-faithfulness/SKILL.md) carries
   [`extract-figure`](../extract-figure/SKILL.md)/WORKFLOW §3b conventions.
 - A must-pass test must be satisfiable by the **correct mechanism alone** — if the only way
   to pass it is to tune, it is mis-classified; make it a tripwire and say so.
+- **When the paper's figure axis is a meaningful or fit-to-data scale (e.g. a d′ fit to
+  behavior), assert ABSOLUTE magnitude (value within tolerance), not only shape/correlation —
+  a 4× scalar must FAIL.** Shape-invariant tests (correlation, dip-location, peak-position)
+  let a curve that is the right shape but 4× too high pass. denison2021 Fig 5 had shape-corr
+  0.97 yet sat 4× too high; its scale-invariant shape tests all passed and the magnitude was
+  waved off until an adversarial audit caught it. Add an absolute-magnitude assertion
+  alongside any shape test on a data/fit-scaled axis.
 
 ## Commit when done
 

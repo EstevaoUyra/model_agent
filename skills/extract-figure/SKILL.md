@@ -110,6 +110,15 @@ alongside model simulation panels. If the implementation protocol does not gener
 empirical data panel, do not write a deep visual checklist for that empirical panel. Treat it
 as context in `figure_N.md`, not as a reproduction target.
 
+**Pin each figure slug to the PAPER's actual figure content** — the plotted object the
+paper's Figure N shows. Rendering an **engine/convergence DIAGNOSTIC in place of the
+paper's figure** is a COVERAGE divergence and must be flagged (a RED tripwire / honest
+disposition), never passed silently as the figure. rozell2008 rendered engine diagnostics
+(convergence traces, LCA-vs-ISTA equivalence) under the figure slugs while the paper's
+actual Fig 2 (the thresholding nonlinearities) — trivially reproducible — went unrendered:
+a silent coverage gap. The slug must target what the paper plots; a diagnostic substitute is
+an explicit gap to surface, not the figure.
+
 ### Step 5 — Write figure_N_visual_checklist.md
 
 Structure: one section per panel. Each item is a checkbox `- [ ]` that a reviewer can
@@ -173,6 +182,16 @@ image:
   not** (do not write "the difference curve, if plotted" — that pre-blesses a spurious panel).
   A model panel the paper has and the figure drops is also a failure.
 - **Axes** — range, scale (log/linear), sign convention, labels, tick values.
+- **Pinned axis limits (absolute magnitude)** — the Phase-A view MUST pin each panel's
+  axis limits to the **paper's published limits**, exactly as R&H's `PAPER_PANEL_LIMITS`
+  does — never auto-scale a meaningful magnitude axis. Rationale: pinning makes a magnitude
+  divergence **OVERFLOW the panel** so the VLM/eye catches it for free, and the limits are
+  paper-derived so the builder cannot game them. The antipattern is `ax.set_ylim(bottom=0)`
+  (or any auto-scaling of the top) on a data/fit-scaled axis: denison2021 Fig 5 did exactly
+  this, so a 4×-too-high d′ merely relabeled the axis 0–10 instead of overflowing the paper's
+  0–3, and the builder waved the magnitude off as a "degenerate scale" — only an adversarial
+  audit caught it. If the paper's axis is a meaningful or fit-to-data scale, the view carries
+  the paper's limits and a wrong-magnitude curve must visibly overflow or undershoot.
 
 **Validate the checklist for SUFFICIENCY, not just necessity.** Before the spec is approved,
 show that a *deliberately-wrong* figure (wrong width, inverted normalization, an extra panel,

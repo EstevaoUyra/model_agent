@@ -59,6 +59,19 @@ authored.
 7. **Scope correctness.** Is each fault scoped right — model vs figure? A
    model-level fault (shared forward model / core equation / `model.*`
    calibration) patched per-figure is itself a finding.
+8. **Resolution tag — code-resolvable vs genuinely-human.** Tag each finding
+   explicitly:
+   - **code-resolvable** — its resolution TRACES TO ALREADY-ACQUIRED ground
+     truth on disk (`paper/`, `paper/code/`, SI, lineage ancestors). Then the
+     resolver should APPLY it (paper-fix ladder rung 1/2); do NOT punt a
+     code-settled question to the human.
+   - **genuinely-human** — a *free* or *paper-contradictory* choice the
+     acquired sources genuinely do not settle (ladder rung 3).
+   "Routed to human" is frequently a MAX_PAPERFIX cap artifact, not a real
+   human decision: R&H's 4 contract divergences, denison's allocation law, and
+   the DR-4C sign were all resolvable from the on-disk author code and
+   dissolved under one adversarial audit. Before tagging anything
+   genuinely-human, confirm the on-disk ground truth does not answer it.
 
 ## Output
 

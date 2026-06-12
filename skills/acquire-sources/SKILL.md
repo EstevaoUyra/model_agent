@@ -62,6 +62,18 @@ value from the code — see Handoff).
 
 ## Process
 
+### Step 0 — Acquirability pre-flight (fail fast and clear)
+
+Before inventorying anything else, confirm the **paper full text is genuinely
+fetchable** — open-access / PMC / already on disk at `paper/paper.pdf` or
+`paper/extracted_text.md`. If it is **NOT** (hard paywall, no free full text,
+no PDF supplied), **STOP and report it as a blocking gap** — do not proceed to
+extract on partial sources (an abstract + a few figures is not the paper). The
+clear message is: **"paper not fetchable — supply the PDF to `paper/` and
+re-run."** A `from="extract"` pass needs the real paper text; failing fast here
+lets the human supply it and lets the rest of the pipeline assume real data
+exists, rather than struggling against missing data downstream.
+
 ### Step 1 — Inventory (search before fetching)
 
 For the paper's authors and venue, check, in roughly this order:
@@ -92,6 +104,15 @@ distinguishable from "not looked for."
   no re-fit). See extract-spec Step 3b.
 - If something **exists but cannot be fetched** (paywall, JS wall, dead link),
   do not fake it — record it as a known gap (Step 3) with the URL you found.
+  **When a gated/login/paywalled source is the LIKELY RESCUE ARTIFACT** — the
+  released fitted params, the learned basis/covariances, the figure-generating
+  data (the analogue of olshausen's released A144 basis) — record it
+  PROMINENTLY: the exact URL, the access method (login / paywall /
+  CRCNS-registration), and what it would UNBLOCK if a human fetched it. This is
+  the difference between cagly2012 (the CRCNS MGSM toolbox — the covariance
+  ground truth — is login-gated, so Phase 0 couldn't fetch it and the model is
+  blocked on a 2-minute human fetch) and olshausen (A144 was fetchable → the
+  model reproduced). Make the human's single highest-leverage fetch obvious.
 
 ### Step 3 — Write `paper/SOURCES.md` (the manifest)
 
