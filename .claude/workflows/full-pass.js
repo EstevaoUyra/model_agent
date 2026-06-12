@@ -326,12 +326,18 @@ try {
           verdict = await agent(
             `${SK('audit-digitization')} Audit the digitization of figure ${fig} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer.`,
             { label: `dig-audit:${fig} r${round}`, phase: 'Digitization gate', model: OPUS, schema: DIG_VERDICT })
+          // null = the audit agent died on a TRANSIENT API error (e.g. a server-side rate-limit when
+          // many passes run at once). Never throw on verdict.status — synthesize a non-faithful
+          // verdict and stop retrying this fig. The gate only FLAGS (it never blocks the gate), and a
+          // resume re-runs just this fig cheaply.
+          if (!verdict) { verdict = { status: 'BLOCKED', worst_defect: 'digitization audit failed transiently (API rate-limit) — resume to retry' }; break }
           if (verdict.status === 'FAITHFUL' || verdict.status === 'BLOCKED') break
         }
-        return { fig, status: verdict.status, defect: verdict.worst_defect }
+        return { fig, status: verdict?.status ?? 'BLOCKED', defect: verdict?.worst_defect ?? 'digitization failed transiently — resume to retry' }
       })
 
     await specDone
+    figResults = figResults.filter(Boolean) // a pipeline stage that threw outright drops to null — never let it crash the gate
     digBlocked = figResults.filter((r) => r.status !== 'FAITHFUL') // flagged, surfaced; does not gate the gate
     log(`Digitization gate: ${figResults.filter(r => r.status === 'FAITHFUL').length}/${FIGURES.length} faithful; ${digBlocked.length} flagged`)
 
@@ -400,6 +406,10 @@ try {
         `${SK('audit-process')} Read the ${MODEL} change-trail this pass: is the trajectory toward-paper or toward-green? You are paper-blind.`,
         { label: `proc-audit r${round}`, phase: 'Verify', model: OPUS, schema: PROC_VERDICT }),
     ])
+    // A null faithfulness audit = the auditor died on a TRANSIENT API error (rate-limit). NEVER let
+    // that fall through as a clean/dry round (that would false-green); bail honestly to a blocked
+    // exit so a resume retries it. (proc is read null-safely below, so only faith must be guarded.)
+    if (!faith) return blockedExit('faithfulness audit failed transiently (API rate-limit) — resume to retry', [])
     flagged.push(...faith.findings.filter((f) => f.tag === 'GENUINE_DIVERGENCE'))
     // CONTRACT_BUG and PAPER_ISSUE are both SPEC faults → the paper-fix ladder (point 1:
     // PAPER_ISSUE is resolvable from related papers; human is last resort).
