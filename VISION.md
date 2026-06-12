@@ -95,6 +95,56 @@ evidence is the failure mode (STATUS.md is both the symptom and the corrective).
 
 ---
 
+## What enters the library — scope and selection
+
+The four pillars are the bar a *chosen* paper must clear. This section is the
+prior question: **which papers we choose at all.** Two axes — what makes a paper
+*eligible*, and how far the library's *scope* is meant to reach.
+
+### Selection criteria — a paper is eligible when
+
+- **It is reproducible from published materials.** The paper, its supplementary
+  information, and its **figure images** must together contain enough to *build
+  and parametrize* the model. Author-released code or fits, when they exist, are
+  the highest-leverage faithfulness grounding (see the bottleneck section below)
+  — but they are **not a precondition for entry**. If the published materials
+  alone underdetermine the model, that is what the Assumption ledger and logged
+  spec-questions are for; if they underdetermine it *fatally*, the paper is out.
+- **Unavailable empirical data is fine — when it is only a comparison target.**
+  A paper is eligible even when the experimental data it plots against is not
+  available to us, **provided that data is used only to compare with the model's
+  output, not to construct or parametrize the model.** The model is built and
+  fixed from the paper's equations and stated parameters; the missing data would
+  only have been overlaid for validation. What *disqualifies* a paper is a model
+  that cannot be built or parametrized without data we do not have — a fitted
+  model whose fit needs the held-out recordings, not a forward model whose curve
+  merely gets compared to them. (In practice this means the unavailable-data
+  panels are reproduced as the model's prediction, with the empirical overlay
+  noted as out-of-reach rather than faked.)
+- **It is cheap enough to iterate on.** Reproduction is an iterative loop, so a
+  model must be tractable to run many times over. Models that demand heavy
+  training or large-scale simulation are excluded, or — where the *trained
+  result* is what matters, not the training — the expensive stage is **stubbed
+  or frozen** (e.g. freeze a released/learned basis rather than re-train it),
+  with the freeze recorded as an explicit scope decision.
+
+### Scope — vision is the seed, not the boundary
+
+The current corpus is entirely vision (early/mid visual cortex), and that is a
+**starting point, not the project's subject.** Vision was chosen for the
+maintainer's prior expertise and a mild standing preference — not because the
+library is *about* vision. The explicit intent is to **progressively widen
+coverage to other areas of neuroscience** as the process hardens.
+
+Note that the only diversity axis exercised so far is **computational motif**
+(divisive normalization · sparse/efficient coding · predictive coding) — all
+still within vision. That axis stress-tests the *process*; it is not the limit
+of the *domain*. Over time the library should grow along **both** axes: new
+motifs *and* new neuroscience areas. A future corpus-expansion plan that only
+proposes more vision papers has read this scope too narrowly.
+
+---
+
 ## The current bottleneck — and where the process must grow next
 
 The binding constraint today is **the human's time to validate faithfulness.**
