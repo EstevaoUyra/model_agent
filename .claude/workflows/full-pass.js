@@ -1,6 +1,6 @@
 export const meta = {
   name: 'full-pass',
-  description: 'A pass over a paper. from="extract" (default): full fresh pass extract → digitization gate → implement → verify → report. from="fix" (built+audited model): skip Phase A + digitization, enter at the test-writer using the existing audit → fix → re-audit → report. EVERY exit finalizes IN THE MODEL\'S OWN REPO (never the parent): README human-entrypoint + commit + a PR onto the submodule\'s main, without exception.',
+  description: 'A pass over a paper. from="extract" (default): full fresh pass extract → digitization gate → implement → verify → report. from="build": the contract is already extracted + approved FAITHFUL but Phase B is UNBUILT or PARTIAL (e.g. an earlier extract pass exited BLOCKED at the spec gate before implementation) → skip Phase A, do a FULL Phase-B implement against the existing contract → verify → report. from="fix" (built+audited model): skip Phase A + digitization, enter at the test-writer using the existing audit → fix → re-audit → report. EVERY exit finalizes IN THE MODEL\'S OWN REPO (never the parent): README human-entrypoint + commit + a PR onto the submodule\'s main, without exception.',
   phases: [
     { title: 'Acquire' },
     { title: 'Extract' },
@@ -11,12 +11,14 @@ export const meta = {
   ],
 }
 
-// args: { model: 'models/<name>', figures: ['2',...], from?: 'extract' | 'fix' }
+// args: { model: 'models/<name>', figures: ['2',...], from?: 'extract' | 'build' | 'fix' }
 // Robust to args arriving as either a parsed object or a JSON-encoded string.
 const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
 const MODEL = A.model
 const FIGURES = A.figures || []
-const FROM = A.from || 'extract' // 'extract' = fresh full pass | 'fix' = built+audited: enter at the test-writer
+// 'extract' = fresh full pass | 'build' = full Phase-B implement on an already-FAITHFUL contract
+// (Phase A done/approved, Phase B unbuilt or partial) | 'fix' = built+audited: repair recent change
+const FROM = A.from || 'extract'
 const MAX_ROUNDS = 3
 const MAX_PAPERFIX = 2 // paper-fix ↔ implement iterations per contract fault before honest BLOCKED
 const ROOT = '/Users/estevaouyra/dev/model_agent'
@@ -351,13 +353,28 @@ try {
     await agent(
       `${SK('implement')} Build ${MODEL} from the contract — model + protocols + measurements — iterating locally against the test suite until green or stuck; render the figures.`,
       { label: 'implement', phase: 'Implement', model: IMPL })
+  } else if (FROM === 'build') {
+    // from='build' — the contract is already extracted, audited FAITHFUL, and approved (Phase A
+    // complete), but Phase B is UNBUILT or PARTIAL: typically an earlier from=extract pass that
+    // exited BLOCKED at the spec gate (so implementation never ran), or a build where only some
+    // figures got implemented. Skip Phase A entirely and do a FULL Phase-B implement against the
+    // existing contract, then fall through to the SAME verify loop + finalize as extract. This is
+    // the reusable entrypoint for "contract is right, now build the whole model" — distinct from
+    // from=fix, which only repairs the MOST-RECENT change and assumes a complete prior build.
+    log(`from='build': skipping Phase A (contract assumed faithful/approved) — full Phase-B implement against the existing contract.`)
+    phase('Implement')
+    await agent(
+      `${SK('implement')} Build ${MODEL} COMPLETELY from the existing (faithful, approved) contract — the full forward model + protocols + measurements for EVERY figure the contract defines, PLUS the renderer/views (so every figure renders to figure_outputs/). Iterate locally against the FULL test suite until green or genuinely stuck; render the figures. Do NOT re-author the contract — Phase A is done; if you hit a genuine contract-level gap, escalate via logs/spec_questions.md rather than papering it with an implementation-side knob.`,
+      { label: 'implement (full Phase-B)', phase: 'Implement', model: IMPL })
   } else {
-    log(`from='${FROM}': skipping extract + digitization gate + initial implement — reusing the existing contract, binding references, and audit.`)
+    log(`from='fix': skipping extract + digitization gate + initial implement — reusing the existing contract, binding references, and audit.`)
   }
 
   // ════════════════ VERIFY ── ⑥∥⑦, route+fix, loop-until-dry capped at MAX_ROUNDS ════════════════
   // from='fix' enters HERE at the test-writer: round 1 encodes the EXISTING audit and fixes,
   // without an initial ⑥ (we trust the on-disk audit as current); round 2+ re-audits normally.
+  // from='build' (and 'extract') skip that round-1 test-writer branch and go straight to the
+  // audit below — the implementation was just (fully) built, so round 1 audits it like normal.
   phase('Verify')
   let paperFixIters = 0
   for (let round = 1; round <= MAX_ROUNDS; round++) {
