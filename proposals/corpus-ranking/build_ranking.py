@@ -351,12 +351,12 @@ with open("proposals/corpus-top100-ranking.md","w") as f:
     f.write("| Rank | Score | Paper | Cluster | Cites | Access | Link | Code | Compute | Repro | PDF |\n")
     f.write("|--:|--:|---|---|--:|---|---|---|---|--:|---|\n")
     for i,d in enumerate(top100,1):
-        f.write(f"| {i} | {d['score']} | {d['label']} | {d['cluster']} | {d['cites']} | {oa_cell(d)} | "
+        f.write(f"| {i} | {d['score']} | {d['label']} | {CLUSTERS[d['cluster']]} | {d['cites']} | {oa_cell(d)} | "
                 f"{link_cell(d)} | {d['code']} | {CMP[d['compute']]} | {d['repro']} | {pdf_cell(i,d)} |\n")
     f.write("\n## Ranks 101+ (candidates not making the cut)\n\n")
     f.write("| Rank | Score | Paper | Cluster | Access | Repro |\n|--:|--:|---|---|---|--:|\n")
     for i,d in enumerate(ranked[100:],101):
-        f.write(f"| {i} | {d['score']} | {d['label']} | {d['cluster']} | {oa_cell(d)} | {d['repro']} |\n")
+        f.write(f"| {i} | {d['score']} | {d['label']} | {CLUSTERS[d['cluster']]} | {oa_cell(d)} | {d['repro']} |\n")
 
 # ---- emit download manifest for OA top-100 ----
 with open("proposals/corpus-ranking/downloads.tsv","w") as f:
