@@ -31,3 +31,6 @@ logs/spec_audit/
 logs/test_runs.jsonl
 .agent_tmp/
 presentation.html
+
+# Downloaded candidate PDFs (see proposals/corpus-top100-ranking.md)
+paper_candidates/
