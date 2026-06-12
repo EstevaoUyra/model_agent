@@ -1,7 +1,7 @@
 {
   "generated": "2026-06-12",
   "source": "proposals/corpus-ranking/build_ranking.py",
-  "note": "Citation counts are OpenAlex/S2 reads (~2026-06), approximate. doi may be null for pre-DOI works; use url.",
+  "note": "Citation counts are OpenAlex/S2 reads (~2026-06), approximate. doi may be null for pre-DOI works; use url. Save each downloaded PDF as pdf_filename inside the gitignored paper_candidates/ folder (top-100 = 'NNN_<key>.pdf', NNN = rank; others = '<key>.pdf'). pdf_saved=true means it is already on disk.",
   "count": 200,
   "papers": [
     {
@@ -19,7 +19,9 @@
       "code": "no",
       "citations": 2003,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "carandini_heeger_2012.pdf",
+      "pdf_saved": false
     },
     {
       "key": "heeger_1992",
@@ -36,7 +38,9 @@
       "code": "no",
       "citations": 1909,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "heeger_1992.pdf",
+      "pdf_saved": false
     },
     {
       "key": "reynolds_heeger_2009",
@@ -53,7 +57,9 @@
       "code": "no",
       "citations": 1553,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "reynolds_heeger_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "treue_martinez_1999",
@@ -70,7 +76,9 @@
       "code": "no",
       "citations": 1527,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "treue_martinez_1999.pdf",
+      "pdf_saved": false
     },
     {
       "key": "reynolds_chelazzi_desimone_1999",
@@ -87,7 +95,9 @@
       "code": "no",
       "citations": 1260,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "reynolds_chelazzi_desimone_1999.pdf",
+      "pdf_saved": false
     },
     {
       "key": "reynolds_pasternak_desimone_2000",
@@ -104,7 +114,9 @@
       "code": "no",
       "citations": 1054,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "reynolds_pasternak_desimone_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "carandini_heeger_movshon_1997",
@@ -121,7 +133,9 @@
       "code": "no",
       "citations": 967,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "carandini_heeger_movshon_1997.pdf",
+      "pdf_saved": false
     },
     {
       "key": "schwartz_simoncelli_2001",
@@ -138,7 +152,9 @@
       "code": "no",
       "citations": 872,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "schwartz_simoncelli_2001.pdf",
+      "pdf_saved": false
     },
     {
       "key": "cavanaugh_bair_movshon_2002",
@@ -155,7 +171,9 @@
       "code": "no",
       "citations": 821,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "cavanaugh_bair_movshon_2002.pdf",
+      "pdf_saved": false
     },
     {
       "key": "martinez_treue_2004",
@@ -172,7 +190,9 @@
       "code": "no",
       "citations": 735,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "martinez_treue_2004.pdf",
+      "pdf_saved": false
     },
     {
       "key": "goris_movshon_simoncelli_2014",
@@ -189,7 +209,9 @@
       "code": "no",
       "citations": 621,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "goris_movshon_simoncelli_2014.pdf",
+      "pdf_saved": false
     },
     {
       "key": "herrmann_2010",
@@ -206,7 +228,9 @@
       "code": "no",
       "citations": 375,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "herrmann_2010.pdf",
+      "pdf_saved": false
     },
     {
       "key": "williford_maunsell_2006",
@@ -223,7 +247,9 @@
       "code": "no",
       "citations": 367,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "williford_maunsell_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "busse_wade_carandini_2009",
@@ -240,7 +266,9 @@
       "code": "no",
       "citations": 270,
       "in_corpus": false,
-      "top100_rank": 90
+      "top100_rank": 90,
+      "pdf_filename": "090_busse_wade_carandini_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "lee_maunsell_2009",
@@ -257,7 +285,9 @@
       "code": "no",
       "citations": 269,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "lee_maunsell_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "brouwer_heeger_2011",
@@ -274,7 +304,9 @@
       "code": "no",
       "citations": 248,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "brouwer_heeger_2011.pdf",
+      "pdf_saved": false
     },
     {
       "key": "heeger_2017_organics",
@@ -291,7 +323,9 @@
       "code": "no",
       "citations": 240,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "heeger_2017_organics.pdf",
+      "pdf_saved": false
     },
     {
       "key": "boynton_2009",
@@ -308,7 +342,9 @@
       "code": "no",
       "citations": 138,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "boynton_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "coen_cagli_2012",
@@ -325,7 +361,9 @@
       "code": "unknown",
       "citations": 126,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "coen_cagli_2012.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ni_ray_maunsell_2012",
@@ -342,7 +380,9 @@
       "code": "no",
       "citations": 123,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "ni_ray_maunsell_2012.pdf",
+      "pdf_saved": false
     },
     {
       "key": "pestilli_ling_carrasco_2009",
@@ -359,7 +399,9 @@
       "code": "no",
       "citations": 113,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "pestilli_ling_carrasco_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ghose_maunsell_2008",
@@ -376,7 +418,9 @@
       "code": "no",
       "citations": 88,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "ghose_maunsell_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "denison2021",
@@ -393,7 +437,9 @@
       "code": "yes",
       "citations": 78,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "denison2021.pdf",
+      "pdf_saved": false
     },
     {
       "key": "heeger_zemlianova_2020",
@@ -410,7 +456,9 @@
       "code": "yes",
       "citations": 74,
       "in_corpus": false,
-      "top100_rank": 74
+      "top100_rank": 74,
+      "pdf_filename": "074_heeger_zemlianova_2020.pdf",
+      "pdf_saved": false
     },
     {
       "key": "li_pan_carrasco_2021",
@@ -427,7 +475,9 @@
       "code": "unknown",
       "citations": 69,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "li_pan_carrasco_2021.pdf",
+      "pdf_saved": false
     },
     {
       "key": "schwedhelm_2016",
@@ -444,7 +494,9 @@
       "code": "no",
       "citations": 60,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "schwedhelm_2016.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ni_maunsell_2017",
@@ -461,7 +513,9 @@
       "code": "no",
       "citations": 50,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "ni_maunsell_2017.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ni_maunsell_2019",
@@ -478,7 +532,9 @@
       "code": "no",
       "citations": 47,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "ni_maunsell_2019.pdf",
+      "pdf_saved": false
     },
     {
       "key": "verhoef_maunsell_2017",
@@ -495,7 +551,9 @@
       "code": "no",
       "citations": 22,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "verhoef_maunsell_2017.pdf",
+      "pdf_saved": false
     },
     {
       "key": "doostani_2023",
@@ -512,7 +570,9 @@
       "code": "yes",
       "citations": 9,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "doostani_2023.pdf",
+      "pdf_saved": false
     },
     {
       "key": "barlow_1961",
@@ -529,7 +589,9 @@
       "code": "no",
       "citations": 6500,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "barlow_1961.pdf",
+      "pdf_saved": false
     },
     {
       "key": "olshausen_field_1996",
@@ -546,7 +608,9 @@
       "code": "yes",
       "citations": 5834,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "olshausen_field_1996.pdf",
+      "pdf_saved": false
     },
     {
       "key": "olshausen_field_1997",
@@ -563,7 +627,9 @@
       "code": "yes",
       "citations": 3720,
       "in_corpus": false,
-      "top100_rank": 2
+      "top100_rank": 2,
+      "pdf_filename": "002_olshausen_field_1997.pdf",
+      "pdf_saved": false
     },
     {
       "key": "simoncelli_olshausen_2001",
@@ -580,7 +646,9 @@
       "code": "no",
       "citations": 2532,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "simoncelli_olshausen_2001.pdf",
+      "pdf_saved": false
     },
     {
       "key": "bell_sejnowski_1997",
@@ -597,7 +665,9 @@
       "code": "yes",
       "citations": 2269,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "bell_sejnowski_1997.pdf",
+      "pdf_saved": false
     },
     {
       "key": "vinje_gallant_2000",
@@ -614,7 +684,9 @@
       "code": "no",
       "citations": 1345,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "vinje_gallant_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "van_hateren_van_der_schaaf_1998",
@@ -631,7 +703,9 @@
       "code": "yes",
       "citations": 1163,
       "in_corpus": false,
-      "top100_rank": 16
+      "top100_rank": 16,
+      "pdf_filename": "016_van_hateren_van_der_schaaf_1998.pdf",
+      "pdf_saved": false
     },
     {
       "key": "lewicki_sejnowski_2000",
@@ -648,7 +722,9 @@
       "code": "unknown",
       "citations": 1142,
       "in_corpus": false,
-      "top100_rank": 89
+      "top100_rank": 89,
+      "pdf_filename": "089_lewicki_sejnowski_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "srinivasan_laughlin_dubs_1982",
@@ -665,7 +741,9 @@
       "code": "no",
       "citations": 1079,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "srinivasan_laughlin_dubs_1982.pdf",
+      "pdf_saved": false
     },
     {
       "key": "laughlin_1981",
@@ -682,7 +760,9 @@
       "code": "no",
       "citations": 1041,
       "in_corpus": false,
-      "top100_rank": 94
+      "top100_rank": 94,
+      "pdf_filename": "094_laughlin_1981.pdf",
+      "pdf_saved": false
     },
     {
       "key": "smith_lewicki_2006",
@@ -699,7 +779,9 @@
       "code": "no",
       "citations": 653,
       "in_corpus": false,
-      "top100_rank": 91
+      "top100_rank": 91,
+      "pdf_filename": "091_smith_lewicki_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "atick_redlich_1990",
@@ -716,7 +798,9 @@
       "code": "no",
       "citations": 590,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "atick_redlich_1990.pdf",
+      "pdf_saved": false
     },
     {
       "key": "hyvarinen_hoyer_2000",
@@ -733,7 +817,9 @@
       "code": "yes",
       "citations": 546,
       "in_corpus": false,
-      "top100_rank": 12
+      "top100_rank": 12,
+      "pdf_filename": "012_hyvarinen_hoyer_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "rozell2008",
@@ -750,7 +836,9 @@
       "code": "yes",
       "citations": 475,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "rozell2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "van_hateren_ruderman_1998",
@@ -767,7 +855,9 @@
       "code": "no",
       "citations": 429,
       "in_corpus": false,
-      "top100_rank": 82
+      "top100_rank": 82,
+      "pdf_filename": "082_van_hateren_ruderman_1998.pdf",
+      "pdf_saved": true
     },
     {
       "key": "hyvarinen_hoyer_2001",
@@ -784,7 +874,9 @@
       "code": "yes",
       "citations": 272,
       "in_corpus": false,
-      "top100_rank": 8
+      "top100_rank": 8,
+      "pdf_filename": "008_hyvarinen_hoyer_2001.pdf",
+      "pdf_saved": false
     },
     {
       "key": "karklin_lewicki_2009",
@@ -801,7 +893,9 @@
       "code": "unknown",
       "citations": 225,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "karklin_lewicki_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "zhu_rozell_2013",
@@ -818,7 +912,9 @@
       "code": "unknown",
       "citations": 190,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "zhu_rozell_2013.pdf",
+      "pdf_saved": false
     },
     {
       "key": "karklin_lewicki_2005",
@@ -835,7 +931,9 @@
       "code": "unknown",
       "citations": 160,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "karklin_lewicki_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "rao_ballard_1999",
@@ -852,7 +950,9 @@
       "code": "yes",
       "citations": 5718,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "rao_ballard_1999.pdf",
+      "pdf_saved": false
     },
     {
       "key": "friston_2005",
@@ -869,7 +969,9 @@
       "code": "partial",
       "citations": 4759,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "friston_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "bastos_2012",
@@ -886,7 +988,9 @@
       "code": "no",
       "citations": 2588,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "bastos_2012.pdf",
+      "pdf_saved": false
     },
     {
       "key": "friston_kiebel_2009",
@@ -903,7 +1007,9 @@
       "code": "partial",
       "citations": 1641,
       "in_corpus": false,
-      "top100_rank": 83
+      "top100_rank": 83,
+      "pdf_filename": "083_friston_kiebel_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "huang_rao_2011",
@@ -920,7 +1026,9 @@
       "code": "no",
       "citations": 428,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "huang_rao_2011.pdf",
+      "pdf_saved": false
     },
     {
       "key": "lotter_kreiman_cox_2017",
@@ -937,7 +1045,9 @@
       "code": "yes",
       "citations": 418,
       "in_corpus": false,
-      "top100_rank": 88
+      "top100_rank": 88,
+      "pdf_filename": "088_lotter_kreiman_cox_2017.pdf",
+      "pdf_saved": true
     },
     {
       "key": "bogacz2017",
@@ -954,7 +1064,9 @@
       "code": "yes",
       "citations": 309,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "bogacz2017.pdf",
+      "pdf_saved": false
     },
     {
       "key": "spratling_2010",
@@ -971,7 +1083,9 @@
       "code": "yes",
       "citations": 216,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "spratling_2010.pdf",
+      "pdf_saved": false
     },
     {
       "key": "spratling_2008",
@@ -988,7 +1102,9 @@
       "code": "no",
       "citations": 155,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "spratling_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "jehee_ballard_2009",
@@ -1005,7 +1121,9 @@
       "code": "unknown",
       "citations": 76,
       "in_corpus": false,
-      "top100_rank": 100
+      "top100_rank": 100,
+      "pdf_filename": "100_jehee_ballard_2009.pdf",
+      "pdf_saved": true
     },
     {
       "key": "spratling_2012",
@@ -1022,7 +1140,9 @@
       "code": "yes",
       "citations": 67,
       "in_corpus": true,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "spratling_2012.pdf",
+      "pdf_saved": false
     },
     {
       "key": "wen_2018",
@@ -1039,7 +1159,9 @@
       "code": "yes",
       "citations": 41,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "wen_2018.pdf",
+      "pdf_saved": false
     },
     {
       "key": "adelson_bergen_1985",
@@ -1056,7 +1178,9 @@
       "code": "unknown",
       "citations": 3507,
       "in_corpus": false,
-      "top100_rank": 26
+      "top100_rank": 26,
+      "pdf_filename": "026_adelson_bergen_1985.pdf",
+      "pdf_saved": false
     },
     {
       "key": "reichardt_1961",
@@ -1073,7 +1197,9 @@
       "code": "no",
       "citations": 2600,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "reichardt_1961.pdf",
+      "pdf_saved": false
     },
     {
       "key": "hassenstein_reichardt_1956",
@@ -1090,7 +1216,9 @@
       "code": "no",
       "citations": 1900,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "hassenstein_reichardt_1956.pdf",
+      "pdf_saved": false
     },
     {
       "key": "watson_ahumada_1985",
@@ -1107,7 +1235,9 @@
       "code": "unknown",
       "citations": 1180,
       "in_corpus": false,
-      "top100_rank": 65
+      "top100_rank": 65,
+      "pdf_filename": "065_watson_ahumada_1985.pdf",
+      "pdf_saved": false
     },
     {
       "key": "simoncelli_heeger_1998",
@@ -1124,7 +1254,9 @@
       "code": "yes",
       "citations": 963,
       "in_corpus": false,
-      "top100_rank": 28
+      "top100_rank": 28,
+      "pdf_filename": "028_simoncelli_heeger_1998.pdf",
+      "pdf_saved": false
     },
     {
       "key": "van_santen_sperling_1985",
@@ -1141,7 +1273,9 @@
       "code": "unknown",
       "citations": 892,
       "in_corpus": false,
-      "top100_rank": 71
+      "top100_rank": 71,
+      "pdf_filename": "071_van_santen_sperling_1985.pdf",
+      "pdf_saved": false
     },
     {
       "key": "heeger_1987",
@@ -1158,7 +1292,9 @@
       "code": "unknown",
       "citations": 570,
       "in_corpus": false,
-      "top100_rank": 80
+      "top100_rank": 80,
+      "pdf_filename": "080_heeger_1987.pdf",
+      "pdf_saved": false
     },
     {
       "key": "rust_mante_simoncelli_movshon_2006",
@@ -1175,7 +1311,9 @@
       "code": "yes",
       "citations": 534,
       "in_corpus": false,
-      "top100_rank": 43
+      "top100_rank": 43,
+      "pdf_filename": "043_rust_mante_simoncelli_movshon_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "borst_egelhaaf_1989",
@@ -1192,7 +1330,9 @@
       "code": "no",
       "citations": 527,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "borst_egelhaaf_1989.pdf",
+      "pdf_saved": false
     },
     {
       "key": "nishimoto_gallant_2011",
@@ -1209,7 +1349,9 @@
       "code": "unknown",
       "citations": 143,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "nishimoto_gallant_2011.pdf",
+      "pdf_saved": false
     },
     {
       "key": "hubel_wiesel_1962",
@@ -1226,7 +1368,9 @@
       "code": "no",
       "citations": 13819,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "hubel_wiesel_1962.pdf",
+      "pdf_saved": false
     },
     {
       "key": "jones_palmer_1987",
@@ -1243,7 +1387,9 @@
       "code": "unknown",
       "citations": 2400,
       "in_corpus": false,
-      "top100_rank": 29
+      "top100_rank": 29,
+      "pdf_filename": "029_jones_palmer_1987.pdf",
+      "pdf_saved": false
     },
     {
       "key": "movshon_thompson_tolhurst_1978",
@@ -1260,7 +1406,9 @@
       "code": "no",
       "citations": 1500,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "movshon_thompson_tolhurst_1978.pdf",
+      "pdf_saved": false
     },
     {
       "key": "pillow_etal_2008",
@@ -1277,7 +1425,9 @@
       "code": "yes",
       "citations": 1445,
       "in_corpus": false,
-      "top100_rank": 55
+      "top100_rank": 55,
+      "pdf_filename": "055_pillow_etal_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "chichilnisky_2001",
@@ -1294,7 +1444,9 @@
       "code": "unknown",
       "citations": 851,
       "in_corpus": false,
-      "top100_rank": 85
+      "top100_rank": 85,
+      "pdf_filename": "085_chichilnisky_2001.pdf",
+      "pdf_saved": false
     },
     {
       "key": "carandini_etal_2005",
@@ -1311,7 +1463,9 @@
       "code": "no",
       "citations": 651,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "carandini_etal_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "rust_schwartz_movshon_simoncelli_2005",
@@ -1328,7 +1482,9 @@
       "code": "unknown",
       "citations": 482,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "rust_schwartz_movshon_simoncelli_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "schwartz_pillow_rust_simoncelli_2006",
@@ -1345,7 +1501,9 @@
       "code": "unknown",
       "citations": 463,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "schwartz_pillow_rust_simoncelli_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "touryan_felsen_dan_2005",
@@ -1362,7 +1520,9 @@
       "code": "unknown",
       "citations": 209,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "touryan_felsen_dan_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "mcfarland_cui_butts_2013",
@@ -1379,7 +1539,9 @@
       "code": "yes",
       "citations": 192,
       "in_corpus": false,
-      "top100_rank": 77
+      "top100_rank": 77,
+      "pdf_filename": "077_mcfarland_cui_butts_2013.pdf",
+      "pdf_saved": true
     },
     {
       "key": "vintch_movshon_simoncelli_2015",
@@ -1396,7 +1558,9 @@
       "code": "unknown",
       "citations": 127,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "vintch_movshon_simoncelli_2015.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ernst_banks_2002",
@@ -1413,7 +1577,9 @@
       "code": "no",
       "citations": 4920,
       "in_corpus": false,
-      "top100_rank": 37
+      "top100_rank": 37,
+      "pdf_filename": "037_ernst_banks_2002.pdf",
+      "pdf_saved": false
     },
     {
       "key": "kording_wolpert_2004",
@@ -1430,7 +1596,9 @@
       "code": "no",
       "citations": 2077,
       "in_corpus": false,
-      "top100_rank": 73
+      "top100_rank": 73,
+      "pdf_filename": "073_kording_wolpert_2004.pdf",
+      "pdf_saved": false
     },
     {
       "key": "weiss_simoncelli_adelson_2002",
@@ -1447,7 +1615,9 @@
       "code": "unknown",
       "citations": 1023,
       "in_corpus": false,
-      "top100_rank": 39
+      "top100_rank": 39,
+      "pdf_filename": "039_weiss_simoncelli_adelson_2002.pdf",
+      "pdf_saved": false
     },
     {
       "key": "najemnik_geisler_2005",
@@ -1464,7 +1634,9 @@
       "code": "yes",
       "citations": 861,
       "in_corpus": false,
-      "top100_rank": 79
+      "top100_rank": 79,
+      "pdf_filename": "079_najemnik_geisler_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "stocker_simoncelli_2006",
@@ -1481,7 +1653,9 @@
       "code": "yes",
       "citations": 858,
       "in_corpus": false,
-      "top100_rank": 33
+      "top100_rank": 33,
+      "pdf_filename": "033_stocker_simoncelli_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "geisler_2008",
@@ -1498,7 +1672,9 @@
       "code": "no",
       "citations": 716,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "geisler_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "girshick_landy_simoncelli_2011",
@@ -1515,7 +1691,9 @@
       "code": "unknown",
       "citations": 687,
       "in_corpus": false,
-      "top100_rank": 69
+      "top100_rank": 69,
+      "pdf_filename": "069_girshick_landy_simoncelli_2011.pdf",
+      "pdf_saved": false
     },
     {
       "key": "knill_richards_1996",
@@ -1532,7 +1710,9 @@
       "code": "no",
       "citations": 462,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "knill_richards_1996.pdf",
+      "pdf_saved": false
     },
     {
       "key": "wei_stocker_2015",
@@ -1549,7 +1729,9 @@
       "code": "yes",
       "citations": 452,
       "in_corpus": false,
-      "top100_rank": 24
+      "top100_rank": 24,
+      "pdf_filename": "024_wei_stocker_2015.pdf",
+      "pdf_saved": false
     },
     {
       "key": "geisler_1989",
@@ -1566,7 +1748,9 @@
       "code": "no",
       "citations": 411,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "geisler_1989.pdf",
+      "pdf_saved": false
     },
     {
       "key": "najemnik_geisler_2008",
@@ -1583,7 +1767,9 @@
       "code": "yes",
       "citations": 218,
       "in_corpus": false,
-      "top100_rank": 95
+      "top100_rank": 95,
+      "pdf_filename": "095_najemnik_geisler_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "burge_geisler_2015",
@@ -1600,7 +1786,9 @@
       "code": "unknown",
       "citations": 73,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "burge_geisler_2015.pdf",
+      "pdf_saved": false
     },
     {
       "key": "itti_koch_niebur_1998",
@@ -1617,7 +1805,9 @@
       "code": "yes",
       "citations": 11301,
       "in_corpus": false,
-      "top100_rank": 10
+      "top100_rank": 10,
+      "pdf_filename": "010_itti_koch_niebur_1998.pdf",
+      "pdf_saved": false
     },
     {
       "key": "itti_koch_2001",
@@ -1634,7 +1824,9 @@
       "code": "yes",
       "citations": 4752,
       "in_corpus": false,
-      "top100_rank": 67
+      "top100_rank": 67,
+      "pdf_filename": "067_itti_koch_2001.pdf",
+      "pdf_saved": false
     },
     {
       "key": "koch_ullman_1985",
@@ -1651,7 +1843,9 @@
       "code": "no",
       "citations": 4226,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "koch_ullman_1985.pdf",
+      "pdf_saved": false
     },
     {
       "key": "field_hayes_hess_1993",
@@ -1668,7 +1862,9 @@
       "code": "no",
       "citations": 2400,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "field_hayes_hess_1993.pdf",
+      "pdf_saved": false
     },
     {
       "key": "portilla_simoncelli_2000",
@@ -1685,7 +1881,9 @@
       "code": "yes",
       "citations": 1834,
       "in_corpus": false,
-      "top100_rank": 20
+      "top100_rank": 20,
+      "pdf_filename": "020_portilla_simoncelli_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "heeger_bergen_1995",
@@ -1702,7 +1900,9 @@
       "code": "yes",
       "citations": 1103,
       "in_corpus": false,
-      "top100_rank": 31
+      "top100_rank": 31,
+      "pdf_filename": "031_heeger_bergen_1995.pdf",
+      "pdf_saved": false
     },
     {
       "key": "geisler_2001",
@@ -1719,7 +1919,9 @@
       "code": "unknown",
       "citations": 708,
       "in_corpus": false,
-      "top100_rank": 96
+      "top100_rank": 96,
+      "pdf_filename": "096_geisler_2001.pdf",
+      "pdf_saved": false
     },
     {
       "key": "li_zhaoping_2002",
@@ -1736,7 +1938,9 @@
       "code": "unknown",
       "citations": 701,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "li_zhaoping_2002.pdf",
+      "pdf_saved": false
     },
     {
       "key": "freeman_simoncelli_2011",
@@ -1753,7 +1957,9 @@
       "code": "yes",
       "citations": 694,
       "in_corpus": false,
-      "top100_rank": 68
+      "top100_rank": 68,
+      "pdf_filename": "068_freeman_simoncelli_2011.pdf",
+      "pdf_saved": false
     },
     {
       "key": "freeman_ziemba_2013",
@@ -1770,7 +1976,9 @@
       "code": "unknown",
       "citations": 365,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "freeman_ziemba_2013.pdf",
+      "pdf_saved": false
     },
     {
       "key": "balas_nakano_rosenholtz_2009",
@@ -1787,7 +1995,9 @@
       "code": "yes",
       "citations": 299,
       "in_corpus": false,
-      "top100_rank": 63
+      "top100_rank": 63,
+      "pdf_filename": "063_balas_nakano_rosenholtz_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ratcliff_1978",
@@ -1804,7 +2014,9 @@
       "code": "yes",
       "citations": 4207,
       "in_corpus": false,
-      "top100_rank": 14
+      "top100_rank": 14,
+      "pdf_filename": "014_ratcliff_1978.pdf",
+      "pdf_saved": false
     },
     {
       "key": "gold_shadlen_2007",
@@ -1821,7 +2033,9 @@
       "code": "no",
       "citations": 3985,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "gold_shadlen_2007.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ratcliff_mckoon_2008",
@@ -1838,7 +2052,9 @@
       "code": "yes",
       "citations": 3235,
       "in_corpus": false,
-      "top100_rank": 7
+      "top100_rank": 7,
+      "pdf_filename": "007_ratcliff_mckoon_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "usher_mcclelland_2001",
@@ -1855,7 +2071,9 @@
       "code": "unknown",
       "citations": 2173,
       "in_corpus": false,
-      "top100_rank": 35
+      "top100_rank": 35,
+      "pdf_filename": "035_usher_mcclelland_2001.pdf",
+      "pdf_saved": false
     },
     {
       "key": "bogacz_2006",
@@ -1872,7 +2090,9 @@
       "code": "unknown",
       "citations": 1989,
       "in_corpus": false,
-      "top100_rank": 30
+      "top100_rank": 30,
+      "pdf_filename": "030_bogacz_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ratcliff_rouder_1998",
@@ -1889,7 +2109,9 @@
       "code": "yes",
       "citations": 1562,
       "in_corpus": false,
-      "top100_rank": 15
+      "top100_rank": 15,
+      "pdf_filename": "015_ratcliff_rouder_1998.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ratcliff_smith_2004",
@@ -1906,7 +2128,9 @@
       "code": "no",
       "citations": 1283,
       "in_corpus": false,
-      "top100_rank": 86
+      "top100_rank": 86,
+      "pdf_filename": "086_ratcliff_smith_2004.pdf",
+      "pdf_saved": false
     },
     {
       "key": "brown_heathcote_2008",
@@ -1923,7 +2147,9 @@
       "code": "yes",
       "citations": 1202,
       "in_corpus": false,
-      "top100_rank": 18
+      "top100_rank": 18,
+      "pdf_filename": "018_brown_heathcote_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "wong_wang_2006",
@@ -1940,7 +2166,9 @@
       "code": "yes",
       "citations": 1111,
       "in_corpus": false,
-      "top100_rank": 11
+      "top100_rank": 11,
+      "pdf_filename": "011_wong_wang_2006.pdf",
+      "pdf_saved": true
     },
     {
       "key": "wang_2002",
@@ -1957,7 +2185,9 @@
       "code": "yes",
       "citations": 987,
       "in_corpus": false,
-      "top100_rank": 62
+      "top100_rank": 62,
+      "pdf_filename": "062_wang_2002.pdf",
+      "pdf_saved": false
     },
     {
       "key": "churchland_kiani_shadlen_2008",
@@ -1974,7 +2204,9 @@
       "code": "unknown",
       "citations": 738,
       "in_corpus": false,
-      "top100_rank": 93
+      "top100_rank": 93,
+      "pdf_filename": "093_churchland_kiani_shadlen_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "brunton_botvinick_brody_2013",
@@ -1991,7 +2223,9 @@
       "code": "yes",
       "citations": 701,
       "in_corpus": false,
-      "top100_rank": 32
+      "top100_rank": 32,
+      "pdf_filename": "032_brunton_botvinick_brody_2013.pdf",
+      "pdf_saved": false
     },
     {
       "key": "drugowitsch_2012",
@@ -2008,7 +2242,9 @@
       "code": "unknown",
       "citations": 625,
       "in_corpus": false,
-      "top100_rank": 59
+      "top100_rank": 59,
+      "pdf_filename": "059_drugowitsch_2012.pdf",
+      "pdf_saved": true
     },
     {
       "key": "machens_romo_brody_2005",
@@ -2025,7 +2261,9 @@
       "code": "unknown",
       "citations": 568,
       "in_corpus": false,
-      "top100_rank": 61
+      "top100_rank": 61,
+      "pdf_filename": "061_machens_romo_brody_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "roxin_ledberg_2008",
@@ -2042,7 +2280,9 @@
       "code": "unknown",
       "citations": 152,
       "in_corpus": false,
-      "top100_rank": 50
+      "top100_rank": 50,
+      "pdf_filename": "050_roxin_ledberg_2008.pdf",
+      "pdf_saved": true
     },
     {
       "key": "hopfield_1982",
@@ -2059,7 +2299,9 @@
       "code": "yes",
       "citations": 19319,
       "in_corpus": false,
-      "top100_rank": 4
+      "top100_rank": 4,
+      "pdf_filename": "004_hopfield_1982.pdf",
+      "pdf_saved": false
     },
     {
       "key": "hopfield_1984",
@@ -2076,7 +2318,9 @@
       "code": "yes",
       "citations": 6946,
       "in_corpus": false,
-      "top100_rank": 9
+      "top100_rank": 9,
+      "pdf_filename": "009_hopfield_1984.pdf",
+      "pdf_saved": false
     },
     {
       "key": "amari_1977",
@@ -2093,7 +2337,9 @@
       "code": "unknown",
       "citations": 2084,
       "in_corpus": false,
-      "top100_rank": 76
+      "top100_rank": 76,
+      "pdf_filename": "076_amari_1977.pdf",
+      "pdf_saved": false
     },
     {
       "key": "compte_2000",
@@ -2110,7 +2356,9 @@
       "code": "yes",
       "citations": 1221,
       "in_corpus": false,
-      "top100_rank": 81
+      "top100_rank": 81,
+      "pdf_filename": "081_compte_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "amit_gutfreund_sompolinsky_1985",
@@ -2127,7 +2375,9 @@
       "code": "unknown",
       "citations": 1220,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "amit_gutfreund_sompolinsky_1985.pdf",
+      "pdf_saved": false
     },
     {
       "key": "amit_brunel_1997",
@@ -2144,7 +2394,9 @@
       "code": "unknown",
       "citations": 1137,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "amit_brunel_1997.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ben_yishai_1995",
@@ -2161,7 +2413,9 @@
       "code": "unknown",
       "citations": 1128,
       "in_corpus": false,
-      "top100_rank": 40
+      "top100_rank": 40,
+      "pdf_filename": "040_ben_yishai_1995.pdf",
+      "pdf_saved": false
     },
     {
       "key": "seung_1996",
@@ -2178,7 +2432,9 @@
       "code": "no",
       "citations": 569,
       "in_corpus": false,
-      "top100_rank": 66
+      "top100_rank": 66,
+      "pdf_filename": "066_seung_1996.pdf",
+      "pdf_saved": false
     },
     {
       "key": "wimmer_2014",
@@ -2195,7 +2451,9 @@
       "code": "yes",
       "citations": 533,
       "in_corpus": false,
-      "top100_rank": 92
+      "top100_rank": 92,
+      "pdf_filename": "092_wimmer_2014.pdf",
+      "pdf_saved": false
     },
     {
       "key": "okeefe_dostrovsky_1971",
@@ -2212,7 +2470,9 @@
       "code": "no",
       "citations": 6292,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "okeefe_dostrovsky_1971.pdf",
+      "pdf_saved": false
     },
     {
       "key": "hafting_2005",
@@ -2229,7 +2489,9 @@
       "code": "no",
       "citations": 4201,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "hafting_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "mcnaughton_2006",
@@ -2246,7 +2508,9 @@
       "code": "no",
       "citations": 2088,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "mcnaughton_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "zhang_1996",
@@ -2263,7 +2527,9 @@
       "code": "no",
       "citations": 1050,
       "in_corpus": false,
-      "top100_rank": 42
+      "top100_rank": 42,
+      "pdf_filename": "042_zhang_1996.pdf",
+      "pdf_saved": true
     },
     {
       "key": "samsonovich_mcnaughton_1997",
@@ -2280,7 +2546,9 @@
       "code": "no",
       "citations": 1023,
       "in_corpus": false,
-      "top100_rank": 97
+      "top100_rank": 97,
+      "pdf_filename": "097_samsonovich_mcnaughton_1997.pdf",
+      "pdf_saved": true
     },
     {
       "key": "burak_fiete_2009",
@@ -2297,7 +2565,9 @@
       "code": "yes",
       "citations": 835,
       "in_corpus": false,
-      "top100_rank": 22
+      "top100_rank": 22,
+      "pdf_filename": "022_burak_fiete_2009.pdf",
+      "pdf_saved": true
     },
     {
       "key": "burgess_2007",
@@ -2314,7 +2584,9 @@
       "code": "no",
       "citations": 720,
       "in_corpus": false,
-      "top100_rank": 47
+      "top100_rank": 47,
+      "pdf_filename": "047_burgess_2007.pdf",
+      "pdf_saved": false
     },
     {
       "key": "fuhs_touretzky_2006",
@@ -2331,7 +2603,9 @@
       "code": "no",
       "citations": 662,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "fuhs_touretzky_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "solstad_2006",
@@ -2348,7 +2622,9 @@
       "code": "no",
       "citations": 495,
       "in_corpus": false,
-      "top100_rank": 51
+      "top100_rank": 51,
+      "pdf_filename": "051_solstad_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "hartley_2000",
@@ -2365,7 +2641,9 @@
       "code": "no",
       "citations": 396,
       "in_corpus": false,
-      "top100_rank": 54
+      "top100_rank": 54,
+      "pdf_filename": "054_hartley_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "tsodyks_sejnowski_1995",
@@ -2382,7 +2660,9 @@
       "code": "no",
       "citations": 300,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "tsodyks_sejnowski_1995.pdf",
+      "pdf_saved": false
     },
     {
       "key": "hasselmo_2007",
@@ -2399,7 +2679,9 @@
       "code": "no",
       "citations": 261,
       "in_corpus": false,
-      "top100_rank": 60
+      "top100_rank": 60,
+      "pdf_filename": "060_hasselmo_2007.pdf",
+      "pdf_saved": false
     },
     {
       "key": "sreenivasan_fiete_2011",
@@ -2416,7 +2698,9 @@
       "code": "no",
       "citations": 240,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "sreenivasan_fiete_2011.pdf",
+      "pdf_saved": false
     },
     {
       "key": "guanella_2007",
@@ -2433,7 +2717,9 @@
       "code": "unknown",
       "citations": 231,
       "in_corpus": false,
-      "top100_rank": 44
+      "top100_rank": 44,
+      "pdf_filename": "044_guanella_2007.pdf",
+      "pdf_saved": false
     },
     {
       "key": "tsodyks_1999",
@@ -2450,7 +2736,9 @@
       "code": "no",
       "citations": 156,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "tsodyks_1999.pdf",
+      "pdf_saved": false
     },
     {
       "key": "georgopoulos_1986",
@@ -2467,7 +2755,9 @@
       "code": "no",
       "citations": 3210,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "georgopoulos_1986.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ma_2006",
@@ -2484,7 +2774,9 @@
       "code": "no",
       "citations": 1542,
       "in_corpus": false,
-      "top100_rank": 52
+      "top100_rank": 52,
+      "pdf_filename": "052_ma_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "pouget_2000",
@@ -2501,7 +2793,9 @@
       "code": "no",
       "citations": 782,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "pouget_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "zemel_1998",
@@ -2518,7 +2812,9 @@
       "code": "no",
       "citations": 771,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "zemel_1998.pdf",
+      "pdf_saved": false
     },
     {
       "key": "beck_2008",
@@ -2535,7 +2831,9 @@
       "code": "no",
       "citations": 691,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "beck_2008.pdf",
+      "pdf_saved": false
     },
     {
       "key": "seung_sompolinsky_1993",
@@ -2552,7 +2850,9 @@
       "code": "no",
       "citations": 646,
       "in_corpus": false,
-      "top100_rank": 84
+      "top100_rank": 84,
+      "pdf_filename": "084_seung_sompolinsky_1993.pdf",
+      "pdf_saved": false
     },
     {
       "key": "jazayeri_movshon_2006",
@@ -2569,7 +2869,9 @@
       "code": "no",
       "citations": 582,
       "in_corpus": false,
-      "top100_rank": 70
+      "top100_rank": 70,
+      "pdf_filename": "070_jazayeri_movshon_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "pouget_2003",
@@ -2586,7 +2888,9 @@
       "code": "no",
       "citations": 444,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "pouget_2003.pdf",
+      "pdf_saved": false
     },
     {
       "key": "flash_hogan_1985",
@@ -2603,7 +2907,9 @@
       "code": "no",
       "citations": 4360,
       "in_corpus": false,
-      "top100_rank": 36
+      "top100_rank": 36,
+      "pdf_filename": "036_flash_hogan_1985.pdf",
+      "pdf_saved": true
     },
     {
       "key": "wolpert_ghahramani_jordan_1995",
@@ -2620,7 +2926,9 @@
       "code": "no",
       "citations": 3558,
       "in_corpus": false,
-      "top100_rank": 56
+      "top100_rank": 56,
+      "pdf_filename": "056_wolpert_ghahramani_jordan_1995.pdf",
+      "pdf_saved": false
     },
     {
       "key": "marr_1969",
@@ -2637,7 +2945,9 @@
       "code": "no",
       "citations": 3331,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "marr_1969.pdf",
+      "pdf_saved": false
     },
     {
       "key": "todorov_jordan_2002",
@@ -2654,7 +2964,9 @@
       "code": "unknown",
       "citations": 3123,
       "in_corpus": false,
-      "top100_rank": 98
+      "top100_rank": 98,
+      "pdf_filename": "098_todorov_jordan_2002.pdf",
+      "pdf_saved": false
     },
     {
       "key": "shadmehr_mussaivaldi_1994",
@@ -2671,7 +2983,9 @@
       "code": "no",
       "citations": 2667,
       "in_corpus": false,
-      "top100_rank": 49
+      "top100_rank": 49,
+      "pdf_filename": "049_shadmehr_mussaivaldi_1994.pdf",
+      "pdf_saved": true
     },
     {
       "key": "albus_1971",
@@ -2688,7 +3002,9 @@
       "code": "no",
       "citations": 2591,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "albus_1971.pdf",
+      "pdf_saved": false
     },
     {
       "key": "harris_wolpert_1998",
@@ -2705,7 +3021,9 @@
       "code": "no",
       "citations": 2515,
       "in_corpus": false,
-      "top100_rank": 64
+      "top100_rank": 64,
+      "pdf_filename": "064_harris_wolpert_1998.pdf",
+      "pdf_saved": false
     },
     {
       "key": "todorov_2004",
@@ -2722,7 +3040,9 @@
       "code": "unknown",
       "citations": 1781,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "todorov_2004.pdf",
+      "pdf_saved": false
     },
     {
       "key": "uno_kawato_suzuki_1989",
@@ -2739,7 +3059,9 @@
       "code": "no",
       "citations": 1701,
       "in_corpus": false,
-      "top100_rank": 75
+      "top100_rank": 75,
+      "pdf_filename": "075_uno_kawato_suzuki_1989.pdf",
+      "pdf_saved": false
     },
     {
       "key": "scott_2004",
@@ -2756,7 +3078,9 @@
       "code": "no",
       "citations": 1094,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "scott_2004.pdf",
+      "pdf_saved": false
     },
     {
       "key": "fujita_1982",
@@ -2773,7 +3097,9 @@
       "code": "no",
       "citations": 532,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "fujita_1982.pdf",
+      "pdf_saved": false
     },
     {
       "key": "dean_porrill_2010",
@@ -2790,7 +3116,9 @@
       "code": "unknown",
       "citations": 407,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "dean_porrill_2010.pdf",
+      "pdf_saved": false
     },
     {
       "key": "medina_mauk_2000",
@@ -2807,7 +3135,9 @@
       "code": "unknown",
       "citations": 343,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "medina_mauk_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "schultz_dayan_montague_1997",
@@ -2824,7 +3154,9 @@
       "code": "no",
       "citations": 9589,
       "in_corpus": false,
-      "top100_rank": 46
+      "top100_rank": 46,
+      "pdf_filename": "046_schultz_dayan_montague_1997.pdf",
+      "pdf_saved": false
     },
     {
       "key": "sutton_1988",
@@ -2841,7 +3173,9 @@
       "code": "no",
       "citations": 2795,
       "in_corpus": false,
-      "top100_rank": 45
+      "top100_rank": 45,
+      "pdf_filename": "045_sutton_1988.pdf",
+      "pdf_saved": true
     },
     {
       "key": "daw_niv_dayan_2005",
@@ -2858,7 +3192,9 @@
       "code": "unknown",
       "citations": 2641,
       "in_corpus": false,
-      "top100_rank": 57
+      "top100_rank": 57,
+      "pdf_filename": "057_daw_niv_dayan_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "montague_dayan_sejnowski_1996",
@@ -2875,7 +3211,9 @@
       "code": "no",
       "citations": 2107,
       "in_corpus": false,
-      "top100_rank": 72
+      "top100_rank": 72,
+      "pdf_filename": "072_montague_dayan_sejnowski_1996.pdf",
+      "pdf_saved": true
     },
     {
       "key": "bayer_glimcher_2005",
@@ -2892,7 +3230,9 @@
       "code": "no",
       "citations": 1334,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "bayer_glimcher_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "oreilly_frank_2006",
@@ -2909,7 +3249,9 @@
       "code": "yes",
       "citations": 1102,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "oreilly_frank_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "frank_2005",
@@ -2926,7 +3268,9 @@
       "code": "yes",
       "citations": 950,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "frank_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "frank_2006",
@@ -2943,7 +3287,9 @@
       "code": "yes",
       "citations": 715,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "frank_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "doya_2002",
@@ -2960,7 +3306,9 @@
       "code": "no",
       "citations": 699,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "doya_2002.pdf",
+      "pdf_saved": false
     },
     {
       "key": "houk_adams_barto_1995",
@@ -2977,7 +3325,9 @@
       "code": "no",
       "citations": 550,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "houk_adams_barto_1995.pdf",
+      "pdf_saved": false
     },
     {
       "key": "suri_schultz_1999",
@@ -2994,7 +3344,9 @@
       "code": "unknown",
       "citations": 297,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "suri_schultz_1999.pdf",
+      "pdf_saved": false
     },
     {
       "key": "suri_schultz_2001",
@@ -3011,7 +3363,9 @@
       "code": "unknown",
       "citations": 169,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "suri_schultz_2001.pdf",
+      "pdf_saved": false
     },
     {
       "key": "bienenstock_cooper_munro_1982",
@@ -3028,7 +3382,9 @@
       "code": "yes",
       "citations": 2947,
       "in_corpus": false,
-      "top100_rank": 17
+      "top100_rank": 17,
+      "pdf_filename": "017_bienenstock_cooper_munro_1982.pdf",
+      "pdf_saved": true
     },
     {
       "key": "song_miller_abbott_2000",
@@ -3045,7 +3401,9 @@
       "code": "yes",
       "citations": 2892,
       "in_corpus": false,
-      "top100_rank": 25
+      "top100_rank": 25,
+      "pdf_filename": "025_song_miller_abbott_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "oja_1982",
@@ -3062,7 +3420,9 @@
       "code": "yes",
       "citations": 2667,
       "in_corpus": false,
-      "top100_rank": 19
+      "top100_rank": 19,
+      "pdf_filename": "019_oja_1982.pdf",
+      "pdf_saved": false
     },
     {
       "key": "sanger_1989",
@@ -3079,7 +3439,9 @@
       "code": "no",
       "citations": 1530,
       "in_corpus": false,
-      "top100_rank": 58
+      "top100_rank": 58,
+      "pdf_filename": "058_sanger_1989.pdf",
+      "pdf_saved": false
     },
     {
       "key": "gutig_sompolinsky_2006",
@@ -3096,7 +3458,9 @@
       "code": "yes",
       "citations": 845,
       "in_corpus": false,
-      "top100_rank": 21
+      "top100_rank": 21,
+      "pdf_filename": "021_gutig_sompolinsky_2006.pdf",
+      "pdf_saved": false
     },
     {
       "key": "van_rossum_bi_turrigiano_2000",
@@ -3113,7 +3477,9 @@
       "code": "yes",
       "citations": 740,
       "in_corpus": false,
-      "top100_rank": 34
+      "top100_rank": 34,
+      "pdf_filename": "034_van_rossum_bi_turrigiano_2000.pdf",
+      "pdf_saved": true
     },
     {
       "key": "miller_keller_stryker_1989",
@@ -3130,7 +3496,9 @@
       "code": "unknown",
       "citations": 666,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "miller_keller_stryker_1989.pdf",
+      "pdf_saved": false
     },
     {
       "key": "pfister_gerstner_2006",
@@ -3147,7 +3515,9 @@
       "code": "yes",
       "citations": 662,
       "in_corpus": false,
-      "top100_rank": 23
+      "top100_rank": 23,
+      "pdf_filename": "023_pfister_gerstner_2006.pdf",
+      "pdf_saved": true
     },
     {
       "key": "clopath_2010",
@@ -3164,7 +3534,9 @@
       "code": "yes",
       "citations": 634,
       "in_corpus": false,
-      "top100_rank": 53
+      "top100_rank": 53,
+      "pdf_filename": "053_clopath_2010.pdf",
+      "pdf_saved": false
     },
     {
       "key": "toyoizumi_2005",
@@ -3181,7 +3553,9 @@
       "code": "unknown",
       "citations": 125,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "toyoizumi_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "fitzhugh_1961",
@@ -3198,7 +3572,9 @@
       "code": "yes",
       "citations": 6257,
       "in_corpus": false,
-      "top100_rank": 3
+      "top100_rank": 3,
+      "pdf_filename": "003_fitzhugh_1961.pdf",
+      "pdf_saved": false
     },
     {
       "key": "izhikevich_2003",
@@ -3215,7 +3591,9 @@
       "code": "yes",
       "citations": 4826,
       "in_corpus": false,
-      "top100_rank": 1
+      "top100_rank": 1,
+      "pdf_filename": "001_izhikevich_2003.pdf",
+      "pdf_saved": false
     },
     {
       "key": "nagumo_1962",
@@ -3232,7 +3610,9 @@
       "code": "no",
       "citations": 4199,
       "in_corpus": false,
-      "top100_rank": 41
+      "top100_rank": 41,
+      "pdf_filename": "041_nagumo_1962.pdf",
+      "pdf_saved": false
     },
     {
       "key": "wilson_cowan_1972",
@@ -3249,7 +3629,9 @@
       "code": "yes",
       "citations": 3741,
       "in_corpus": false,
-      "top100_rank": 5
+      "top100_rank": 5,
+      "pdf_filename": "005_wilson_cowan_1972.pdf",
+      "pdf_saved": false
     },
     {
       "key": "morris_lecar_1981",
@@ -3266,7 +3648,9 @@
       "code": "yes",
       "citations": 2324,
       "in_corpus": false,
-      "top100_rank": 6
+      "top100_rank": 6,
+      "pdf_filename": "006_morris_lecar_1981.pdf",
+      "pdf_saved": false
     },
     {
       "key": "mainen_sejnowski_1995",
@@ -3283,7 +3667,9 @@
       "code": "yes",
       "citations": 2000,
       "in_corpus": false,
-      "top100_rank": 27
+      "top100_rank": 27,
+      "pdf_filename": "027_mainen_sejnowski_1995.pdf",
+      "pdf_saved": false
     },
     {
       "key": "van_vreeswijk_sompolinsky_1996",
@@ -3300,7 +3686,9 @@
       "code": "unknown",
       "citations": 1970,
       "in_corpus": false,
-      "top100_rank": null
+      "top100_rank": null,
+      "pdf_filename": "van_vreeswijk_sompolinsky_1996.pdf",
+      "pdf_saved": false
     },
     {
       "key": "brunel_2000",
@@ -3317,7 +3705,9 @@
       "code": "yes",
       "citations": 1857,
       "in_corpus": false,
-      "top100_rank": 38
+      "top100_rank": 38,
+      "pdf_filename": "038_brunel_2000.pdf",
+      "pdf_saved": false
     },
     {
       "key": "brette_gerstner_2005",
@@ -3334,7 +3724,9 @@
       "code": "yes",
       "citations": 1313,
       "in_corpus": false,
-      "top100_rank": 13
+      "top100_rank": 13,
+      "pdf_filename": "013_brette_gerstner_2005.pdf",
+      "pdf_saved": false
     },
     {
       "key": "sussillo_abbott_2009",
@@ -3351,7 +3743,9 @@
       "code": "unknown",
       "citations": 1146,
       "in_corpus": false,
-      "top100_rank": 87
+      "top100_rank": 87,
+      "pdf_filename": "087_sussillo_abbott_2009.pdf",
+      "pdf_saved": false
     },
     {
       "key": "sompolinsky_crisanti_sommers_1988",
@@ -3368,7 +3762,9 @@
       "code": "unknown",
       "citations": 1042,
       "in_corpus": false,
-      "top100_rank": 78
+      "top100_rank": 78,
+      "pdf_filename": "078_sompolinsky_crisanti_sommers_1988.pdf",
+      "pdf_saved": false
     },
     {
       "key": "ermentrout_cowan_1979",
@@ -3385,7 +3781,9 @@
       "code": "no",
       "citations": 605,
       "in_corpus": false,
-      "top100_rank": 99
+      "top100_rank": 99,
+      "pdf_filename": "099_ermentrout_cowan_1979.pdf",
+      "pdf_saved": false
     },
     {
       "key": "vogels_abbott_2005",
@@ -3402,7 +3800,9 @@
       "code": "yes",
       "citations": 490,
       "in_corpus": false,
-      "top100_rank": 48
+      "top100_rank": 48,
+      "pdf_filename": "048_vogels_abbott_2005.pdf",
+      "pdf_saved": true
     }
   ]
 }

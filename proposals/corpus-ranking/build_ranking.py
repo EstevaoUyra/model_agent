@@ -360,6 +360,12 @@ with open("proposals/corpus-top100-ranking.md","w") as f:
 
 # ---- emit JSON of all 200 papers (key, url, doi + useful fields) ----
 rank_of = {d["key"]: i for i, d in enumerate(top100, 1)}
+# Canonical PDF filename (relative to the gitignored paper_candidates/ folder):
+# top-100 papers -> "NNN_<key>.pdf" (NNN = zero-padded rank, matches the 18 already saved);
+# unranked (rank 101+) papers -> "<key>.pdf".
+def pdf_filename(d):
+    r = rank_of.get(d["key"])
+    return f"{r:03d}_{d['key']}.pdf" if r else f"{d['key']}.pdf"
 records = []
 for d in sorted(data, key=lambda d: (int(d["cluster"][1:]), -d["cites"])):
     doi = d["doi"] or None
@@ -379,12 +385,17 @@ for d in sorted(data, key=lambda d: (int(d["cluster"][1:]), -d["cites"])):
         "citations": d["cites"],
         "in_corpus": d["corpus"],
         "top100_rank": rank_of.get(d["key"]),
+        "pdf_filename": pdf_filename(d),
+        "pdf_saved": os.path.exists(f"paper_candidates/{pdf_filename(d)}"),
     })
 with open("proposals/corpus-candidates-200.json", "w") as f:
     json.dump({
         "generated": "2026-06-12",
         "source": "proposals/corpus-ranking/build_ranking.py",
-        "note": "Citation counts are OpenAlex/S2 reads (~2026-06), approximate. doi may be null for pre-DOI works; use url.",
+        "note": ("Citation counts are OpenAlex/S2 reads (~2026-06), approximate. doi may be null for "
+                 "pre-DOI works; use url. Save each downloaded PDF as pdf_filename inside the gitignored "
+                 "paper_candidates/ folder (top-100 = 'NNN_<key>.pdf', NNN = rank; others = '<key>.pdf'). "
+                 "pdf_saved=true means it is already on disk."),
         "count": len(records),
         "papers": records,
     }, f, indent=2, ensure_ascii=False)
