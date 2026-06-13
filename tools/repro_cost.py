@@ -195,11 +195,13 @@ def markdown(model, rec):
     out.append("")
     out.append(f"Estimated at **standard Claude Opus 4.8 API rates** "
                f"($5 / $25 per 1M input/output; cache read $0.50/1M, cache write $6.25/1M) "
-               f"from this model's full-pass workflow agent transcripts — summed across all "
-               f"{n_runs} run(s) (initial pass + any later fixes).")
+               f"from this model's full-pass workflow agent transcripts still in local history, "
+               f"summed across all recoverable runs (initial pass + any later fixes). "
+               f"Runs or agents whose transcripts have rotated out are not counted, so this is a "
+               f"**lower bound** — most reliable for recently-built models.")
     out.append("")
     out.append(f"**Estimated total: ${total:,.2f}** "
-               f"— {n_runs} run(s), {n_agents} agents, "
+               f"— {n_runs} recoverable run(s), {n_agents} agents, "
                f"{_fmt_tok(sum(u.get(k,0) for k in RATE))} tokens.")
     out.append("")
     out.append("### By token type")
