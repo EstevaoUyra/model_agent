@@ -68,7 +68,28 @@ extract→faithful**). Re-run `from='extract'` on the de-parallelized + diff-sco
 
 Re-measure with the same contiguous-run-collapse parse of the run's agent transcripts.
 
+## Post-improvement A/B result (validated 2026-06-13)
+
+Re-ran `flash_hogan_1985` `from='extract'` on the **de-parallelized + diff-scoped**
+`full-pass.js` (same 3 figures), measured with the same parser (`tools/repro_cost.py`):
+
+| variant | agents | tokens | cost | verdict |
+|---|--:|--:|--:|---|
+| baseline (per-figure parallel) | 53 | 142.0M | $114.60 | faithful |
+| **de-parallelized + diff-scoped** | **16** | **30.5M** | **$26.72** | **faithful** |
+| **Δ** | **−70%** | **−78%** | **−77%** | preserved |
+
+The token win is **larger** than this doc originally predicted ("won't move per-sweep
+token count much"): collapsing the per-figure fan-out to one cross-figure auditor, plus
+the diff-scoped re-audit, cut the redundant cache-reads that dominated the 142M — not
+just the agent count. Outcome preserved (same single cosmetic Fig 1B flag). Merged to
+main in #50.
+
+**Caveat:** validated on one small (3-figure) model. The O(N²)-transcript risk for
+high-figure models still stands — keep the fan-out cap and re-measure on a 6+-figure
+model before trusting the ratio there.
+
 ## Status
 
-**Baseline of record, 2026-06-13.** Frozen for the A/B; supersede only with a fresh
+**Baseline of record, 2026-06-13** + the validated A/B above. Supersede only with a fresh
 measurement run.
