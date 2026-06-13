@@ -241,7 +241,12 @@ const finalize = async () => {
     `(2) the model description; (3) per figure the three views side by side (paper · digitized · ` +
     `implemented) + the audit/check tables — the figure-reproduction state; (4) a "potential sources" ` +
     `section from the findings' source_hints; (5) a changelog — append ONE succinct line, full detail to ` +
-    `logs/changelog.md. Findings: ${JSON.stringify(openFindings)}. Process: ${JSON.stringify(proc ?? {})}.`,
+    `logs/changelog.md; (6) a "Reproduction cost" section AS THE FINAL section — run ` +
+    `\`${PY} ${ROOT}/tools/repro_cost.py ${MODEL} --markdown\` (it scans THIS model's full-pass agent ` +
+    `transcripts across ALL runs and prices them at standard Opus 4.8 API rates) and paste its stdout ` +
+    `VERBATIM, replacing any existing "## Reproduction cost" section (idempotent — do not stack copies). ` +
+    `If the command prints nothing (no recoverable transcripts), omit the section entirely. ` +
+    `Findings: ${JSON.stringify(openFindings)}. Process: ${JSON.stringify(proc ?? {})}.`,
     { label: 'state-update', phase: 'Report', model: OPUS })
   // (2) Land the result IN THE MODEL'S OWN REPO (the submodule) — commit + a PR onto the
   //     submodule's main, every exit (blocked included). NEVER touch the parent (model_agent):
