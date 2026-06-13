@@ -57,6 +57,27 @@ const DIG_VERDICT = {
   },
   required: ['status', 'worst_defect'],
 }
+// Per-figure digitization verdict for the DE-PARALLELIZED gate (one auditor over ALL figures).
+// The `figures` array is the COVERAGE GUARDRAIL — the schema forces one verdict per figure, so a
+// single auditor cannot silently skim later figures.
+const DIG_VERDICT_MULTI = {
+  type: 'object', additionalProperties: false,
+  properties: {
+    figures: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false,
+        properties: {
+          figure: { type: 'string' },
+          status: { enum: ['FAITHFUL', 'DIVERGENT', 'TOOL_MISUSE', 'BLOCKED'] },
+          worst_defect: { type: 'string' },     // what the next re-digitize of THIS figure must fix
+        },
+        required: ['figure', 'status', 'worst_defect'],
+      },
+    },
+  },
+  required: ['figures'],
+}
 const FAITH_VERDICT = {
   type: 'object', additionalProperties: false,
   properties: {
@@ -316,35 +337,49 @@ try {
       `${SK('extract-spec')} Extract the article-aware contract for ${MODEL} (equations, parameters with evidenced/lineage-grounded assumptions, calibration ledger, citations, spec-questions).`,
       { label: 'spec-extract', phase: 'Extract', model: OPUS })
 
-    // ②→③↔④ per figure, concurrent across figures (the 3↔4 loop lives inside each lane)
-    figResults = await pipeline(FIGURES,
-      (fig) => agent(
-        `${SK('extract-figure')} Describe figure ${fig} of ${MODEL}: panels, axis limits, model-panels-only scope. A panel that is a RENDERED MODEL OUTPUT is a reproduction target even inside a schematic. If the paper image is missing, return BLOCKED.`,
-        { label: `fig-extract:${fig}`, phase: 'Extract', model: OPUS }),
-      async (_extracted, fig) => {
-        let verdict = null
-        for (let round = 1; round <= MAX_ROUNDS; round++) {
-          const fixNote = verdict ? `Fix the prior audit defect: ${verdict.worst_defect}` : 'First digitization.'
-          await agent(
-            `${SK('digitize-figure')} Digitize figure ${fig} of ${MODEL} (all panels). ${fixNote}`,
-            { label: `digitize:${fig} r${round}`, phase: 'Digitization gate', model: OPUS })
-          verdict = await agent(
-            `${SK('audit-digitization')} Audit the digitization of figure ${fig} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer.`,
-            { label: `dig-audit:${fig} r${round}`, phase: 'Digitization gate', model: OPUS, schema: DIG_VERDICT })
-          // null = the audit agent died on a TRANSIENT API error (e.g. a server-side rate-limit when
-          // many passes run at once). Never throw on verdict.status — synthesize a non-faithful
-          // verdict and stop retrying this fig. The gate only FLAGS (it never blocks the gate), and a
-          // resume re-runs just this fig cheaply.
-          if (!verdict) { verdict = { status: 'BLOCKED', worst_defect: 'digitization audit failed transiently (API rate-limit) — resume to retry' }; break }
-          if (verdict.status === 'FAITHFUL' || verdict.status === 'BLOCKED') break
-        }
-        return { fig, status: verdict?.status ?? 'BLOCKED', defect: verdict?.worst_defect ?? 'digitization failed transiently — resume to retry' }
-      })
+    // ② describe → ③ digitize → ④ audit — ONE agent per role over ALL figures (a single SWEEP,
+    //    NOT a per-figure fan-out). The workflow diagram is unchanged — same roles, same order,
+    //    same digitizer≠auditor separation; the only change is the agent COUNT per role drops from
+    //    N to 1. Two payoffs over the fan-out: (a) concurrency drops sharply (the rate-limit relief),
+    //    and (b) ONE auditor sees ALL figures at once, so a defect shared across figures is caught in
+    //    a single pass instead of being re-discovered round-by-round. The 3↔4 retry loop re-digitizes
+    //    ONLY the figures the prior audit flagged (diff-focus inside the gate).
+    const figList = FIGURES.join(', ')
+    await agent(
+      `${SK('extract-figure')} Describe figures ${figList} of ${MODEL} — for EACH figure: panels, axis limits, model-panels-only scope. A panel that is a RENDERED MODEL OUTPUT is a reproduction target even inside a schematic. If a figure's paper image is missing, mark THAT figure BLOCKED (do not block the others).`,
+      { label: 'fig-extract:all', phase: 'Extract', model: OPUS })
+    let digVerdict = null
+    for (let round = 1; round <= MAX_ROUNDS; round++) {
+      const prior = digVerdict?.figures ?? []
+      const toFix = round === 1
+        ? FIGURES.map(String)
+        : prior.filter(f => f.status === 'DIVERGENT' || f.status === 'TOOL_MISUSE').map(f => String(f.figure))
+      if (round > 1 && toFix.length === 0) break
+      const fixNote = round === 1
+        ? 'First digitization — all figures.'
+        : `Re-digitize ONLY these figures the prior audit flagged, fixing the named defect each: ${prior.filter(f => toFix.includes(String(f.figure))).map(f => `${f.figure} (${f.worst_defect})`).join('; ')}.`
+      await agent(
+        `${SK('digitize-figure')} Digitize ${round === 1 ? `figures ${figList}` : `figures ${toFix.join(', ')}`} of ${MODEL} (all panels). ${fixNote}`,
+        { label: `digitize:all r${round}`, phase: 'Digitization gate', model: OPUS })
+      digVerdict = await agent(
+        `${SK('audit-digitization')} Audit the digitization of figures ${figList} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer. Return a SEPARATE verdict for EVERY figure (one entry per figure in: ${figList}) — give each the same scrutiny, do NOT skim the later figures. Where two or more figures share the SAME defect, say so in each worst_defect so one fix can address them together.`,
+        { label: `dig-audit:all r${round}`, phase: 'Digitization gate', model: OPUS, schema: DIG_VERDICT_MULTI })
+      // null = the audit agent died on a TRANSIENT API error. Never throw on .figures — synthesize a
+      // blocked verdict for every figure and stop; a resume re-runs the sweep cheaply.
+      if (!digVerdict) { digVerdict = { figures: FIGURES.map(f => ({ figure: String(f), status: 'BLOCKED', worst_defect: 'digitization audit failed transiently (API rate-limit) — resume to retry' })) }; break }
+      if (digVerdict.figures.every(f => f.status === 'FAITHFUL' || f.status === 'BLOCKED')) break
+    }
 
     await specDone
-    figResults = figResults.filter(Boolean) // a pipeline stage that threw outright drops to null — never let it crash the gate
+    // normalize the per-figure verdict to the downstream {fig, status, defect} shape; a figure the
+    // auditor omitted → BLOCKED (the schema requires one entry per figure, but never crash if missing).
+    const byFig = new Map((digVerdict?.figures ?? []).map(f => [String(f.figure), f]))
+    figResults = FIGURES.map(f => {
+      const v = byFig.get(String(f))
+      return { fig: String(f), status: v?.status ?? 'BLOCKED', defect: v?.worst_defect ?? 'no per-figure verdict returned — resume to retry' }
+    })
     digBlocked = figResults.filter((r) => r.status !== 'FAITHFUL') // flagged, surfaced; does not gate the gate
-    log(`Digitization gate: ${figResults.filter(r => r.status === 'FAITHFUL').length}/${FIGURES.length} faithful; ${digBlocked.length} flagged`)
+    log(`Digitization gate (single sweep): ${figResults.filter(r => r.status === 'FAITHFUL').length}/${FIGURES.length} faithful; ${digBlocked.length} flagged`)
 
     // audit-spec GATE — the CONTRACT itself is audited before any implementation (the safeguard
     // that was missing). A divergence is resolved via paper-fix (≤MAX_PAPERFIX) BEFORE Phase B, so
@@ -405,7 +440,7 @@ try {
 
     ;[faith, proc] = await parallel([
       () => agent(
-        `${SK('audit-faithfulness')} Re-render and audit the CURRENT ${MODEL} implementation vs the paper + the digitized references. Tag each divergence CONTRACT_BUG | CODE_BUG | GENUINE_DIVERGENCE | PAPER_ISSUE (a paper-issue only after the lineage ladder), and scope=model|figure (a forward-model/mechanism fault blocks ALL figures; a per-figure issue blocks one). You are NOT the builder. Give a fix (spec-level) for every *_BUG and a source_hint for every divergence.`,
+        `${SK('audit-faithfulness')} Re-render and audit the CURRENT ${MODEL} implementation vs the paper + the digitized references. Tag each divergence CONTRACT_BUG | CODE_BUG | GENUINE_DIVERGENCE | PAPER_ISSUE (a paper-issue only after the lineage ladder), and scope=model|figure (a forward-model/mechanism fault blocks ALL figures; a per-figure issue blocks one). You are NOT the builder. Give a fix (spec-level) for every *_BUG and a source_hint for every divergence.${round > 1 ? ` DIFF-SCOPED RE-AUDIT (this is round ${round}, a re-audit of a prior pass): the previous audit already vetted the whole model, so focus your DEEP per-figure re-render+compare ONLY on figures whose code/contract changed since the last audit — run \`git diff\` against the prior pass to find them. For a figure that did NOT change AND was FAITHFUL last round, a render-hash / output-identity check is enough — do not re-derive it from scratch. EXCEPTION — if ANY change this round is scope=model (the forward model / a shared mechanism / a global parameter), that invalidates EVERY figure, so re-audit them ALL deeply regardless of the diff. The deterministic test suite is your regression backstop: if a suite test for an unchanged figure is now red, treat that figure as changed and re-audit it deeply.` : ''}`,
         { label: `faith-audit r${round}`, phase: 'Verify', model: OPUS, schema: FAITH_VERDICT }),
       () => agent(
         `${SK('audit-process')} Read the ${MODEL} change-trail this pass: is the trajectory toward-paper or toward-green? You are paper-blind.`,
