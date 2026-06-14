@@ -6,6 +6,13 @@ Run figure-level and internal tests during Phase B iteration, capturing each
 invocation in `logs/test_runs.jsonl` for later reflection by the
 `update-state` skill.
 
+> **Also the finalize stale-artifact sweep.** The `full-pass` workflow invokes this skill at
+> finalize to run the pre-commit **stale-artifact sweep**: re-render every figure from the
+> current model and **promote the fresh render to a committed `figures_reproduced/figure_N.png`**
+> (the README's "implemented" view; `implementation/figure_outputs/` is gitignored scratch);
+> convert any `xfail(strict)` that now XPASSes to a must-pass; and refresh pre-fix numbers in
+> docstrings/README/spec prose. The render-and-commit is required even when nothing else is stale.
+
 ---
 
 ## Use the project venv interpreter (has matplotlib)

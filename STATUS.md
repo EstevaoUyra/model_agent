@@ -67,22 +67,40 @@ stuck-detector as the iteration cap, and a presence-only citation check):
 - `models/<m>/logs/figure_comparisons/` — the persistent VLM verdict home.
 - The `update-state` skill + its `scripts/` — the reviewable state report
   (`models/<m>/README.md`) and the verdict/freshness tooling.
-- `models/<m>/figures_reproduced/` — a **committed** snapshot of paper-vs-
-  reproduced comparison PNGs (added by the docs/README pass; documented in
-  WORKFLOW.md §8). It is **not** produced by the render pipeline and its
-  freshness is **not** guaranteed: the authoritative render is the gitignored
-  `implementation/figure_outputs/`. A faithfulness audit reading
-  `figures_reproduced/` could see a stale image — render fresh + read the
-  persisted `logs/figure_comparisons/` verdicts for the binding check.
+- `models/<m>/figures_reproduced/figure_<N>.png` — the **committed** implemented
+  render (the README's "implemented" view + the coverage gate's render artifact).
+  As of 2026-06-14 the `full-pass` finalize **stale-sweep refreshes it from the
+  current model on every run**, so it is fresh-at-finalize (earlier it was a
+  hand-added snapshot with no freshness guarantee). The gitignored
+  `implementation/figure_outputs/` remains the scratch render; a faithfulness audit
+  still re-renders fresh rather than trusting any committed snapshot.
+- `models/<m>/article_aware/figures/figure_<N>.png` — the **committed** original
+  paper-figure crop (the README's "paper" view + the digitization/faithfulness
+  referent). A genuine schematic carries a `figure_<N>.nodigitize` marker instead of
+  a digitized overlay. Both are required by the coverage gate.
 
 ---
 
-## Implication for agents
+## The orchestrated workflow (`full-pass.js`) — the real loop as of 2026-06-14
 
-The real loop is: edit `implementation/` → `pytest` (plugin logs to
-`test_runs.jsonl`) → `neuromodels test-table` → `compare-figure-packet` +
-VLM subagents → persist verdict → `update-state` rewrites the model README.
-There is **no runner and no stuck gate** catching you. One static check exists
-(`check_citations.py`, run manually — citation/assumption tags resolve to a
-ledger), but it is presence-only and not wired to CI. Self-discipline (and the
-skills) carry what the docs imply tooling enforces.
+The reproduction loop is now driven by **`.claude/workflows/full-pass.js`** (the `full-pass`
+workflow), NOT the hand-run skill loop the older text below described. Its loop is:
+acquire → extract-spec + digitization gate (digitize → separate-critic audit, **per-panel**,
+commits the paper crop) → audit-spec gate → implement → verify (`audit-faithfulness` +
+`audit-process`, loop-until-dry) → **exit reconciliation** → finalize (stale-sweep that commits
+`figures_reproduced/` + **modification smoke test** + **coverage gate** → README → PR).
+
+Figure faithfulness is established by **`audit-faithfulness`** (re-render vs the digitized
+reference + paper), **not** by `compare-figure-packet` + VLM subagents — that VLM-checklist path
+(rows in "Built and in use") still *exists* as tooling but is **superseded** and no longer in the
+loop. The `test-table` VLM column will therefore be empty for `full-pass`-built models; that is
+expected, not a regression.
+
+**Gates added 2026-06-14** (`proposals/process-drift-register-2026-06-14.md`): the exit can no
+longer be `faithful` while a digitization is unverified, a `GENUINE_DIVERGENCE`/`BLOCKED` figure
+is open, or the process trajectory is `drifting`; and a **coverage gate**
+(`tools/check_figure_coverage.py`) blocks any exit whose target figures lack their committed three
+views (paper crop · digitized · `figures_reproduced/` render) or a committed faithfulness audit.
+There is still **no runner and no stuck gate**; `check_citations.py` is presence-only, run
+manually. New tooling: `tools/check_figure_coverage.py` (coverage), `tools/repro_cost.py`
+(per-model API cost in each README).
