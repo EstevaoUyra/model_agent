@@ -362,3 +362,167 @@ def overlay(image_path, calibration: AxisCalibration, curves: dict, out_path, *,
     fig.savefig(out_path, dpi=120, bbox_inches="tight")
     plt.close(fig)
     return out_path
+
+
+# --------------------------------------------------------------------------- #
+# Batched helpers — collapse the multi-turn trace / inspect loop into ONE call.
+#
+# The digitizer's validate step and the auditor's overlay+crop loop are each many
+# tool round-trips (trace one band, crop one region, view it, crop the next, …),
+# and EVERY round-trip re-reads the agent's whole context — the dominant cost of
+# these roles. These two helpers do the SAME work the docstrings above describe,
+# but return all artefacts in a single call so the agent reasons over them in one
+# turn instead of ~20. They COMPOSE the primitives above (no new digitization
+# logic) and change nothing about what gets measured — only how many turns it takes.
+# --------------------------------------------------------------------------- #
+
+def _curves_xy(curves: dict):
+    """Normalise a curves mapping to ``{name: (xs, ys)}`` float arrays.
+
+    Accepts either the ``overlay()`` form ``{name: (xs, ys)}`` or the digitized-JSON
+    form ``{name: {"points": [[x, y], ...]}}`` so callers can pass a loaded panel JSON
+    straight through.
+    """
+    out = {}
+    for name, c in curves.items():
+        if isinstance(c, dict):
+            pts = np.asarray(c.get("points", []), float)
+            if pts.size == 0:
+                continue
+            out[name] = (pts[:, 0], pts[:, 1])
+        else:
+            xs, ys = c
+            out[name] = (np.asarray(xs, float), np.asarray(ys, float))
+    return out
+
+
+def _auto_regions(curves_xy: dict):
+    """Derive a default diagnostic-crop battery (apex + endpoints) from the curves.
+
+    The regions the digitize/audit docstrings call out as the usual defect sites:
+    each curve's **apex** (peak/plateau — PCHIP overshoot, rounded saturation) and
+    the shared **left / right endpoints** (foot alignment, axis-edge calibration).
+    Index-fraction windows, so it is scale-agnostic (works on log-x without log math);
+    the caller passes explicit ``regions`` for crossings or anything bespoke.
+    """
+    regions = []
+    all_x = np.concatenate([xs for xs, _ in curves_xy.values()]) if curves_xy else np.array([])
+    if all_x.size:
+        xlo, xhi = float(all_x.min()), float(all_x.max())
+        span = (xhi - xlo) or abs(xhi) or 1.0
+        edge = 0.18 * span
+        regions.append({"name": "left_edge", "x_range": (xlo, xlo + edge), "y_range": None})
+        regions.append({"name": "right_edge", "x_range": (xhi - edge, xhi), "y_range": None})
+    for name, (xs, ys) in curves_xy.items():
+        if xs.size == 0:
+            continue
+        k = int(np.argmax(ys))
+        ax_, ay = float(xs[k]), float(ys[k])
+        span = (float(xs.max()) - float(xs.min())) or abs(ax_) or 1.0
+        yspan = (float(ys.max()) - float(ys.min())) or abs(ay) or 1.0
+        regions.append({
+            "name": f"{name}_apex",
+            "x_range": (ax_ - 0.18 * span, ax_ + 0.18 * span),
+            "y_range": (ay - 0.45 * yspan, ay + 0.12 * yspan),
+        })
+    return regions
+
+
+def overlay_with_crops(image_path, calibration: AxisCalibration, curves: dict, out_dir, *,
+                       regions=None, log_x: bool = False, n: int = 300, upscale: int = 3,
+                       pad_px: int = 6):
+    """Shipping overlay PLUS a battery of zoomed overlays, in ONE call.
+
+    Collapses the inspect loop (``overlay`` → ``crop_region`` → view → ``crop_region``
+    → view …, often dozens of turns) into a single call whose result the agent views in
+    one turn. Each crop is a *zoomed overlay* — the digitized curve drawn on the cropped
+    paper pixels (via ``crop_region``'s crop-local calibration), so what the agent
+    inspects up close is exactly the line-on-ink the full overlay shows, not a bare zoom.
+
+    Parameters
+    ----------
+    image_path : the paper panel (the same image ``overlay`` draws on).
+    calibration : the panel's ``AxisCalibration``.
+    curves : ``{name: (xs, ys)}`` in DATA coords, or a digitized-JSON ``{name: {"points": ...}}``.
+    out_dir : directory for the output PNGs (created if absent).
+    regions : list of ``{name, x_range, y_range}`` in DATA coords to zoom into; ``y_range``
+        may be ``None`` (auto from the crop). If omitted, a default apex+endpoints battery is
+        derived from the curves (pass explicit regions for a crossing or a custom locus).
+
+    Returns ``{"overlay": <path>, "crops": {name: <path>}, "regions": [...]}``. The agent
+    views the overlay and every crop together and writes its verdict in one turn.
+    """
+    import os
+    os.makedirs(out_dir, exist_ok=True)
+    cxy = _curves_xy(curves)
+    full = overlay(image_path, calibration, cxy,
+                   os.path.join(out_dir, "overlay.png"), log_x=log_x, n=n)
+    if regions is None:
+        regions = _auto_regions(cxy)
+    crops = {}
+    for r in regions:
+        name = r["name"]
+        xr = r["x_range"]
+        yr = r.get("y_range")
+        try:
+            if yr is None:
+                # crop by x only — derive a y window covering the curves in that x-band
+                xs_all, ys_all = [], []
+                for xs, ys in cxy.values():
+                    m = (xs >= min(xr)) & (xs <= max(xr))
+                    xs_all.append(xs[m]); ys_all.append(ys[m])
+                yall = np.concatenate(ys_all) if ys_all else np.array([0.0, 1.0])
+                if yall.size == 0:
+                    yall = np.concatenate([ys for _, ys in cxy.values()]) if cxy else np.array([0.0, 1.0])
+                pad = 0.12 * ((yall.max() - yall.min()) or abs(float(yall.max())) or 1.0)
+                yr = (float(yall.min()) - pad, float(yall.max()) + pad)
+            cr = crop_region(image_path, xr, yr, calibration=calibration,
+                             upscale=upscale, pad_px=pad_px,
+                             out_path=os.path.join(out_dir, f"_crop_{name}.png"))
+            crops[name] = overlay(cr["path"], cr["calibration"], cxy,
+                                  os.path.join(out_dir, f"crop_{name}.png"), log_x=log_x, n=n)
+        except Exception as e:  # a degenerate region must not sink the whole battery
+            crops[name] = f"SKIPPED ({type(e).__name__}: {e})"
+    return {"overlay": full, "crops": crops, "regions": regions}
+
+
+def trace_bands(image_path, bands: dict, calibration: AxisCalibration, *,
+                min_darkness: float = 0.35, resample_n: int = None, log_x: bool = False):
+    """Trace several curves (one VLM-supplied band each) in ONE call.
+
+    Wraps ``trace_darkest_in_band`` over a dict of bands so a multi-curve panel is
+    digitized in a single call instead of one round-trip per curve. The same documented
+    limitation applies (no colour/style channel — band-separation only; trace the
+    envelope where same-colour curves coincide and say so).
+
+    Parameters
+    ----------
+    bands : ``{name: (cols, row_lo, row_hi)}`` — ``cols`` is the iterable of columns to
+        sample (e.g. ``range(c0, c1)``), ``row_lo/row_hi`` the band isolating that curve.
+    resample_n : if given, also return a PCHIP-resampled curve on a dense grid of this
+        many points across the traced x-range (rounds peaks, keeps plateaus flat).
+
+    Returns ``{name: {"points": [[x, y], ...], "coverage": float,
+                      ["resampled": [[x, y], ...]]}}`` in DATA coords, ready to drop
+    into the digitized JSON's ``curves``.
+    """
+    out = {}
+    for name, (cols, row_lo, row_hi) in bands.items():
+        res = trace_darkest_in_band(image_path, cols, row_lo, row_hi,
+                                    calibration=calibration, min_darkness=min_darkness)
+        if "x" not in res or len(res["x"]) == 0:
+            out[name] = {"points": [], "coverage": float(res.get("coverage", 0.0))}
+            continue
+        pts = np.column_stack([res["x"], res["y"]])
+        entry = {"points": [[float(x), float(y)] for x, y in pts],
+                 "coverage": float(res["coverage"])}
+        if resample_n:
+            xs = pts[:, 0]
+            if log_x:
+                gx = np.logspace(np.log10(xs.min()), np.log10(xs.max()), resample_n)
+            else:
+                gx = np.linspace(xs.min(), xs.max(), resample_n)
+            gy = resample_pchip(pts, gx, log_x=log_x)
+            entry["resampled"] = [[float(x), float(y)] for x, y in zip(gx, gy)]
+        out[name] = entry
+    return out
