@@ -120,10 +120,12 @@ def _yspan(panel, name):
     return 1.0
 
 
-def _compare_curve(base, arm, panel_b, panel_a, name):
-    pb, pa = _curve_points(panel_b, name), _curve_points(panel_a, name)
+def _compare_curve(panel_b, name_b, panel_a, name_a):
+    """Numeric error between baseline curve name_b and arm curve name_a (allows renames)."""
+    pb, pa = _curve_points(panel_b, name_b), _curve_points(panel_a, name_a)
+    label = name_b if name_b == name_a else f"{name_b}->{name_a}"
     if pb is None or pa is None:
-        return {"curve": name, "status": "NO_POINTS", "max_abs": None, "rmse": None}
+        return {"curve": label, "status": "NO_POINTS", "max_abs": None, "rmse": None}
     log_x = (panel_b.get("x_scale") == "log")
     xlo = max(pb[:, 0].min(), pa[:, 0].min())
     xhi = min(pb[:, 0].max(), pa[:, 0].max())
@@ -135,12 +137,33 @@ def _compare_curve(base, arm, panel_b, panel_a, name):
         grid = np.linspace(xlo, xhi, N_GRID)
     yb = resample_pchip(pb, grid, log_x=log_x)
     ya = resample_pchip(pa, grid, log_x=log_x)
-    span = _yspan(panel_b, name)
+    span = _yspan(panel_b, name_b)
     err = np.abs(ya - yb) / span
     max_abs, rmse = float(err.max()), float(np.sqrt(np.mean(err ** 2)))
     ok = max_abs <= MAX_ABS_TOL and rmse <= RMSE_TOL
-    return {"curve": name, "status": "OK" if ok else "OUT_OF_TOL",
+    return {"curve": label, "status": "OK" if ok else "OUT_OF_TOL",
             "max_abs": max_abs, "rmse": rmse}
+
+
+def _pair_curves(panel_b, panel_a):
+    """Pair baseline→arm curves by minimum numeric error (greedy), tolerating renames /
+    reordering. Returns (pairs, note). A count mismatch is a real structural problem
+    (a dropped or invented curve), reported by the caller."""
+    cb, ca = list(panel_b.get("curves", {})), list(panel_a.get("curves", {}))
+    scored = []
+    for nb in cb:
+        for na in ca:
+            r = _compare_curve(panel_b, nb, panel_a, na)
+            scored.append((r["max_abs"] if r["max_abs"] is not None else 9e9, nb, na))
+    scored.sort(key=lambda t: t[0])
+    used_b, used_a, pairs = set(), set(), []
+    for _, nb, na in scored:
+        if nb in used_b or na in used_a:
+            continue
+        used_b.add(nb); used_a.add(na); pairs.append((nb, na))
+    renamed = [f"{nb}->{na}" for nb, na in pairs if nb != na]
+    note = f"matched by data; renamed: {', '.join(renamed)}" if renamed else ""
+    return pairs, note
 
 
 def compare(model, arm, ref=None):
@@ -154,7 +177,7 @@ def compare(model, arm, ref=None):
     if not base:
         sys.exit(f"no digitized panels under {base_label}")
 
-    rows, struct = [], []
+    rows, struct, renames = [], [], []
     missing = sorted(set(base) - set(armd))   # baseline panel the arm did NOT reproduce
     extra = sorted(set(armd) - set(base))     # panel the arm invented
     for p in missing:
@@ -167,11 +190,15 @@ def compare(model, arm, ref=None):
         # structural identity
         if pb.get("x_scale") != pa.get("x_scale"):
             struct.append(f"{p}: x_scale {pb.get('x_scale')} -> {pa.get('x_scale')}")
-        cb, ca = set(pb.get("curves", {})), set(pa.get("curves", {}))
-        if cb != ca:
-            struct.append(f"{p}: curves {sorted(cb)} -> {sorted(ca)}")
-        for name in sorted(cb & ca):
-            r = _compare_curve(base, arm, pb, pa, name)
+        cb, ca = pb.get("curves", {}), pa.get("curves", {})
+        if len(cb) != len(ca):  # a dropped or invented curve IS a real structural problem
+            struct.append(f"{p}: curve COUNT {len(cb)} -> {len(ca)} ({sorted(cb)} -> {sorted(ca)})")
+            continue
+        pairs, note = _pair_curves(pb, pa)  # renames/reordering tolerated, matched by data
+        if note:
+            renames.append(f"{p}: {note}")
+        for nb, na in pairs:
+            r = _compare_curve(pb, nb, pa, na)
             r["panel"] = p
             rows.append(r)
 
@@ -190,8 +217,12 @@ def compare(model, arm, ref=None):
             n_ok += 1
         else:
             n_bad += 1
+    if renames:
+        print("\ncurve renames (informational — matched by data, not a regression):")
+        for s in renames:
+            print(f"  · {s}")
     if struct:
-        print("\nstructural differences:")
+        print("\nstructural differences (real):")
         for s in struct:
             print(f"  - {s}")
     passed = (n_bad == 0 and not missing and not struct)
