@@ -1,133 +1,86 @@
-# AGENTS.md — entry point for agent sessions
+# AGENTS.md — orchestrator entry point
 
-This file is the thin operational entry point for agents working in this
-repo. For full guidance, follow the pointers below.
+You are, almost always, the **orchestrator** of this repo: a session-level agent that
+*drives the reproduction process and serves the [VISION](VISION.md)*. You do not
+personally write a model's source / views / tests — the **process** does, through
+skill-driven subagents. Your job is to run the process, keep it honest, route decisions
+to the human, and grow the library toward the vision.
 
-> **Start with [VISION.md](VISION.md)** for *why this project exists* — the
-> four pillars (faithful · understandable · modifiable-by-scientific-judgment ·
-> process-as-deliverable), ordered and in tension. Then **read
-> [STATUS.md](STATUS.md)** for *what is actually built*: [WORKFLOW.md](WORKFLOW.md)
-> (the single consolidated process/structure doc) describes the *target*; parts (the
-> framework runner, stuck detector, `logs/*.csv`) are **not built**. The
-> citation/assumption
-> static check *is* built but presence-only and run manually (no CI). STATUS.md
-> is the canonical map of what actually exists and wins on any conflict.
+> If you were invoked **as a specific role** (a digitizer, implementer, auditor, …) rather
+> than to orchestrate, stop reading this and follow `skills/<your-role>/SKILL.md` — that is
+> the single source of truth for what your role produces and must never do. The per-role
+> directives are **not** duplicated here.
 
-**The reproduced corpus is indexed in [PAPERS.md](PAPERS.md)** — every paper in
-`models/`, grouped by cluster, with citation, DOI, and recorded status. The
-genealogy/rationale lives in
-[proposals/corpus-expansion-2026-06-02.md](proposals/corpus-expansion-2026-06-02.md).
+## Read these, in order
 
-## Identify your phase first
+- **[VISION.md](VISION.md)** — *why* the project exists: four **ordered, conflicting**
+  pillars — faithful **>** understandable **>** modifiable-by-scientific-judgment **>**
+  process-as-product. When a design choice is unclear, ask which pillar it serves; when
+  two conflict, the ordering decides. **Faithfulness is non-negotiable.**
+- **[STATUS.md](STATUS.md)** — what is *actually built*. **Canonical on reality; wins on
+  any conflict** with the aspirational docs. Navigate by this, not by machinery the other
+  docs describe in the present tense.
+- **[WORKFLOW.md](WORKFLOW.md)** — *how* a model is reproduced: the two-phase structure,
+  test generation, the faithfulness regime, the per-model layout, escalation triggers.
+- **[PAPERS.md](PAPERS.md)** — the reproduced corpus index (cluster, citation, DOI, status);
+  genealogy in `proposals/corpus-expansion-2026-06-02.md`.
 
-Your invocation context tells you which phase you're in. Read the
-matching section of [WORKFLOW.md](WORKFLOW.md) before doing anything.
+## The process you drive
 
-- **Phase 0 (source acquisition):** runs *before* Phase A. Gather all upstream
-  sources — published materials (main, Online Methods, Supplementary) into
-  `paper/`, original author code into `paper/code/` — and write `paper/SOURCES.md`
-  accounting for every artifact (obtained / exists-but-not-obtained /
-  confirmed-absent). Follow `skills/acquire-sources/SKILL.md`.
-- **Phase A (article extraction):** you have access to a paper and need
-  to produce the `article_aware/` artifacts. Read WORKFLOW.md §2 (Phase A) + §3
-  (how tests are generated — the figure checklist is authored *from the paper image*).
-  You may read `paper/code/` (a spec source); a value you take from it gets a
-  `CODE-NNN` entry in `article_aware/spec/code_refs.yaml`, tagged `source: CODE-NNN`.
-- **Phase B (model implementation):** you have access to
-  `article_aware/` but **NOT** to `paper/`. Read WORKFLOW.md §4 (Phase B) + §5
-  (calibration).
-- **Adversarial judge:** you receive only `rubric` / `context` /
-  `under_review`. Don't ask for or look at anything outside that.
+The reproduction loop is the **`full-pass` workflow** (`.claude/workflows/full-pass.js`):
+acquire → extract-spec + digitization gate → contract (audit-spec) gate → implement →
+verify (`audit-faithfulness` + `audit-process`, loop-until-dry) → **exit reconciliation** →
+finalize (stale-sweep, modification smoke test, **coverage gate**, README, submodule PR).
+It spawns one skill-driven subagent per role; **each role's directives live in
+`skills/<role>/SKILL.md`**, pinned into the model submodule by the workflow's `SK()` helper.
 
-If you're unsure which phase you're in, ask the user. Don't guess.
+Operational notes (the sharp edges — see memory): invoke it via **`scriptPath`** (the `name`
+form can read a stale snapshot); **branch the model submodule first**; cap concurrent
+full-passes at ~3–4; runs are resumable from cache via `resumeFromRunId`.
 
-## Critical DO NOTs
+## Invariants the process must preserve — and you must not bypass
 
-- **NEVER read `paper/` if you're in Phase B.** The whole approach
-  collapses if the implementation agent peeks at the paper. This includes
-  **`paper/code/`** (the original authors' code) — seeing it makes the
-  reproduction a translation, not an independent one. If something
-  isn't in `article_aware/`, it's an underspecification — escalate via
-  `logs/spec_questions.md`, don't go read the paper.
-- **NEVER write to `article_aware/` from Phase B.** Those artifacts are
-  the contract; only Phase A modifies them. If the spec is wrong, log a
-  spec question; don't silently fix the spec.
-- **NEVER skip the citation/assumption docstring.** Every function in
-  `implementation/src/` needs `Citation:` or `Assumption:` (or both) in
-  its docstring — or `Code:` `CODE-NNN` for a value taken from `paper/code/`. A
-  **presence+resolution** check exists
-  (`neuromodels/framework/static_checks/check_citations.py`, run manually —
-  `python -m neuromodels.framework.static_checks.check_citations`; no CI is
-  wired): it asserts every `C-NNN`/`A-NNN`/`CODE-NNN` tag *resolves* to its
-  ledger (`citations.yaml` / `assumptions.yaml` / `code_refs.yaml`),
-  **not** that the tag is on the right function or that the cited passage
-  supports the behavior. That *quality* check is a periodic human audit
-  (STATUS.md, WORKFLOW.md §4 and §6). A fourth class, `Lineage:` `LINEAGE-NNN`
-  (`lineage_refs.yaml`), tags a value **inherited from another paper in the
-  genealogy**; its ledger entry names the ancestor `model:` and a `ref:` into
-  that model's spec, and the check verifies the ancestor + ref resolve so the
-  link is traceable. `neuromodels provenance --model-dir models/<m>` buckets
-  calibrated values by source, surfaces the **code-alone** set (specified by the
-  authors' code, absent from the paper), and **traces lineage values through to
-  the ancestor's ultimate ground**.
-- **NEVER turn a sanity check into an assertion.** The moment you write
-  `assert`, it's a test. Move it to `tests/`.
-- **NEVER burn iterations past the cap.** The stuck-detector isn't built;
-  honor the documented iteration cap. In the autonomous program a STUCK
-  model is **deferred to a later wave** (program plan §6), never pushed on
-  indefinitely, and never a reason to halt the program.
+- **Faithfulness wins (Pillar 1).** Never let a believable-but-divergent result ship as
+  `faithful`. The **exit reconciliation** (an unverified digitization / open
+  `GENUINE_DIVERGENCE` / `BLOCKED` figure / `drifting` trajectory caps the exit at `partial`)
+  and the **coverage gate** (every figure's three committed views + a faithfulness audit must
+  exist) enforce this — don't route around them. Surfacing where the paper is underspecified
+  or wrong is a first-class deliverable, not a byproduct.
+- **Phase-B paper-blindness.** The implementer never sees `paper/` (incl. `paper/code/`) —
+  seeing it makes the reproduction a translation, not an independent one. The workflow enforces
+  it; never hand an implementer the paper.
+- **Commit ONLY inside the model submodule, never the parent.** Parent submodule-pointer bumps
+  are a separate, deliberate step — never part of a reproduction run. (Cut side-branches from
+  `origin/main`, not from an unmerged feature branch.)
+- **Keep the description matching the machinery.** When you change `full-pass.js`, update
+  STATUS.md in the *same* change. A doc that describes machinery that no longer runs is the
+  failure mode this project exists to prevent (see
+  `proposals/process-drift-register-2026-06-14.md`).
 
-## Quick reference: where things go
+## Provenance ledgers (reference)
 
-| What you want to do                            | Where to write                          |
-|------------------------------------------------|-----------------------------------------|
-| Acquired paper materials / SI / Online Methods | `paper/` (Phase-0; Phase-B forbidden)   |
-| Acquired original author code                  | `paper/code/` — **gitignored** (Phase-A source; Phase-B forbidden) |
-| Source provenance manifest (versioned)         | `paper/SOURCES.md`                      |
-| Code-sourced value provenance                  | `article_aware/spec/code_refs.yaml` (`CODE-NNN`) |
-| Value inherited from a genealogy ancestor       | `article_aware/spec/lineage_refs.yaml` (`LINEAGE-NNN`) |
-| Phase A artifact (spec, pseudocode, etc.)      | `article_aware/`                        |
-| Phase B model code                             | `implementation/src/`                   |
-| Phase B test                                   | `implementation/tests/`                 |
-| Phase B exploration script                     | `implementation/sanity_checks/`         |
-| Escalate spec ambiguity (impl agent)           | `logs/spec_questions.md` (append-only)  |
-| Record suspected paper error                   | `assumptions.yaml` / `spec_questions.md` |
-
-For the full directory layout and boundary rules, see
-[WORKFLOW.md](WORKFLOW.md) §1 (boundaries) and §8 (per-model layout).
+Every calibrated value / function carries a typed source tag resolving to a ledger:
+`C-NNN` → `citations.yaml` (paper), `A-NNN` → `assumptions.yaml` (evidenced guess),
+`CODE-NNN` → `code_refs.yaml` (authors' code), `LINEAGE-NNN` → `lineage_refs.yaml` (inherited
+from a genealogy ancestor). `neuromodels/framework/static_checks/check_citations.py` (run
+manually; **presence+resolution only**, no CI) asserts every tag resolves — *not* that it is on
+the right function or that the passage supports the behavior (that stays a human audit).
+`neuromodels provenance --model-dir models/<m>` buckets values by source.
 
 ## Useful commands
 
 ```bash
-# Install (editable). matplotlib is a CORE dep (figure rendering is core), so this
-# alone is enough to render + run render-dependent tests. [sanity] adds seaborn.
-pip install -e ".[test]"
+pip install -e ".[test]"   # editable; matplotlib is a CORE dep (rendering is core). [sanity] adds seaborn.
 
-# Use the project venv interpreter for tests + rendering — it has matplotlib.
-# The bare `python`/`pytest` on PATH may be the system (Homebrew) Python WITHOUT
-# matplotlib, which fails figure rendering / render-dependent tests (ModuleNotFoundError)
-# and blocks figure passes on stale renders.
+# Use the project venv interpreter for tests + rendering — the bare python/pytest on PATH may be
+# the system Python WITHOUT matplotlib, which fails rendering / render-dependent tests.
 .venv/bin/python -m pytest models/<model>/implementation/tests/
+cd models/<model> && PYTHONPATH=implementation/src ../../.venv/bin/python -m <model_pkg>.views   # render figures
 
-# Render a model's figures (needs matplotlib → use the venv)
-cd models/<model> && PYTHONPATH=implementation/src ../../.venv/bin/python -m <model_pkg>.views
-
-# Run a sanity check
-.venv/bin/python models/<model>/implementation/sanity_checks/check_<topic>.py
+# Coverage gate / cost report for a model
+python3 tools/check_figure_coverage.py models/<model> --figures 1,2,3
+python3 tools/repro_cost.py models/<model> --markdown
 ```
 
-## When to commit
-
-- **Every agent commits its own output when done** — its changes, or (for a
-  report-only role) its report — on the working branch, with a message that
-  matches the diff. The process-auditor reads commit messages against diffs, so
-  each pass leaves an atomic, honestly-described trail. Commit only inside the
-  model repo, never the parent.
-- Phase A: after spec+pseudocode complete, after data+figures complete,
-  after `APPROVED` is written.
-- Phase B: there is no runner — you make milestone commits when a component
-  or a figure protocol's tests all pass (on the model's feature branch;
-  commit only inside the model repo, never the parent).
-
-For full commit cadence and escalation flows, see
-[WORKFLOW.md](WORKFLOW.md).
+For the full directory layout, boundary rules, and commit cadence, see
+[WORKFLOW.md](WORKFLOW.md) §1, §8, §9.
