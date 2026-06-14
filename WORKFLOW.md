@@ -97,12 +97,18 @@ Produce everything a paper-blind implementer needs, under `article_aware/`. Foll
   finalizing — *but never let "the recipe reproduces its own claim" stand in for "the
   value matches the paper"* (see §5, `discriminating_threshold`).
 
-**Gate — `article_aware/APPROVED`.** Verdict and gate are **separate**: a reviewer
-returns a structured verdict; the **organizer writes `APPROVED`** on it. Use **≥2
-independent reviewers** (a real panel, not N=1 self-certifying its own gate);
-disagreement routes to the human. Before `APPROVED`: every checklist must pass the
-**sufficiency test** (§3) and every `audited:true` value must carry a captured verbatim
-quote (§5).
+**Gate — verdict ≠ gate.** A reviewer returns a structured verdict; the gate is a
+*separate* decision on it (the ≥2-reviewer panel below). Before passing: every checklist
+must pass the **sufficiency test** (§3) and every `audited:true` value must carry a
+captured verbatim quote (§5).
+
+> **As realized in `full-pass.js` (2026-06-14).** The contract gate is a **single**
+> adversarial `audit-spec` agent (author ≠ auditor *is* enforced), returning a structured
+> `SPEC_VERDICT` the workflow branches on — the "verdict ≠ gate" separation is honored as
+> *data*, not a written `article_aware/APPROVED` file (there is no human-approval step in the
+> automated pass). The **≥2-reviewer panel** is the *target*, not current behavior; the live
+> control is author≠auditor + an adversarial single auditor. Revisit if trials show a single
+> auditor misses contract faults.
 
 ---
 
@@ -436,6 +442,43 @@ Any open finding → the model is **`partial`, never `reproduced`**, until the o
 or human dispositions it. The headline status must derive from a paper-binding
 instrument independent of the checklist chain — **never let the report that spends the
 human's attention be authored by the signal it is supposed to audit.**
+
+### How the orchestrated workflow enforces this (`full-pass.js`)
+
+Until 2026-06-14 the acceptance list above was *described* but not *enforced* — the
+workflow could exit `faithful` with several conditions unchecked (the gap documented in
+`proposals/process-drift-register-2026-06-14.md`). It is now wired as concrete gates.
+**Vocabulary:** the workflow emits `faithful | partial | blocked`; `reproduced` is the
+human-facing name for **`faithful` with no open findings**. Mapping of acceptance items
+to mechanism:
+
+- **Item 1 (test coverage)** — delegated to the test suite + `audit-tests`; the
+  orchestrator does not independently enumerate per-stage coverage *(target, not gated)*.
+- **Item 2 (digitization is a verified ruler)** — **gated.** A `DIVERGENT`/`TOOL_MISUSE`
+  digitization caps the exit at `partial` (the model is never graded `faithful` against
+  an unconfirmed reference); a `BLOCKED` figure likewise. The audit returns a **per-panel**
+  verdict so a bad panel can't hide in a rolled-up figure status.
+- **Item 3 (modification smoke test)** — **partial.** The workflow runs a *minimal*
+  smoke test: perturb one `calibration.yaml` **scalar** on disk, re-render, confirm the
+  figure responds, revert. This proves the parameter is wired to the output; it is **not**
+  the full Pillar-3 **stage-swap** test (§4a / VISION Pillar 3), which awaits explicit
+  stage seams (*not built — the gap*). Recorded in the exit, not yet a hard gate.
+- **Item 4 (auditors have teeth)** — **gated.** An open `GENUINE_DIVERGENCE` (≈
+  `SUSPECTED-PAPER-ISSUE`/`ILLUSTRATIVE`) caps the exit at `partial`; a `drifting`
+  Process-Auditor trajectory caps at `partial`. The conceptual statuses above map to the
+  workflow's `FAITH_VERDICT` tags: `CONTRACT_BUG`/`CODE_BUG` = fixable `DIVERGENT`,
+  `PAPER_ISSUE` = `SUSPECTED-PAPER-ISSUE`, `GENUINE_DIVERGENCE` = an unresolved divergence.
+- **Coverage gate (the keystone)** — **gated.** Independent of content, every target
+  figure must carry its three **committed** views (paper crop `article_aware/figures/
+  figure_N.png` · digitized · implemented render `figures_reproduced/figure_N.png`) plus a
+  committed faithfulness audit (`tools/check_figure_coverage.py`). A required step that
+  silently did not run **blocks** the exit instead of riding along as a footnote — the
+  structural fix for "the description drifted from what the machinery does."
+
+The **figure-faithfulness instrument is `audit-faithfulness`** (re-render the model, compare
+against the digitized reference — paper-grounded by the separate digitization audit — and the
+paper). The older `compare-figure` / `neuromodels compare-figure-packet` VLM-checklist quorum is
+**superseded** by it and is now an optional supplement, not part of the orchestrated loop.
 
 ---
 
