@@ -449,8 +449,15 @@ Until 2026-06-14 the acceptance list above was *described* but not *enforced* �
 workflow could exit `faithful` with several conditions unchecked (the gap documented in
 `proposals/process-drift-register-2026-06-14.md`). It is now wired as concrete gates.
 **Vocabulary:** the workflow emits `faithful | partial | blocked`; `reproduced` is the
-human-facing name for **`faithful` with no open findings**. Mapping of acceptance items
-to mechanism:
+human-facing name for **`faithful` with no open findings**.
+
+Entrypoints are explicit: `from="extract"` runs the whole pass; `from="build"` skips
+Phase A when the article-aware contract is already faithful and performs a full Phase-B
+build; `from="fix"` enters at test-authoring for a built/audited model; and
+`from="digitize"` is a measurement harness for the digitization gate only, returning its
+verdict/error without finalize/commit/PR.
+
+Mapping of acceptance items to mechanism:
 
 - **Item 1 (test coverage)** — delegated to the test suite + `audit-tests`; the
   orchestrator does not independently enumerate per-stage coverage *(target, not gated)*.
@@ -468,12 +475,18 @@ to mechanism:
   Process-Auditor trajectory caps at `partial`. The conceptual statuses above map to the
   workflow's `FAITH_VERDICT` tags: `CONTRACT_BUG`/`CODE_BUG` = fixable `DIVERGENT`,
   `PAPER_ISSUE` = `SUSPECTED-PAPER-ISSUE`, `GENUINE_DIVERGENCE` = an unresolved divergence.
+  If the final verify round still has actionable `CONTRACT_BUG`/`CODE_BUG`/`PAPER_ISSUE`
+  findings, the workflow records them and exits without applying a mutation that no fresh
+  audit can certify.
 - **Coverage gate (the keystone)** — **gated.** Independent of content, every target
   figure must carry its three **committed** views (paper crop `article_aware/figures/
   figure_N.png` · digitized · implemented render `figures_reproduced/figure_N.png`) plus a
-  committed faithfulness audit (`tools/check_figure_coverage.py`). A required step that
-  silently did not run **blocks** the exit instead of riding along as a footnote — the
-  structural fix for "the description drifted from what the machinery does."
+  committed faithfulness audit (`tools/check_figure_coverage.py`). This is a deterministic
+  artifact-presence gate: the script supplies mechanical truth, while agents remain in the
+  loop for semantic/VLM judgment (digitization quality, figure faithfulness, test
+  groundedness, process drift). A required step that silently did not run **blocks** the
+  exit instead of riding along as a footnote — the structural fix for "the description
+  drifted from what the machinery does."
 
 The **figure-faithfulness instrument is `audit-faithfulness`** (re-render the model, compare
 against the digitized reference — paper-grounded by the separate digitization audit — and the
