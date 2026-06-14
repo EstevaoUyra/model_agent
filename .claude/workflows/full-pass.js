@@ -48,6 +48,27 @@ const SK = (name) =>
 const OPUS = 'claude-opus-4-8'     // non-implementer roles: opus, NO 1M
 const IMPL = 'claude-opus-4-8[1m]' // implementer only: opus + 1M
 
+// ── digitization cost levers (default OFF — production behaviour is unchanged until
+//    explicitly enabled via args; the from='digitize' A/B harness sets them per arm) ──
+//  L1 (batched tooling): nudge the digitizer+auditor to use the one-call
+//     overlay_with_crops / trace_bands helpers so the trace/inspect loop costs ~1-2
+//     turns instead of ~20 (cache-read scales with turns — the dominant cost).
+//  L2 (diff-scoped audit): in rounds >=2 the auditor re-audits ONLY the figures the
+//     digitizer just re-traced, carrying prior FAITHFUL verdicts forward (the digitizer
+//     is already diff-scoped; this stops re-paying to re-audit figures that passed).
+const L1 = !!A.lever1
+const L2 = !!A.lever2
+const BATCH_NOTE = L1
+  ? ` To minimise tool round-trips (each one re-reads your whole context), prefer the BATCHED ` +
+    `helpers: \`trace_bands(image, {name:(cols,row_lo,row_hi),...}, calibration, resample_n=...)\` ` +
+    `traces EVERY curve/band in ONE call, and ` +
+    `\`overlay_with_crops(image, calibration, curves, out_dir, regions=[...])\` returns the shipping ` +
+    `overlay PLUS all diagnostic zoom-crops (apex / endpoints / crossings) in ONE call so you view ` +
+    `them together and conclude in a single turn instead of one crop_region round-trip at a time ` +
+    `(\`from neuromodels.framework.figures import trace_bands, overlay_with_crops\`). Still ` +
+    `adversarially inspect every overlay and crop — the helpers cut TURNS, never scrutiny.`
+  : ''
+
 // ── structured verdicts that drive the routing (so the script branches on data, not prose) ──
 const DIG_VERDICT = {
   type: 'object', additionalProperties: false,
@@ -69,10 +90,24 @@ const DIG_VERDICT_MULTI = {
         type: 'object', additionalProperties: false,
         properties: {
           figure: { type: 'string' },
-          status: { enum: ['FAITHFUL', 'DIVERGENT', 'TOOL_MISUSE', 'BLOCKED'] },
+          status: { enum: ['FAITHFUL', 'DIVERGENT', 'TOOL_MISUSE', 'BLOCKED'] }, // ROLLED-UP = worst panel
           worst_defect: { type: 'string' },     // what the next re-digitize of THIS figure must fix
+          // PER-PANEL breakdown (D5): the single-sweep gate must NOT hide a bad panel inside a
+          // rolled-up figure status. One entry per panel; figure.status is the worst panel's status.
+          panels: {
+            type: 'array',
+            items: {
+              type: 'object', additionalProperties: false,
+              properties: {
+                panel: { type: 'string' },
+                status: { enum: ['FAITHFUL', 'DIVERGENT', 'TOOL_MISUSE', 'BLOCKED'] },
+                defect: { type: 'string' },
+              },
+              required: ['panel', 'status'],
+            },
+          },
         },
-        required: ['figure', 'status', 'worst_defect'],
+        required: ['figure', 'status', 'worst_defect', 'panels'],
       },
     },
   },
@@ -107,6 +142,37 @@ const PROC_VERDICT = {
     concerns: { type: 'array', items: { type: 'string' } },
   },
   required: ['trajectory'],
+}
+// Coverage gate verdict (D0) — relays tools/check_figure_coverage.py's JSON. The script (not the
+// agent) is the arbiter; the agent only reports it, so a missing artifact cannot be rationalized away.
+const COVERAGE_VERDICT = {
+  type: 'object', additionalProperties: false,
+  properties: {
+    all_complete: { type: 'boolean' },
+    faithfulness_audit_ran: { type: 'boolean' },
+    figures: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false,
+        properties: {
+          figure: { type: 'string' },
+          original: { type: 'boolean' }, implemented: { type: 'boolean' }, digitized: { type: 'boolean' },
+          complete: { type: 'boolean' }, missing: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['figure', 'complete'],
+      },
+    },
+  },
+  required: ['all_complete'],
+}
+// Modification smoke test verdict (D6, Pillar 3) — did perturbing one config knob move the figure?
+const SMOKE_VERDICT = {
+  type: 'object', additionalProperties: false,
+  properties: {
+    ran: { type: 'boolean' }, responded: { type: 'boolean' },
+    param: { type: 'string' }, note: { type: 'string' },
+  },
+  required: ['ran'],
 }
 // audit-spec verdict — drives the Phase-A gate and the paper-fix verify step.
 const SPEC_VERDICT = {
@@ -237,12 +303,48 @@ const finalize = async () => {
   //     contract and refresh them (olshausen stale docstring). Skip cleanly if nothing changed.
   await agent(
     `${SK('run-tests')} Stale-artifact sweep for ${MODEL} before the README/commit. (a) RE-RENDER every ` +
-    `figure from the CURRENT model with ${PY} (never trust a committed snapshot). (b) Find every ` +
-    `xfail(strict) that now XPASSes because the model was fixed and CONVERT it to a must-pass (or an ` +
-    `honest relabel) — an XPASS-strict left in place flips the suite RED; never leave one. (c) Grep ` +
-    `docstrings / README / spec prose for PRE-FIX numbers that contradict the now-binding contract and ` +
-    `refresh them. Commit the sweep. If nothing is stale, say so and make no change.`,
+    `figure from the CURRENT model with ${PY} (never trust a committed snapshot), THEN PROMOTE each fresh ` +
+    `render to a COMMITTED \`figures_reproduced/figure_<N>.png\` (this is the README's 'implemented' view + ` +
+    `the coverage gate's render artifact; \`implementation/figure_outputs/\` is gitignored scratch, so a ` +
+    `render left only there is invisible to the committed repo). (b) Find every xfail(strict) that now ` +
+    `XPASSes because the model was fixed and CONVERT it to a must-pass (or an honest relabel) — an ` +
+    `XPASS-strict left in place flips the suite RED; never leave one. (c) Grep docstrings / README / spec ` +
+    `prose for PRE-FIX numbers that contradict the now-binding contract and refresh them. Commit the sweep. ` +
+    `If nothing is stale, say so — but the fresh committed figures_reproduced/ renders are required regardless.`,
     { label: 'stale-artifact sweep', phase: 'Report', model: OPUS })
+  // (0b) MODIFICATION SMOKE TEST (D6, Pillar 3 — modifiable by config) + (0c) COVERAGE GATE (D0, the
+  //      keystone). Both only meaningful once a model is actually built, so skip on a Phase-A/contract
+  //      block (exit already 'blocked'); the coverage gate runs whenever figures were in scope.
+  if (FIGURES.length && exit.overall !== 'blocked') {
+    const smoke = await agent(
+      `Modification smoke test for ${MODEL} (VISION Pillar 3 — a scientist can change it via config). ` +
+      `Pick ONE scientifically-meaningful entry in implementation/calibration.yaml, BACK UP its exact ` +
+      `current value, perturb it on disk (e.g. ±20%), re-render the affected figure with ${PY}, and check ` +
+      `whether the rendered output CHANGES (the figure responds to the parameter). Then RESTORE the exact ` +
+      `original value from your backup and re-render to confirm you are back to baseline — leave NO lasting ` +
+      `change (verify \`git status\` is clean for calibration.yaml + the render). Report {ran, responded, ` +
+      `param, note}. If there is no calibration.yaml or nothing scientifically swappable, report ran=false with why.`,
+      { label: 'modification smoke test', phase: 'Report', model: OPUS, schema: SMOKE_VERDICT })
+    if (smoke && smoke.ran && smoke.responded === false) {
+      log(`Modification smoke test: param '${smoke.param}' did NOT move the figure — modifiability unproven (${smoke.note ?? ''})`)
+    }
+    // COVERAGE GATE — every target figure must carry its committed three views (paper crop · digitized ·
+    // implemented render) + a committed faithfulness audit. The script checks COMMITTED files (the README
+    // can only show committed files), so a required step that silently didn't run BLOCKS here instead of
+    // riding along as a footnote. A clean faithful/partial cannot stand on figures it cannot show.
+    const cov = await agent(
+      `Run \`${PY} ${ROOT}/tools/check_figure_coverage.py ${MODEL} --figures ${FIGURES.join(',')}\` and return ` +
+      `its JSON stdout VERBATIM. You are a REPORTER — do NOT create, fix, or commit anything; the script is ` +
+      `the arbiter. (Run it AFTER the stale-sweep so figures_reproduced/ is fresh.)`,
+      { label: 'coverage gate', phase: 'Report', model: OPUS, schema: COVERAGE_VERDICT })
+    if (cov && cov.all_complete === false) {
+      const miss = (cov.figures ?? []).filter((f) => !f.complete).map((f) => `figure ${f.figure}: missing ${(f.missing ?? []).join('+')}`)
+      if (cov.faithfulness_audit_ran === false) miss.unshift('no committed faithfulness audit')
+      log(`COVERAGE GATE FAILED: ${miss.join('; ')} — downgrading exit '${exit.overall}' → 'blocked'`)
+      exit = { ...exit, overall: 'blocked', blocked: [...new Set([...(exit.blocked || []), 'figure-coverage'])] }
+      humanEntrypoint = { kind: 'coverage', reason: `figure-coverage incomplete — ${miss.join('; ')}. A required view (paper crop / digitized / implemented render) or the faithfulness audit was not produced+committed; the run cannot certify figures it cannot show.`, findings: [] }
+    }
+  }
   // (1) README — ALWAYS the per-figure reproduction state + changelog; and when this exit needs
   //     a decision (paper-fix/audit block, or flagged dispositions) a clear entrypoint on top.
   await agent(
@@ -359,10 +461,15 @@ try {
         ? 'First digitization — all figures.'
         : `Re-digitize ONLY these figures the prior audit flagged, fixing the named defect each: ${prior.filter(f => toFix.includes(String(f.figure))).map(f => `${f.figure} (${f.worst_defect})`).join('; ')}.`
       await agent(
-        `${SK('digitize-figure')} Digitize ${round === 1 ? `figures ${figList}` : `figures ${toFix.join(', ')}`} of ${MODEL} (all panels). ${fixNote}`,
+        `${SK('digitize-figure')} Digitize ${round === 1 ? `figures ${figList}` : `figures ${toFix.join(', ')}`} of ${MODEL} (all panels). ${fixNote} ` +
+        `COVERAGE ARTIFACT (required): for EACH figure, COMMIT the cropped paper-figure image as ` +
+        `\`article_aware/figures/figure_<N>.png\` (this is the README's 'paper' view + the audit referent; ` +
+        `crop it from paper/paper.pdf — do NOT leave it only in .audittmp/). If a figure (or panel) is a ` +
+        `genuine schematic with NO digitizable data, still commit the crop AND write a one-line ` +
+        `\`article_aware/figures/figure_<N>.nodigitize\` marker stating why — never silently skip a figure.`,
         { label: `digitize:all r${round}`, phase: 'Digitization gate', model: OPUS })
       digVerdict = await agent(
-        `${SK('audit-digitization')} Audit the digitization of figures ${figList} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer. Return a SEPARATE verdict for EVERY figure (one entry per figure in: ${figList}) — give each the same scrutiny, do NOT skim the later figures. Where two or more figures share the SAME defect, say so in each worst_defect so one fix can address them together.`,
+        `${SK('audit-digitization')} Audit the digitization of figures ${figList} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer. Return a SEPARATE verdict for EVERY figure (one entry per figure in: ${figList}) AND, inside each figure, a per-PANEL verdict (one entry per panel) — the figure's status is the WORST panel's status, so a single bad panel can never hide inside a rolled-up FAITHFUL figure. Also commit your per-panel report to logs/digitization_audit/<date>.md as the skill requires. Give each figure the same scrutiny, do NOT skim the later figures. Where two or more figures share the SAME defect, say so in each worst_defect so one fix can address them together.`,
         { label: `dig-audit:all r${round}`, phase: 'Digitization gate', model: OPUS, schema: DIG_VERDICT_MULTI })
       // null = the audit agent died on a TRANSIENT API error. Never throw on .figures — synthesize a
       // blocked verdict for every figure and stop; a resume re-runs the sweep cheaply.
@@ -484,10 +591,27 @@ try {
       { label: `phaseB-fix r${round}`, phase: 'Verify', model: IMPL })
   }
 
-  // ── normal completion — set the shared exit state for finalize() ──
-  exit = { overall: faith?.overall ?? 'unknown', trajectory: proc?.trajectory ?? 'unknown', flagged_count: flagged.length, blocked: digBlocked.map(b => b.fig) }
+  // ── normal completion — EXIT RECONCILIATION (faithfulness teeth) ──
+  // The headline is NOT just the faithfulness auditor's word. A clean 'faithful' requires the
+  // WHOLE regime to agree; any of these downgrades it — we never ship a 'believable but divergent'
+  // faithful (VISION Pillar 1). See proposals/process-drift-register-2026-06-14.md (D1/D2/D3).
+  let overall = faith?.overall ?? 'unknown'
+  const reasons = []
+  // D1: an unverified RULER cannot certify the model. A DIVERGENT/TOOL_MISUSE digitization means
+  //     the reference the tiers grade against is itself unconfirmed → cap at partial.
+  const digUnverified = digBlocked.filter((b) => b.status === 'DIVERGENT' || b.status === 'TOOL_MISUSE')
+  // A BLOCKED required figure could not be reproduced at all → it blocks the faithful sign-off.
+  const digBlockedFigs = digBlocked.filter((b) => b.status === 'BLOCKED')
+  if (overall === 'faithful' && digUnverified.length) { overall = 'partial'; reasons.push(`${digUnverified.length} figure(s) with an unverified digitization (DIVERGENT/TOOL_MISUSE) — cannot grade the model against an unconfirmed reference`) }
+  if (overall === 'faithful' && digBlockedFigs.length) { overall = 'partial'; reasons.push(`${digBlockedFigs.length} BLOCKED figure(s) (not reproduced)`) }
+  // D2: any open GENUINE_DIVERGENCE is an open finding → never 'faithful'.
+  if (overall === 'faithful' && flagged.length) { overall = 'partial'; reasons.push(`${flagged.length} open GENUINE_DIVERGENCE`) }
+  // D3: a drifting process trajectory (bending toward green, not paper) holds the model at partial.
+  if (overall === 'faithful' && proc?.trajectory === 'drifting') { overall = 'partial'; reasons.push('process auditor: trajectory drifting (toward green, not paper)') }
+  if (reasons.length) log(`Exit reconciliation: faithfulness auditor said '${faith?.overall}' → '${overall}' (${reasons.join('; ')})`)
+  exit = { overall, trajectory: proc?.trajectory ?? 'unknown', flagged_count: flagged.length, blocked: digBlocked.map(b => b.fig) }
   openFindings = faith?.findings ?? []
-  if (flagged.length) humanEntrypoint = { kind: 'review', reason: `${flagged.length} flagged disposition(s) to confirm`, findings: flagged }
+  if (flagged.length || reasons.length) humanEntrypoint = { kind: 'review', reason: [flagged.length ? `${flagged.length} flagged disposition(s) to confirm` : null, ...reasons].filter(Boolean).join('; '), findings: flagged }
 } finally {
   // README human-entrypoint + commit + push + PR — on EVERY exit, without exception.
   await finalize()
