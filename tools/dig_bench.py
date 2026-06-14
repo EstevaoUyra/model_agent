@@ -48,29 +48,45 @@ def _arm_dir(model, arm):
     return os.path.join(MODELS, f"{model}__{arm}")
 
 
+# Artifacts that would let a re-digitizing agent SNOOP the answer instead of reading it off
+# the paper. The clone is paper-ONLY (a true blind re-digitization): describe regenerates the
+# figure descriptions + crops from paper.pdf, digitize traces them. Anything that encodes a
+# prior digitized value — the JSON, the overlays drawn on the paper, the audit logs/verdicts,
+# the rendered figures, the implementation, the README tables, AND paper/code (which can hold
+# the figure-generating data itself) — is excluded.
 def clone(model, arm):
     src = os.path.join(MODELS, model)
     if not os.path.isdir(src):
         sys.exit(f"no such model: {src}")
+    if not os.path.isfile(os.path.join(src, "paper", "paper.pdf")):
+        sys.exit(f"no paper/paper.pdf under models/{model} — cannot run a paper-only re-digitization")
     dst = _arm_dir(model, arm)
     if os.path.exists(dst):
         shutil.rmtree(dst)
-    # copy the working tree (filesystem copy — brings paper.pdf etc. regardless of
-    # gitignore), but NOT the submodule's .git gitlink (would break git in the clone).
-    subprocess.run(["rsync", "-a", "--exclude", ".git", "--exclude", ".audittmp",
-                    f"{src}/", f"{dst}/"], check=True)
-    # strip the digitized JSON so the digitizer actually re-runs (else it just re-audits).
-    stripped = glob.glob(os.path.join(dst, "article_aware", "figures", "*",
-                                      "panel_*_digitized.json"))
-    for f in stripped:
-        os.remove(f)
+    # WHITELIST copy: only paper materials, and NOT paper/code (figure-generating data = the
+    # answer). No article_aware, no logs, no implementation, no README, no renders, no git history.
+    os.makedirs(os.path.join(dst, "paper"))
+    subprocess.run(["rsync", "-a", "--exclude", "code/", "--exclude", ".git",
+                    f"{src}/paper/", f"{dst}/paper/"], check=True)
+    # SNOOP CHECK — assert the clone has zero answer-revealing artifacts before we run on it.
+    leaks = []
+    for pat in ("**/panel_*_digitized.json", "**/*overlay*.png", "**/*reference*.png",
+                "logs/**", "implementation/**", "README.md", "article_aware/**",
+                "figure_outputs/**", "figures_reproduced/**", "paper/code/**"):
+        leaks += glob.glob(os.path.join(dst, pat), recursive=True)
+    leaks = [f for f in leaks if os.path.isfile(f)]
+    if leaks:
+        shutil.rmtree(dst)
+        sys.exit(f"SNOOP CHECK FAILED — clone would expose {len(leaks)} answer artifact(s), e.g. "
+                 f"{os.path.relpath(leaks[0], dst)}. Aborted.")
     # a fresh standalone repo so the gate's agents can commit cleanly + leave an honest diff.
     env = {**os.environ, "GIT_AUTHOR_NAME": "bench", "GIT_AUTHOR_EMAIL": "bench@local",
            "GIT_COMMITTER_NAME": "bench", "GIT_COMMITTER_EMAIL": "bench@local"}
     for cmd in (["git", "init", "-q"], ["git", "add", "-A"],
-                ["git", "commit", "-q", "-m", f"baseline clone of {model} (digitized JSON stripped)"]):
+                ["git", "commit", "-q", "-m", f"paper-only blind clone of {model} (no prior digitization)"]):
         subprocess.run(cmd, cwd=dst, env=env, check=True)
-    print(f"cloned -> models/{model}__{arm}  ({len(stripped)} digitized JSON stripped)")
+    kept = [os.path.relpath(f, dst) for f in glob.glob(os.path.join(dst, "paper", "*"))]
+    print(f"cloned -> models/{model}__{arm}  (paper-only, snoop-check PASSED; kept: {sorted(kept)})")
     print(f"  run: Workflow full-pass.js  args={{model:'models/{model}__{arm}', "
           f"figures:[...], from:'digitize', lever1:<bool>, lever2:<bool>}}")
 
