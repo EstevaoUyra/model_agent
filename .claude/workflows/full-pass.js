@@ -11,13 +11,15 @@ export const meta = {
   ],
 }
 
-// args: { model: 'models/<name>', figures: ['2',...], from?: 'extract' | 'build' | 'fix' }
+// args: { model, figures: ['2',...], from?: 'extract'|'build'|'fix'|'digitize', lever1?, lever2? }
 // Robust to args arriving as either a parsed object or a JSON-encoded string.
 const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
 const MODEL = A.model
 const FIGURES = A.figures || []
 // 'extract' = fresh full pass | 'build' = full Phase-B implement on an already-FAITHFUL contract
 // (Phase A done/approved, Phase B unbuilt or partial) | 'fix' = built+audited: repair recent change
+// | 'digitize' = A/B HARNESS: run ONLY the digitization gate (no finalize/commit) to measure the
+//   digitize+audit cost/quality of the levers; needs figure descriptions already on disk.
 const FROM = A.from || 'extract'
 const MAX_ROUNDS = 3
 const MAX_PAPERFIX = 2 // paper-fix ↔ implement iterations per contract fault before honest BLOCKED
@@ -401,6 +403,73 @@ const blockedExit = (reason, findings) => {
   return { from: FROM, exit, blocked: ['model:contract'], spec: findings }
 }
 
+// ── the digitization gate, shared by from=extract and the from=digitize A/B harness ──────────
+// One agent per role over the given figures (a single SWEEP, not a per-figure fan-out): digitize →
+// audit, re-digitizing ONLY the figures the prior audit flagged. The prompts (coverage artifact +
+// per-panel verdict) are byte-identical to the inline gate; with both levers OFF this produces the
+// SAME agent calls as before. The two levers layer on without changing the role sequence or the
+// digitizer≠auditor separation:
+//   L1 → BATCH_NOTE appended to both prompts (use the one-call helpers; cut turns, not scrutiny).
+//   L2 → in rounds >=2 the auditor re-audits ONLY the figures just re-digitized; prior FAITHFUL
+//        verdicts are carried forward (a figure untouched since it passed cannot have regressed).
+const runDigitizationGate = async (figs) => {
+  const figList = figs.join(', ')
+  let digVerdict = null
+  const carried = new Map() // fig -> latest verdict (lets L2 keep prior FAITHFULs across rounds)
+  for (let round = 1; round <= MAX_ROUNDS; round++) {
+    const prior = digVerdict?.figures ?? []
+    const toFix = round === 1
+      ? figs.map(String)
+      : prior.filter(f => f.status === 'DIVERGENT' || f.status === 'TOOL_MISUSE').map(f => String(f.figure))
+    if (round > 1 && toFix.length === 0) break
+    const fixNote = round === 1
+      ? 'First digitization — all figures.'
+      : `Re-digitize ONLY these figures the prior audit flagged, fixing the named defect each: ${prior.filter(f => toFix.includes(String(f.figure))).map(f => `${f.figure} (${f.worst_defect})`).join('; ')}.`
+    await agent(
+      `${SK('digitize-figure')} Digitize ${round === 1 ? `figures ${figList}` : `figures ${toFix.join(', ')}`} of ${MODEL} (all panels). ${fixNote} ` +
+      `COVERAGE ARTIFACT (required): for EACH figure, COMMIT the cropped paper-figure image as ` +
+      `\`article_aware/figures/figure_<N>.png\` (this is the README's 'paper' view + the audit referent; ` +
+      `crop it from paper/paper.pdf — do NOT leave it only in .audittmp/). If a figure (or panel) is a ` +
+      `genuine schematic with NO digitizable data, still commit the crop AND write a one-line ` +
+      `\`article_aware/figures/figure_<N>.nodigitize\` marker stating why — never silently skip a figure.${BATCH_NOTE}`,
+      { label: `digitize:all r${round}`, phase: 'Digitization gate', model: OPUS })
+    // L2: in rounds >=2 audit ONLY the just-re-digitized figures; else audit ALL (production default).
+    const auditFigs = (L2 && round > 1) ? toFix : figs.map(String)
+    const auditList = auditFigs.join(', ')
+    const v = await agent(
+      `${SK('audit-digitization')} Audit the digitization of figures ${auditList} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer. Return a SEPARATE verdict for EVERY figure (one entry per figure in: ${auditList}) AND, inside each figure, a per-PANEL verdict (one entry per panel) — the figure's status is the WORST panel's status, so a single bad panel can never hide inside a rolled-up FAITHFUL figure. Also commit your per-panel report to logs/digitization_audit/<date>.md as the skill requires. Give each figure the same scrutiny, do NOT skim the later figures. Where two or more figures share the SAME defect, say so in each worst_defect so one fix can address them together.${BATCH_NOTE}`,
+      { label: `dig-audit:${(L2 && round > 1) ? 'diff' : 'all'} r${round}`, phase: 'Digitization gate', model: OPUS, schema: DIG_VERDICT_MULTI })
+    // null = the audit agent died on a TRANSIENT API error — synthesise a blocked verdict for every
+    // figure and stop; a resume re-runs the sweep cheaply.
+    if (!v) { digVerdict = { figures: figs.map(f => ({ figure: String(f), status: 'BLOCKED', worst_defect: 'digitization audit failed transiently (API rate-limit) — resume to retry' })) }; break }
+    // merge: new verdicts overwrite; figures outside this audit's scope keep their prior verdict.
+    for (const e of v.figures) carried.set(String(e.figure), e)
+    digVerdict = { figures: figs.map(f => carried.get(String(f)) ?? { figure: String(f), status: 'BLOCKED', worst_defect: 'no per-figure verdict returned — resume to retry' }) }
+    if (digVerdict.figures.every(f => f.status === 'FAITHFUL' || f.status === 'BLOCKED')) break
+  }
+  return digVerdict
+}
+
+// ── from='digitize' — A/B MEASUREMENT HARNESS (not a reproduction pass) ───────────────────────
+// Runs ONLY the digitization gate over FIGURES, then returns. NO acquire / spec / implement /
+// verify, and NO finalize (no README rewrite, no commit, no PR). It reuses the EXACT gate the real
+// from=extract pass uses, so a cost/quality A/B here measures the production code path. Pre-req: the
+// figure descriptions (article_aware/figures/figure_N.md) already exist on disk (an already-built
+// model / a fixture clone). Toggle levers per arm with args.lever1 / args.lever2; the digitizer
+// writes the digitized JSON to disk for the comparator to grade against the frozen baseline.
+if (FROM === 'digitize') {
+  phase('Digitization gate')
+  let digVerdict = null
+  try {
+    digVerdict = await runDigitizationGate(FIGURES)
+  } catch (e) {
+    log(`from='digitize' gate threw: ${e && e.message ? e.message : e}`)
+  }
+  const figures = digVerdict?.figures ?? []
+  log(`from='digitize' done (lever1=${L1} lever2=${L2}) — ${figures.map(f => `${f.figure}:${f.status}`).join(' ') || 'no verdict'}`)
+  return { from: 'digitize', model: MODEL, lever1: L1, lever2: L2, figures }
+}
+
 try {
   // ════════════════ PHASE A + initial implement — only on a FRESH pass ════════════════
   if (FROM === 'extract') {
@@ -450,32 +519,8 @@ try {
     await agent(
       `${SK('extract-figure')} Describe figures ${figList} of ${MODEL} — for EACH figure: panels, axis limits, model-panels-only scope. A panel that is a RENDERED MODEL OUTPUT is a reproduction target even inside a schematic. If a figure's paper image is missing, mark THAT figure BLOCKED (do not block the others).`,
       { label: 'fig-extract:all', phase: 'Extract', model: OPUS })
-    let digVerdict = null
-    for (let round = 1; round <= MAX_ROUNDS; round++) {
-      const prior = digVerdict?.figures ?? []
-      const toFix = round === 1
-        ? FIGURES.map(String)
-        : prior.filter(f => f.status === 'DIVERGENT' || f.status === 'TOOL_MISUSE').map(f => String(f.figure))
-      if (round > 1 && toFix.length === 0) break
-      const fixNote = round === 1
-        ? 'First digitization — all figures.'
-        : `Re-digitize ONLY these figures the prior audit flagged, fixing the named defect each: ${prior.filter(f => toFix.includes(String(f.figure))).map(f => `${f.figure} (${f.worst_defect})`).join('; ')}.`
-      await agent(
-        `${SK('digitize-figure')} Digitize ${round === 1 ? `figures ${figList}` : `figures ${toFix.join(', ')}`} of ${MODEL} (all panels). ${fixNote} ` +
-        `COVERAGE ARTIFACT (required): for EACH figure, COMMIT the cropped paper-figure image as ` +
-        `\`article_aware/figures/figure_<N>.png\` (this is the README's 'paper' view + the audit referent; ` +
-        `crop it from paper/paper.pdf — do NOT leave it only in .audittmp/). If a figure (or panel) is a ` +
-        `genuine schematic with NO digitizable data, still commit the crop AND write a one-line ` +
-        `\`article_aware/figures/figure_<N>.nodigitize\` marker stating why — never silently skip a figure.`,
-        { label: `digitize:all r${round}`, phase: 'Digitization gate', model: OPUS })
-      digVerdict = await agent(
-        `${SK('audit-digitization')} Audit the digitization of figures ${figList} of ${MODEL} against the paper (adversarial overlay + crop_region). You are NOT the digitizer. Return a SEPARATE verdict for EVERY figure (one entry per figure in: ${figList}) AND, inside each figure, a per-PANEL verdict (one entry per panel) — the figure's status is the WORST panel's status, so a single bad panel can never hide inside a rolled-up FAITHFUL figure. Also commit your per-panel report to logs/digitization_audit/<date>.md as the skill requires. Give each figure the same scrutiny, do NOT skim the later figures. Where two or more figures share the SAME defect, say so in each worst_defect so one fix can address them together.`,
-        { label: `dig-audit:all r${round}`, phase: 'Digitization gate', model: OPUS, schema: DIG_VERDICT_MULTI })
-      // null = the audit agent died on a TRANSIENT API error. Never throw on .figures — synthesize a
-      // blocked verdict for every figure and stop; a resume re-runs the sweep cheaply.
-      if (!digVerdict) { digVerdict = { figures: FIGURES.map(f => ({ figure: String(f), status: 'BLOCKED', worst_defect: 'digitization audit failed transiently (API rate-limit) — resume to retry' })) }; break }
-      if (digVerdict.figures.every(f => f.status === 'FAITHFUL' || f.status === 'BLOCKED')) break
-    }
+    // ③ digitize → ④ audit gate (shared with from=digitize; levers default OFF → identical calls).
+    const digVerdict = await runDigitizationGate(FIGURES)
 
     await specDone
     // normalize the per-figure verdict to the downstream {fig, status, defect} shape; a figure the
