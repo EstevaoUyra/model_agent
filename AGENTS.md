@@ -50,12 +50,35 @@ full-passes at ~3–4; runs are resumable from cache via `resumeFromRunId`.
   seeing it makes the reproduction a translation, not an independent one. The workflow enforces
   it; never hand an implementer the paper.
 - **Commit ONLY inside the model submodule, never the parent.** Parent submodule-pointer bumps
-  are a separate, deliberate step — never part of a reproduction run. (Cut side-branches from
-  `origin/main`, not from an unmerged feature branch.)
+  are a separate, deliberate step — never part of a reproduction run.
 - **Keep the description matching the machinery.** When you change `full-pass.js`, update
   STATUS.md in the *same* change. A doc that describes machinery that no longer runs is the
   failure mode this project exists to prevent (see
   `proposals/process-drift-register-2026-06-14.md`).
+
+## Git discipline (non-negotiable)
+
+The working copy is **shared** — the orchestrator, the workflow's subagents, and the human may
+all touch this repo at once, so the main checkout's HEAD moves under you. **Never assume what
+branch you are on, and never `git checkout` in a shared working copy for your own change** —
+that is how unrelated work gets bundled into the wrong branch (it happened: a docs PR swallowed a
+parallel feature branch's commits because the branch was cut from whatever HEAD happened to be).
+
+- **Use a dedicated worktree, never an in-place checkout.** Cut a fresh branch from a
+  verified-clean base into its *own* working directory, so concurrent agents never fight over
+  HEAD or the index:
+  ```bash
+  git fetch -q origin
+  git worktree add ../ma-wt-<name> -b <name> origin/main
+  # ...edit / commit / push / open the PR from inside ../ma-wt-<name>...
+  git worktree remove ../ma-wt-<name>
+  ```
+- **Stage by explicit path** — `git add <file> …`, never `git add -A` or `git commit -a`.
+- **Before you push OR merge, verify the diff is exactly your change:**
+  `git diff --stat origin/main...HEAD`. If it lists a file you didn't intend, your base was
+  wrong — stop and fix it; do **not** merge.
+- Model-internal work commits inside the **model submodule** (its own repo); the parent only
+  ever takes deliberate submodule-pointer bumps, never a run's incidental changes.
 
 ## Provenance ledgers (reference)
 
