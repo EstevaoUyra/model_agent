@@ -97,3 +97,15 @@
 [submodule "models/roxin_ledberg_2008"]
 	path = models/roxin_ledberg_2008
 	url = git@github.com:EstevaoUyra/roxin_ledberg_2008.git
+[submodule "models/izhikevich_2003"]
+	path = models/izhikevich_2003
+	url = git@github.com:EstevaoUyra/izhikevich_2003.git
+[submodule "models/ratcliff_mckoon_2008"]
+	path = models/ratcliff_mckoon_2008
+	url = git@github.com:EstevaoUyra/ratcliff_mckoon_2008.git
+[submodule "models/itti_koch_niebur_1998"]
+	path = models/itti_koch_niebur_1998
+	url = git@github.com:EstevaoUyra/itti_koch_niebur_1998.git
+[submodule "models/hyvarinen_hoyer_2000"]
+	path = models/hyvarinen_hoyer_2000
+	url = git@github.com:EstevaoUyra/hyvarinen_hoyer_2000.git
