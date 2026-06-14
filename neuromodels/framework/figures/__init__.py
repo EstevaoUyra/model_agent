@@ -12,9 +12,7 @@ from .digitize import (
     crop_region,
     detect_plot_box,
     overlay,
-    overlay_with_crops,
     resample_pchip,
-    trace_bands,
     trace_darkest_in_band,
 )
 
@@ -24,8 +22,6 @@ __all__ = [
     "crop_region",
     "detect_plot_box",
     "overlay",
-    "overlay_with_crops",
     "resample_pchip",
-    "trace_bands",
     "trace_darkest_in_band",
 ]
