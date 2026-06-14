@@ -453,11 +453,19 @@ const runDigitizationGate = async (figs) => {
 // ── from='digitize' — A/B MEASUREMENT HARNESS (not a reproduction pass) ───────────────────────
 // Runs ONLY the digitization gate over FIGURES, then returns. NO acquire / spec / implement /
 // verify, and NO finalize (no README rewrite, no commit, no PR). It reuses the EXACT gate the real
-// from=extract pass uses, so a cost/quality A/B here measures the production code path. Pre-req: the
-// figure descriptions (article_aware/figures/figure_N.md) already exist on disk (an already-built
-// model / a fixture clone). Toggle levers per arm with args.lever1 / args.lever2; the digitizer
-// writes the digitized JSON to disk for the comparator to grade against the frozen baseline.
+// from=extract pass uses, so a cost/quality A/B here measures the production code path. Self-
+// contained: it re-runs the cheap extract-figure DESCRIBE step first (so it works on any fixture
+// regardless of which figure-description convention is on disk, and needs only paper/paper.pdf +
+// the figure list), then the digitize→audit gate. extract-figure cost is identical across arms, so
+// it cancels in the digitize+audit cost delta. NO acquire/spec/implement/verify, NO finalize/commit.
+// Toggle levers per arm with args.lever1 / args.lever2; the digitizer writes the digitized JSON to
+// disk for tools/dig_bench.py to grade against the frozen baseline.
 if (FROM === 'digitize') {
+  const figList = FIGURES.join(', ')
+  phase('Extract')
+  await agent(
+    `${SK('extract-figure')} Describe figures ${figList} of ${MODEL} — for EACH figure: panels, axis limits, model-panels-only scope. A panel that is a RENDERED MODEL OUTPUT is a reproduction target even inside a schematic. If a figure's paper image is missing, mark THAT figure BLOCKED (do not block the others).`,
+    { label: 'fig-extract:all', phase: 'Extract', model: OPUS })
   phase('Digitization gate')
   let digVerdict = null
   try {
