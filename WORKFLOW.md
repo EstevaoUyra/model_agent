@@ -453,9 +453,7 @@ human-facing name for **`faithful` with no open findings**.
 
 Entrypoints are explicit: `from="extract"` runs the whole pass; `from="build"` skips
 Phase A when the article-aware contract is already faithful and performs a full Phase-B
-build; `from="fix"` enters at test-authoring for a built/audited model; and
-`from="digitize"` is a measurement harness for the digitization gate only, returning its
-verdict/error without finalize/commit/PR.
+build; and `from="fix"` enters at test-authoring for a built/audited model.
 
 Mapping of acceptance items to mechanism:
 

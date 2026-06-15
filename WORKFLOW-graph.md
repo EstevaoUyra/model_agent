@@ -22,7 +22,6 @@ flowchart TD
   E0([from = extract]):::entry
   B0([from = build]):::entry
   F0([from = fix]):::entry
-  D0([from = digitize]):::entry
 
   ACQ([acquire-sources]):::build
   XSPEC([extract-spec]):::build
@@ -44,7 +43,6 @@ flowchart TD
 
   BLOCK([BLOCKED]):::term
   DONE([DONE / PARTIAL]):::term
-  DIGDONE([DIGITIZE HARNESS DONE]):::term
 
   E0 --> ACQ
   ACQ -->|paper not fetchable| BLOCK
@@ -53,9 +51,7 @@ flowchart TD
   XFIG --> DIG
   DIG --> ADIG
   ADIG -->|defect, loop up to 3| DIG
-  ADIG -->|from=extract: verdict recorded| ASPEC
-  D0 --> XFIG
-  ADIG -->|from=digitize: return verdict/error, no finalize| DIGDONE
+  ADIG -->|verdict recorded| ASPEC
   XSPEC -->|gate / verify the contract| ASPEC
   ASPEC -->|DIVERGENT: resolve, loop up to 2| XSPEC
   ASPEC -->|cap reached| BLOCK
@@ -106,6 +102,4 @@ flowchart TD
 Every finalized exit — `DONE`, `PARTIAL`, `BLOCKED`, or an error — funnels through the
 stale-artifact sweep → modification smoke test → coverage gate → `update-state`
 (README + a "👉 DECISION NEEDED" human entrypoint when blocked/flagged) → `commit +
-push + PR`, without exception. The `from=digitize` measurement harness is deliberately
-different: it returns the digitization verdict/error directly and does not finalize,
-commit, or open a PR.
+push + PR`, without exception.
