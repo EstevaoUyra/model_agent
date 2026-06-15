@@ -1,0 +1,17 @@
+#!/bin/sh
+# Auto-regenerate the root README reproduction table before each commit, so it never
+# drifts from submodule state / the corpus ranking.
+#
+# Activated by pointing git at this directory:  git config core.hooksPath tools/hooks
+# (set once per clone; see README / tools/build_readme.py). To bypass for a single
+# commit:  git commit --no-verify
+set -e
+root="$(git rev-parse --show-toplevel)"
+python3 "$root/tools/build_readme.py" >/dev/null
+# Re-stage only if README.md is already tracked AND its content actually changed.
+if git ls-files --error-unmatch README.md >/dev/null 2>&1; then
+  if ! git diff --quiet -- README.md; then
+    git add -- README.md
+    echo "pre-commit: README.md regenerated and re-staged."
+  fi
+fi
