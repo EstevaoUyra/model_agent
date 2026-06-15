@@ -41,6 +41,8 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 def pytest_configure(config: pytest.Config) -> None:
     for marker_line in (
         "figure(N): associate this test with figure N for test_runs.jsonl",
+        "tier(name): figure-test tier — qualitative|hard|soft — for the README check tables",
+        "check(text): human-readable description of what the test checks, for the README tables",
         "neuromodels_deterministic: deterministic Neuromodels test metadata",
         "neuromodels_claim(claim_id): qualitative or data claim identifier",
         "neuromodels_paper_issue(paper_issue): linked paper issue identifier",
@@ -69,6 +71,8 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         "spec_commit_hash": _git_tree_hash(rootdir, "article_aware"),
         "log_path": log_path,
         "nodeid_figure": {},
+        "nodeid_tier": {},
+        "nodeid_check": {},
     }
 
 
@@ -79,11 +83,47 @@ def pytest_collection_modifyitems(
     if state is None:
         return
     figure_by_nodeid = state["nodeid_figure"]
+    tier_by_nodeid = state["nodeid_tier"]
+    check_by_nodeid = state["nodeid_check"]
     for item in items:
         marker = item.get_closest_marker("figure")
-        if marker is None or not marker.args:
-            continue
-        figure_by_nodeid[item.nodeid] = marker.args[0]
+        if marker is not None and marker.args:
+            figure_by_nodeid[item.nodeid] = marker.args[0]
+
+        tier = _tier_for(item)
+        if tier is not None:
+            tier_by_nodeid[item.nodeid] = tier
+
+        check = _check_for(item)
+        if check is not None:
+            check_by_nodeid[item.nodeid] = check
+
+
+def _tier_for(item: pytest.Item) -> str | None:
+    """Figure-test tier: an explicit ``@pytest.mark.tier("name")`` arg, else the
+    bare ``@pytest.mark.soft`` marker implies the ``soft`` tier."""
+    marker = item.get_closest_marker("tier")
+    if marker is not None and marker.args:
+        return str(marker.args[0])
+    if item.get_closest_marker("soft") is not None:
+        return "soft"
+    return None
+
+
+def _check_for(item: pytest.Item) -> str | None:
+    """Human-readable description of what the test checks, for the README §4
+    tables: an explicit ``@pytest.mark.check("...")`` arg, else the first
+    non-blank line of the test function docstring."""
+    marker = item.get_closest_marker("check")
+    if marker is not None and marker.args:
+        return str(marker.args[0])
+    doc = getattr(getattr(item, "obj", None), "__doc__", None)
+    if doc:
+        for line in doc.splitlines():
+            line = line.strip()
+            if line:
+                return line
+    return None
 
 
 def pytest_runtest_logreport(report: pytest.TestReport) -> None:
@@ -100,6 +140,8 @@ def pytest_runtest_logreport(report: pytest.TestReport) -> None:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "test_id": report.nodeid,
         "figure": state["nodeid_figure"].get(report.nodeid),
+        "tier": state["nodeid_tier"].get(report.nodeid),
+        "check": state["nodeid_check"].get(report.nodeid),
         "status": _status_from_report(report),
         "commit_hash": state["commit_hash"],
         "spec_commit_hash": state["spec_commit_hash"],

@@ -340,32 +340,53 @@ const finalize = async () => {
       mergeHumanEntrypoint({ kind: 'coverage', reason: `figure-coverage incomplete — ${miss.join('; ')}. A required view (paper crop / digitized / implemented render) or the faithfulness audit was not produced+committed; the run cannot certify figures it cannot show.`, findings: [] })
     }
   }
-  // (1) README — ALWAYS the per-figure reproduction state + changelog; and when this exit needs
-  //     a decision (paper-fix/audit block, or flagged dispositions) a clear entrypoint on top.
+  // (1) README — NO LONGER hand-written. The README is GENERATED from artifacts by
+  //     tools/build_model_readme.py (one fault-tolerant renderer per section), so the
+  //     deterministic facts (exit, test/VLM roll-up, changelog table, figure image tables,
+  //     cost) never drift and every model gets the SAME 7-section shape. update-state's job is
+  //     now to AUTHOR the structured artifacts the generator reads — it writes data, not prose.
+  //     See proposals/per-model-readme-autogen-2026-06-15.md for the schemas.
+  // (1a) update-state authors the artifacts (exit.json + readme_meta.yaml + issues.yaml) and
+  //      appends the changelog one-liner.
   await agent(
-    `${SK('update-state')} Rewrite the ${MODEL} README as CURRENT STATE and the human entrypoint. ` +
-    `ALWAYS include, in order: (1) a current-exit block at the very top — exit=${JSON.stringify(exit)}; ` +
-    (humanEntrypoint
-      ? `(1a) if this exit is BLOCKED on an obtainable-by-human gated source (a login/paywall/` +
-        `CRCNS-registration rescue artifact — released fits / learned basis/covariances / ` +
-        `figure-generating data per paper/SOURCES.md), LEAD at the very TOP with a clear "👉 UNBLOCKER" ` +
-        `banner naming EXACTLY what to fetch and where it goes (e.g. "drop the CRCNS MGSM toolbox in ` +
-        `paper/code/ and re-run" — cagly2012); the human's single highest-leverage action must be ` +
-        `impossible to miss, above the per-figure state; ` +
-        `(1b) directly under it, a clearly-marked "👉 DECISION NEEDED" section — what is blocked/flagged ` +
-        `and WHY (${humanEntrypoint.kind}: ${humanEntrypoint.reason}), the specific open findings, and ` +
-        `exactly where to look (logs/spec_audit/, logs/faithfulness_audit/, the SQ in logs/spec_questions.md); `
-      : ``) +
-    `(2) the model description; (3) per figure the three views side by side (paper · digitized · ` +
-    `implemented) + the audit/check tables — the figure-reproduction state; (4) a "potential sources" ` +
-    `section from the findings' source_hints; (5) a changelog — append ONE succinct line, full detail to ` +
-    `logs/changelog.md; (6) a "Reproduction cost" section AS THE FINAL section — run ` +
-    `\`${PY} ${ROOT}/tools/repro_cost.py ${MODEL} --markdown\` (it scans THIS model's full-pass agent ` +
-    `transcripts across ALL runs and prices them at standard Opus 4.8 API rates) and paste its stdout ` +
-    `VERBATIM, replacing any existing "## Reproduction cost" section (idempotent — do not stack copies). ` +
-    `If the command prints nothing (no recoverable transcripts), omit the section entirely. ` +
-    `Findings: ${JSON.stringify(openFindings)}. Process: ${JSON.stringify(proc ?? {})}.`,
-    { label: 'state-update', phase: 'Report', model: OPUS })
+    `${SK('update-state')} Author the structured README artifacts for ${MODEL} (the generator renders ` +
+    `them — do NOT hand-write README.md). Write, in the submodule:\n` +
+    `(A) \`logs/exit.json\` — EXACTLY this exit object, enriched: ${JSON.stringify(exit)} plus ` +
+    `"audit" (hardened if an independent faithfulness+digitization audit ran with build/audit roles ` +
+    `separated, else vlm, else self-reported), "updated_at" (today, YYYY-MM-DD), "figures_in_scope" ` +
+    `(${JSON.stringify(FIGURES)}), and a one-sentence "headline".\n` +
+    `(B) \`logs/readme_meta.yaml\` — the irreducible prose the generator renders verbatim: \`title\`, ` +
+    `\`status_narrative\` (what's working/broken/blocked — specific test_ids + figure numbers; if this ` +
+    `exit needs a decision, LEAD with the 👉 ${humanEntrypoint ? `DECISION NEEDED (${humanEntrypoint.kind}: ${humanEntrypoint.reason})` : 'banner only when blocked'}), ` +
+    `\`model_summary\` (grounded in citation IDs / structural facts), \`model_equation_refs\` (the ` +
+    `governing-equation citation IDs from citations.yaml), and \`figures: {N: {headline, status_badge, ` +
+    `note, checks: [{tier, check, result}]}}\` for every in-scope figure. The \`checks\` list is the ` +
+    `FALLBACK for the §4 tables; once the suite re-runs with @pytest.mark.tier markers (now captured ` +
+    `into test_runs.jsonl) the generator uses the live rows instead.\n` +
+    `(C) \`logs/issues.yaml\` — \`preamble\` + \`issues: [{id, category, status, title, body, sources}]\` ` +
+    `distilled from the open findings' source_hints and the audit logs (one entry per open or ` +
+    `recently-resolved divergence). Findings: ${JSON.stringify(openFindings)}.\n` +
+    `(D) ONLY IF the organizer overrode an audit/test RED on the judgement that the change is small/safe ` +
+    `(never paperless): \`logs/adjudications.yaml\` — \`adjudications: [{id, date, decided_by, verdict, ` +
+    `finding, audit_ref, change_scope, reasoning, evidence}]\`, recording the finding overridden + the ` +
+    `reasoning + the evidence checked AGAINST THE DIFF. An audit RED with no matching entry stands as RED; ` +
+    `do not silently downgrade it. The generator surfaces this in §2 Status (⚖️) + the §1 exit table.\n` +
+    `Refresh stale VLM verdicts (Step 1b) for any figure whose latest verdict predates current HEAD so the ` +
+    `generator's live VLM column is honest. Process: ${JSON.stringify(proc ?? {})}. ` +
+    `Then append ONE succinct line to logs/changelog.md (\`## YYYY-MM-DD — <summary>\`; full detail below it).`,
+    { label: 'state-update (author artifacts)', phase: 'Report', model: OPUS })
+  // (1b) GENERATE the README from the artifacts. Deterministic; a non-empty section that comes out a
+  //      stub means an artifact is missing — the agent fixes the artifact, never the README directly.
+  await agent(
+    `Generate the ${MODEL} README from its artifacts: run \`${PY} ${ROOT}/tools/build_model_readme.py ` +
+    `${MODEL}\` (it assembles all 7 sections + the \`${PY} ${ROOT}/tools/repro_cost.py ${MODEL} ` +
+    `--markdown\` cost section). The command prints any warnings on stderr (e.g. "no logs/issues.yaml — ` +
+    `§5 is a stub"). If ANY section came out a stub/empty because its artifact is missing or thin, FIX ` +
+    `THE ARTIFACT (logs/exit.json, logs/readme_meta.yaml, logs/issues.yaml) and re-run until ` +
+    `\`${PY} ${ROOT}/tools/build_model_readme.py ${MODEL} --check\` is clean and no section is empty. ` +
+    `Do NOT hand-edit README.md — it is generated output. Report the warnings (if any) and the final ` +
+    `section count.`,
+    { label: 'generate README from artifacts', phase: 'Report', model: OPUS })
   // (2) Land the result IN THE MODEL'S OWN REPO (the submodule) — commit + a PR onto the
   //     submodule's main, every exit (blocked included). NEVER touch the parent (model_agent):
   //     parent submodule-pointer bumps are a separate, deliberate step, not part of a run
