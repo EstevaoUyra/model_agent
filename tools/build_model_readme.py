@@ -268,9 +268,14 @@ def _paper_view(pool, n) -> list[str]:
             if re.fullmatch(rf"article_aware/figures/figure_{nr}\.(png|jpg|jpeg)", f)]
     if flat:
         return flat[:1]
-    src = sorted(f for f in pool
-                 if re.match(rf"article_aware/figures/figure_{nr}/figure_{nr}_source\.", f))
-    return src[:1]
+    # subdir conventions: a whole-figure crop (figure_N_source) wins; else the
+    # per-panel paper crops (panel_*_paper / *_source, but never an overlay).
+    sub = sorted(f for f in pool
+                 if re.match(rf"article_aware/figures/figure_{nr}/", f)
+                 and ("paper" in f.lower() or "source" in f.lower())
+                 and "overlay" not in f.lower())
+    whole = [f for f in sub if re.search(rf"figure_{nr}_source\.", f)]
+    return whole[:1] if whole else sub
 
 
 def _impl_views(pool, n) -> list[str]:
@@ -295,22 +300,27 @@ def _digitized_views(pool, n) -> list[str]:
 
 
 def _image_table(pool, n) -> str:
+    """Always render all three view columns so a missing view shows as an empty
+    panel (—) rather than silently vanishing — the reader sees exactly what is
+    absent (a paper crop, a digitization, or a render)."""
     paper, digi, impl = _paper_view(pool, n), _digitized_views(pool, n), _impl_views(pool, n)
-    cols, cells = [], []
-    if paper:
-        cols.append("Paper")
-        cells.append("".join(f'<img src="{p}" width="300">' for p in paper))
-    if digi:
-        cols.append("Digitized")
-        cells.append("".join(f'<img src="{d}" width="150">' for d in digi))
-    if impl:
-        cols.append("Implementation")
-        cells.append("".join(f'<img src="{p}" width="300">' for p in impl))
-    if not cells:
+    if not (paper or digi or impl):
         warn(f"figure {n}: no committed views on disk")
-        return "_No committed figure views._"
-    head = "<tr>" + "".join(f"<th>{c}</th>" for c in cols) + "</tr>"
-    body = "<tr>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>"
+        return "_No committed figure views (paper · digitized · implementation all absent)._"
+    if not paper:
+        warn(f"figure {n}: no committed paper crop")
+    if not digi:
+        warn(f"figure {n}: no committed digitization")
+
+    def cell(files, w):
+        if not files:
+            return "—"
+        w = w if len(files) == 1 else 150  # shrink multi-panel rows
+        return "".join(f'<img src="{f}" width="{w}">' for f in files)
+
+    head = "<tr><th>Paper</th><th>Digitized</th><th>Implementation</th></tr>"
+    body = (f"<tr><td>{cell(paper, 300)}</td><td>{cell(digi, 150)}</td>"
+            f"<td>{cell(impl, 300)}</td></tr>")
     return f"<table>{head}{body}</table>"
 
 
@@ -414,13 +424,21 @@ def section_issues(issues_data) -> str:
                 "_No `logs/issues.yaml` yet (distil from the audit logs at finalize)._")
     if issues_data.get("preamble"):
         parts += [issues_data["preamble"].rstrip(), ""]
-    for i, item in enumerate(issues_data.get("issues", []), 1):
-        status = item.get("status", "open").upper()
+    all_issues = issues_data.get("issues", []) or []
+    # Only OPEN issues are a "potential source"; resolved ones are history.
+    open_issues = [it for it in all_issues
+                   if str(it.get("status", "open")).strip().lower() != "resolved"]
+    n_resolved = len(all_issues) - len(open_issues)
+    if not open_issues:
+        parts += ["_No open divergences — the model is faithful."
+                  + (f" ({n_resolved} resolved, in `logs/issues.yaml`)" if n_resolved else "")
+                  + "_"]
+        return "\n".join(parts).rstrip()
+    for i, item in enumerate(open_issues, 1):
         cat = item.get("category", "")
-        tag = " · ".join(x for x in (cat, status) if x)
         head = f"{i}. **{item.get('title', 'untitled')}**"
-        if tag:
-            head += f" — _{tag}_"
+        if cat:
+            head += f" — _{cat}_"
         parts.append(head)
         if item.get("body"):
             parts += ["", "   " + item["body"].rstrip().replace("\n", "\n   ")]
@@ -428,6 +446,9 @@ def section_issues(issues_data) -> str:
         if srcs:
             parts += ["", "   *Source:* " + ", ".join(f"`{s}`" for s in srcs)]
         parts.append("")
+    if n_resolved:
+        parts.append(f"<sub>{n_resolved} resolved issue(s) omitted — see "
+                     f"`logs/issues.yaml`.</sub>")
     return "\n".join(parts).rstrip()
 
 
@@ -487,7 +508,22 @@ def section_changelog(model_dir: Path) -> str:
 
 # --------------------------------------------------------------------- §7 cost
 
-def section_cost(model_rel: str) -> str:
+def _existing_cost_section(model_dir: Path) -> str:
+    """Lift the committed README's '## Reproduction cost' section verbatim."""
+    readme = model_dir / "README.md"
+    if not readme.exists():
+        return ""
+    text = readme.read_text(encoding="utf-8")
+    m = re.search(r"(?m)^## Reproduction cost\b.*?(?=\n## |\Z)", text, re.S)
+    return m.group(0).rstrip() if m else ""
+
+
+def section_cost(model_rel: str, reuse: bool = False) -> str:
+    # The cost only changes when new full-pass transcripts appear; re-scanning all
+    # transcripts per model is the slow step. --reuse-cost lifts the unchanged
+    # section from the committed README so a presentation-only regen is instant.
+    if reuse:
+        return _existing_cost_section((ROOT / model_rel).resolve())
     try:
         out = subprocess.run(
             [sys.executable, str(TOOLS / "repro_cost.py"), model_rel, "--markdown"],
@@ -503,7 +539,7 @@ def section_cost(model_rel: str) -> str:
 
 # ------------------------------------------------------------------- assembly
 
-def build(model_rel: str) -> str:
+def build(model_rel: str, reuse_cost: bool = False) -> str:
     model_dir = (ROOT / model_rel).resolve()
     logs = model_dir / "logs"
     spec_dir = model_dir / "article_aware" / "spec"
@@ -543,7 +579,7 @@ def build(model_rel: str) -> str:
         section_figures(model_dir, meta, layouts, rows, verdicts, pool),
         section_issues(issues_data),
         section_changelog(model_dir),
-        section_cost(model_rel),
+        section_cost(model_rel, reuse=reuse_cost),
     ]
     body = "\n\n---\n\n".join(s for s in sections if s and s.strip())
     return body.rstrip() + "\n"
@@ -562,7 +598,7 @@ def main() -> None:
         print(f"no such model dir: {model_rel}", file=sys.stderr)
         sys.exit(2)
 
-    content = build(model_rel)
+    content = build(model_rel, reuse_cost="--reuse-cost" in flags)
     readme = ROOT / model_rel / "README.md"
 
     if WARNINGS:
