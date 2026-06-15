@@ -223,15 +223,21 @@ must confirm.
 
 
 def main():
-    check = "--check" in sys.argv[1:]
+    args = sys.argv[1:]
+    check = "--check" in args
+    verbose = "--verbose" in args or "-v" in args
     rows, warnings = build_rows()
     content = render_readme(rows)
 
     if warnings:
-        print("build_readme: warnings (audit field is not yet in the exit-JSON contract):",
-              file=sys.stderr)
-        for w in sorted(set(warnings)):
-            print(w, file=sys.stderr)
+        no_audit = sum(1 for w in warnings if "audit" in w)
+        no_exit = sum(1 for w in warnings if "exit-JSON line" in w)
+        print(f"build_readme: {no_audit} submodules missing an \"audit\" field, "
+              f"{no_exit} with no parseable exit-JSON line"
+              f"{'' if verbose else ' (run with --verbose to list them)'}", file=sys.stderr)
+        if verbose:
+            for w in sorted(set(warnings)):
+                print(w, file=sys.stderr)
 
     old = open(README, encoding="utf-8").read() if os.path.exists(README) else None
     if check:
