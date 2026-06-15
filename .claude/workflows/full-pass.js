@@ -14,7 +14,15 @@ export const meta = {
 // args: { model: 'models/<name>', figures: ['2',...], from?: 'extract' | 'build' | 'fix' }
 // Robust to args arriving as either a parsed object or a JSON-encoded string.
 const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
-const MODEL = A.model
+// Canonicalize the model arg to `models/<name>` whether the caller passed `<name>` or
+// `models/<name>`. EVERYTHING downstream depends on this exact shape: SK() builds
+// `${ROOT}/${MODEL}` repo paths, the coverage-gate and repro_cost CLIs take `models/<name>`,
+// and repro_cost ATTRIBUTES a run by grepping agent prompts for `models/<name>`. A bare name
+// silently mis-pathed the coverage gate (it looked under `<name>/article_aware/…`, found
+// nothing, and emitted a FALSE `model:figure-coverage` block) AND zeroed cost attribution
+// (transcripts never contained `models/<name>`), even though resilient agents still built in
+// the right place — the fitzhugh_1961 run, 2026-06-15.
+const MODEL = A.model ? `models/${String(A.model).replace(/^models\//, '').replace(/\/+$/, '')}` : A.model
 const FIGURES = A.figures || []
 // 'extract' = fresh full pass | 'build' = full Phase-B implement on an already-FAITHFUL contract
 // (Phase A done/approved, Phase B unbuilt or partial) | 'fix' = built+audited: repair recent change

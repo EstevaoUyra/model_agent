@@ -129,21 +129,28 @@ def scan():
         files = glob.glob(os.path.join(wf_dir, "agent-*.jsonl"))
         if not files:
             continue
-        # first pass: determine this run's model (most common models/<name> across agents)
+        # first pass: determine this run's model (most common models/<name> across agents).
+        # Search the WHOLE transcript, not just the first user text: a run launched with
+        # model=<name> (missing the models/ prefix — see full-pass.js MODEL canonicalization)
+        # keeps `models/<name>` out of the prompt, but it still appears in cd/commit/tool-result
+        # lines. Validating each match against a real models/<dir> drops false hits (session-id
+        # paths, an incidentally-read other model), and one vote per agent (its dominant valid
+        # model) keeps the reproduction target — referenced on every path — winning the count.
         votes = defaultdict(int)
         parsed = {}
         for f in files:
             try:
-                lines = [json.loads(x) for x in open(f) if x.strip()]
+                raw = open(f).read()
+                lines = [json.loads(x) for x in raw.splitlines() if x.strip()]
             except Exception:
                 continue
             parsed[f] = lines
-            mm = MODEL_RE.search(_first_user_text(lines))
-            if mm:
-                votes[mm.group(1)] += 1
-        # keep only real model dirs — drops false matches (e.g. a session-id path in a prompt)
-        votes = {m: v for m, v in votes.items()
-                 if os.path.isdir(os.path.join(REPO_ROOT, "models", m))}
+            local = defaultdict(int)
+            for mm in MODEL_RE.finditer(raw):
+                if os.path.isdir(os.path.join(REPO_ROOT, "models", mm.group(1))):
+                    local[mm.group(1)] += 1
+            if local:
+                votes[max(local, key=local.get)] += 1
         if not votes:
             continue
         model = max(votes, key=votes.get)
