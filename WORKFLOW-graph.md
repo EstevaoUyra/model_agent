@@ -20,6 +20,7 @@ verify-loop fix).
 ```mermaid
 flowchart TD
   E0([from = extract]):::entry
+  B0([from = build]):::entry
   F0([from = fix]):::entry
 
   ACQ([acquire-sources]):::build
@@ -28,6 +29,9 @@ flowchart TD
   DIG([digitize-figure]):::build
   IMPL([implement]):::build
   ATEST([author-tests]):::build
+  SWEEP([stale-artifact sweep]):::build
+  SMOKE([modification smoke test]):::audit
+  COV([coverage gate]):::audit
   UPD([update-state]):::build
   PR([commit + push + PR]):::build
 
@@ -38,34 +42,43 @@ flowchart TD
   APROC([audit-process]):::audit
 
   BLOCK([BLOCKED]):::term
-  DONE([DONE]):::term
+  DONE([DONE / PARTIAL]):::term
 
   E0 --> ACQ
+  ACQ -->|paper not fetchable| BLOCK
   ACQ --> XSPEC
   ACQ --> XFIG
   XFIG --> DIG
   DIG --> ADIG
   ADIG -->|defect, loop up to 3| DIG
-  ADIG -->|faithful| ASPEC
+  ADIG -->|verdict recorded| ASPEC
   XSPEC -->|gate / verify the contract| ASPEC
   ASPEC -->|DIVERGENT: resolve, loop up to 2| XSPEC
   ASPEC -->|cap reached| BLOCK
   ASPEC -->|FAITHFUL| IMPL
 
+  B0 -->|skip Phase A; full build| IMPL
   F0 -->|round 1: test-first| ATEST
 
   IMPL --> AFAITH
   IMPL --> APROC
-  AFAITH -->|no findings| DONE
-  AFAITH -->|findings| ATEST
+  AFAITH -->|transient audit failure| BLOCK
+  AFAITH -->|no actionable findings| DONE
+  AFAITH -->|findings, rounds remain| ATEST
+  AFAITH -->|findings at cap: no unaudited mutation| DONE
   ATEST --> AUTEST
   AUTEST -->|not paper-grounded: re-author| ATEST
   AUTEST -->|CONTRACT_BUG / PAPER_ISSUE| XSPEC
   AUTEST -->|CODE_BUG| IMPL
+  XSPEC -->|paper-fix verify cap in Verify| BLOCK
 
-  DONE --> UPD
-  BLOCK --> UPD
-  APROC --> UPD
+  DONE --> SWEEP
+  BLOCK --> SWEEP
+  APROC --> SWEEP
+  SWEEP --> SMOKE
+  SMOKE --> COV
+  COV -->|complete| UPD
+  COV -->|incomplete: downgrade to blocked| UPD
   UPD --> PR
 
   classDef build fill:#d6f5e0,stroke:#1b7a44,color:#0c3d22;
@@ -83,8 +96,10 @@ flowchart TD
   tautologies).
 - `implement → audit-faithfulness → author-tests → audit-tests → implement` — the
   verify loop (≤ 3 rounds); `audit-faithfulness` is **comprehensive — everything vs
-  the paper**.
+  the paper**. If the final audit round still has actionable findings, the workflow
+  records them and exits without applying an unaudited final-round mutation.
 
-Every exit — `DONE`, `BLOCKED`, or an error — funnels through `update-state` (README
-+ a "👉 DECISION NEEDED" human entrypoint when blocked) → `commit + push + PR`,
-without exception.
+Every finalized exit — `DONE`, `PARTIAL`, `BLOCKED`, or an error — funnels through the
+stale-artifact sweep → modification smoke test → coverage gate → `update-state`
+(README + a "👉 DECISION NEEDED" human entrypoint when blocked/flagged) → `commit +
+push + PR`, without exception.

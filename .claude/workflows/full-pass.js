@@ -14,7 +14,15 @@ export const meta = {
 // args: { model: 'models/<name>', figures: ['2',...], from?: 'extract' | 'build' | 'fix' }
 // Robust to args arriving as either a parsed object or a JSON-encoded string.
 const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
-const MODEL = A.model
+// Canonicalize the model arg to `models/<name>` whether the caller passed `<name>` or
+// `models/<name>`. EVERYTHING downstream depends on this exact shape: SK() builds
+// `${ROOT}/${MODEL}` repo paths, the coverage-gate and repro_cost CLIs take `models/<name>`,
+// and repro_cost ATTRIBUTES a run by grepping agent prompts for `models/<name>`. A bare name
+// silently mis-pathed the coverage gate (it looked under `<name>/article_aware/…`, found
+// nothing, and emitted a FALSE `model:figure-coverage` block) AND zeroed cost attribution
+// (transcripts never contained `models/<name>`), even though resilient agents still built in
+// the right place — the fitzhugh_1961 run, 2026-06-15.
+const MODEL = A.model ? `models/${String(A.model).replace(/^models\//, '').replace(/\/+$/, '')}` : A.model
 const FIGURES = A.figures || []
 // 'extract' = fresh full pass | 'build' = full Phase-B implement on an already-FAITHFUL contract
 // (Phase A done/approved, Phase B unbuilt or partial) | 'fix' = built+audited: repair recent change
@@ -49,14 +57,6 @@ const OPUS = 'claude-opus-4-8'     // non-implementer roles: opus, NO 1M
 const IMPL = 'claude-opus-4-8[1m]' // implementer only: opus + 1M
 
 // ── structured verdicts that drive the routing (so the script branches on data, not prose) ──
-const DIG_VERDICT = {
-  type: 'object', additionalProperties: false,
-  properties: {
-    status: { enum: ['FAITHFUL', 'DIVERGENT', 'TOOL_MISUSE', 'BLOCKED'] },
-    worst_defect: { type: 'string' },          // what the next re-digitize must fix
-  },
-  required: ['status', 'worst_defect'],
-}
 // Per-figure digitization verdict for the DE-PARALLELIZED gate (one auditor over ALL figures).
 // The `figures` array is the COVERAGE GUARDRAIL — the schema forces one verdict per figure, so a
 // single auditor cannot silently skim later figures.
@@ -127,6 +127,8 @@ const PROC_VERDICT = {
 const COVERAGE_VERDICT = {
   type: 'object', additionalProperties: false,
   properties: {
+    model: { type: 'string' },
+    summary: { type: 'string' },
     all_complete: { type: 'boolean' },
     faithfulness_audit_ran: { type: 'boolean' },
     figures: {
@@ -201,10 +203,24 @@ let digBlocked = []
 let faith = null
 let proc = null
 const flagged = []
+let unresolvedActionable = []
 let exit = { overall: 'unknown', trajectory: 'unknown', flagged_count: 0, blocked: [] }
 let openFindings = []
 let humanEntrypoint = null // { kind, reason, findings } — set when the exit needs a human
 let finalized = false
+
+const mergeHumanEntrypoint = (entry) => {
+  if (!entry) return
+  if (!humanEntrypoint) {
+    humanEntrypoint = entry
+    return
+  }
+  humanEntrypoint = {
+    kind: `${humanEntrypoint.kind}+${entry.kind}`,
+    reason: [humanEntrypoint.reason, entry.reason].filter(Boolean).join('; '),
+    findings: [...(humanEntrypoint.findings ?? []), ...(entry.findings ?? [])],
+  }
+}
 
 // paper-fix subroutine: resolve a CONTRACT/PAPER fault via a RESOLUTION LADDER from
 // already-acquired ground truth, then INDEPENDENTLY verify with audit-spec (builder ≠
@@ -320,8 +336,8 @@ const finalize = async () => {
       const miss = (cov.figures ?? []).filter((f) => !f.complete).map((f) => `figure ${f.figure}: missing ${(f.missing ?? []).join('+')}`)
       if (cov.faithfulness_audit_ran === false) miss.unshift('no committed faithfulness audit')
       log(`COVERAGE GATE FAILED: ${miss.join('; ')} — downgrading exit '${exit.overall}' → 'blocked'`)
-      exit = { ...exit, overall: 'blocked', blocked: [...new Set([...(exit.blocked || []), 'figure-coverage'])] }
-      humanEntrypoint = { kind: 'coverage', reason: `figure-coverage incomplete — ${miss.join('; ')}. A required view (paper crop / digitized / implemented render) or the faithfulness audit was not produced+committed; the run cannot certify figures it cannot show.`, findings: [] }
+      exit = { ...exit, overall: 'blocked', blocked: [...new Set([...(exit.blocked || []), 'model:figure-coverage'])] }
+      mergeHumanEntrypoint({ kind: 'coverage', reason: `figure-coverage incomplete — ${miss.join('; ')}. A required view (paper crop / digitized / implemented render) or the faithfulness audit was not produced+committed; the run cannot certify figures it cannot show.`, findings: [] })
     }
   }
   // (1) README — ALWAYS the per-figure reproduction state + changelog; and when this exit needs
@@ -370,14 +386,19 @@ const finalize = async () => {
     { label: 'finalize: land in submodule (its own repo)', phase: 'Report', model: OPUS })
 }
 
-// Phase-A audit failed within the cap → the WHOLE workflow EXITS, BLOCKED (point 2). Sets the
+// A blocking gate failed within its cap → the WHOLE workflow EXITS, BLOCKED. Sets the
 // shared blocked state + human entrypoint; the try/finally runs finalize (README + commit + PR).
 const blockedExit = (reason, findings) => {
-  log(`WORKFLOW EXIT — Phase-A contract BLOCKED: ${reason}`)
-  exit = { overall: 'blocked', trajectory: proc?.trajectory ?? 'n/a', flagged_count: flagged.length, blocked: ['model:contract'] }
+  log(`WORKFLOW EXIT — BLOCKED: ${reason}`)
+  const block = reason.includes('faithfulness audit')
+    ? 'model:faithfulness-audit'
+    : reason.includes('paper not fetchable')
+      ? 'model:paper'
+      : 'model:contract'
+  exit = { overall: 'blocked', trajectory: proc?.trajectory ?? 'n/a', flagged_count: flagged.length, blocked: [block] }
   openFindings = findings
-  humanEntrypoint = { kind: 'contract-blocked (paper-fix/audit-spec)', reason, findings }
-  return { from: FROM, exit, blocked: ['model:contract'], spec: findings }
+  mergeHumanEntrypoint({ kind: 'blocked', reason, findings })
+  return { from: FROM, exit, flagged, blocked: exit.blocked, process: proc, spec: findings }
 }
 
 try {
@@ -541,10 +562,16 @@ try {
     // PAPER_ISSUE is resolvable from related papers; human is last resort).
     const specFaults = faith.findings.filter((f) => f.tag === 'CONTRACT_BUG' || f.tag === 'PAPER_ISSUE')
     const codeBugs = faith.findings.filter((f) => f.tag === 'CODE_BUG')
+    const actionableFindings = faith.findings.filter((f) => f.tag !== 'FAITHFUL')
     if (specFaults.length === 0 && codeBugs.length === 0) break // dry & contract-clean
+    if (round === MAX_ROUNDS) {
+      unresolvedActionable = actionableFindings
+      log(`Verify loop reached MAX_ROUNDS with ${actionableFindings.length} actionable finding(s); not applying an unaudited final-round mutation`)
+      break
+    }
 
     await authorTests(
-      `${SK('author-tests')} Encode these ${MODEL} audit findings as deterministic tests (BUG → must-pass; GENUINE_DIVERGENCE/PAPER_ISSUE → red tripwire). Findings: ${JSON.stringify(faith.findings)}`,
+      `${SK('author-tests')} Encode these ${MODEL} audit findings as deterministic tests (BUG → must-pass; GENUINE_DIVERGENCE/PAPER_ISSUE → red tripwire). Findings: ${JSON.stringify(actionableFindings)}`,
       `r${round}`)
 
     // PRIORITY (point 3): an open SPEC fault / SQ BLOCKS implementation — we NEVER implement
@@ -587,10 +614,11 @@ try {
   if (overall === 'faithful' && flagged.length) { overall = 'partial'; reasons.push(`${flagged.length} open GENUINE_DIVERGENCE`) }
   // D3: a drifting process trajectory (bending toward green, not paper) holds the model at partial.
   if (overall === 'faithful' && proc?.trajectory === 'drifting') { overall = 'partial'; reasons.push('process auditor: trajectory drifting (toward green, not paper)') }
+  if (unresolvedActionable.length) { if (overall === 'faithful') overall = 'partial'; reasons.push(`${unresolvedActionable.length} actionable finding(s) remained at MAX_ROUNDS without a re-audited fix`) }
   if (reasons.length) log(`Exit reconciliation: faithfulness auditor said '${faith?.overall}' → '${overall}' (${reasons.join('; ')})`)
-  exit = { overall, trajectory: proc?.trajectory ?? 'unknown', flagged_count: flagged.length, blocked: digBlocked.map(b => b.fig) }
+  exit = { overall, trajectory: proc?.trajectory ?? 'unknown', flagged_count: flagged.length, blocked: digBlocked.map(b => `figure:${b.fig}`) }
   openFindings = faith?.findings ?? []
-  if (flagged.length || reasons.length) humanEntrypoint = { kind: 'review', reason: [flagged.length ? `${flagged.length} flagged disposition(s) to confirm` : null, ...reasons].filter(Boolean).join('; '), findings: flagged }
+  if (flagged.length || reasons.length) mergeHumanEntrypoint({ kind: 'review', reason: [flagged.length ? `${flagged.length} flagged disposition(s) to confirm` : null, ...reasons].filter(Boolean).join('; '), findings: [...flagged, ...unresolvedActionable] })
 } finally {
   // README human-entrypoint + commit + push + PR — on EVERY exit, without exception.
   await finalize()

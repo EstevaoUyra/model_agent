@@ -98,9 +98,12 @@ expected, not a regression.
 
 **Gates added 2026-06-14** (`proposals/process-drift-register-2026-06-14.md`): the exit can no
 longer be `faithful` while a digitization is unverified, a `GENUINE_DIVERGENCE`/`BLOCKED` figure
-is open, or the process trajectory is `drifting`; and a **coverage gate**
+is open, the process trajectory is `drifting`, or the verify loop has reached its cap with
+actionable findings that would require an unaudited final-round mutation. A **coverage gate**
 (`tools/check_figure_coverage.py`) blocks any exit whose target figures lack their committed three
 views (paper crop · digitized · `figures_reproduced/` render) or a committed faithfulness audit.
-There is still **no runner and no stuck gate**; `check_citations.py` is presence-only, run
+That gate is deterministic artifact-presence checking; semantic/VLM judgment remains with the
+audit agents. There is still **no runner and no stuck gate**; `check_citations.py` is
+presence-only, run
 manually. New tooling: `tools/check_figure_coverage.py` (coverage), `tools/repro_cost.py`
 (per-model API cost in each README).
