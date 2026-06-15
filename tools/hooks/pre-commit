@@ -1,14 +1,34 @@
 #!/bin/sh
-# Auto-regenerate the root README reproduction table before each commit, so it never
-# drifts from submodule state / the corpus ranking.
+# Pre-commit: keep the parent repo's submodule pointers and the root README in sync
+# with the actual submodule checkouts, automatically, on every commit.
 #
 # Activated by pointing git at this directory:  git config core.hooksPath tools/hooks
-# (set once per clone; see README / tools/build_readme.py). To bypass for a single
-# commit:  git commit --no-verify
+# (set once per clone; see README / tools/build_readme.py). Bypass once with:
+#   git commit --no-verify
 set -e
 root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+# 1. Bump the pointer of any submodule whose checkout is ahead of the recorded
+#    commit ('+' in `git submodule status`) — but ONLY if that commit is pushed to
+#    the submodule's remote. Pointing the parent at an unpushed commit would break
+#    every fresh clone (it could not fetch the gitlink), so those are skipped + warned.
+git submodule status | while IFS= read -r line; do
+  [ "${line#+}" = "$line" ] && continue          # only lines flagged with '+'
+  rest=${line#+}
+  sha=${rest%% *}
+  rest=${rest#* }
+  sub=${rest%% *}
+  if [ -n "$(git -C "$sub" branch -r --contains "$sha" 2>/dev/null)" ]; then
+    git add -- "$sub"
+    echo "pre-commit: bumped submodule pointer $sub -> $(echo "$sha" | cut -c1-9)"
+  else
+    echo "pre-commit: SKIP $sub — HEAD $(echo "$sha" | cut -c1-9) not pushed to its remote; pointer left as-is" >&2
+  fi
+done
+
+# 2. Regenerate the README from the (now up-to-date) submodule state and re-stage it.
 python3 "$root/tools/build_readme.py" >/dev/null
-# Re-stage only if README.md is already tracked AND its content actually changed.
 if git ls-files --error-unmatch README.md >/dev/null 2>&1; then
   if ! git diff --quiet -- README.md; then
     git add -- README.md
