@@ -77,6 +77,12 @@ def main():
         print("usage: check_figure_coverage.py models/<name> --figures 1,2,3", file=sys.stderr)
         sys.exit(2)
     model = argv[0]
+    if not figures:
+        # An empty figure list would report "coverage complete" vacuously — a
+        # silent false green. Require an explicit, non-empty --figures.
+        print("error: --figures is required and must be non-empty (e.g. --figures 1,2,3); "
+              "an empty list reports a vacuous 'complete'.", file=sys.stderr)
+        sys.exit(2)
     result = check(model, figures)
     print(json.dumps(result, indent=2))
     sys.exit(0 if result["all_complete"] else 1)

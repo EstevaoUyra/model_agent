@@ -293,23 +293,27 @@ def _impl_views(pool, n) -> list[str]:
 
 def _digitized_views(pool, n) -> list[str]:
     nr = re.escape(str(n))
+    # Match "overlay" in the FILENAME only — not the path — so a paper crop sitting
+    # in an `overlays/` subdir doesn't leak into the Digitized column.
     return sorted(
         f for f in pool
         if re.match(rf"(article_aware/figures|(implementation/)?figure_outputs)/figure_{nr}/", f)
-        and "overlay" in f.lower())
+        and "overlay" in os.path.basename(f).lower())
 
 
-def _image_table(pool, n) -> str:
+def _image_table(pool, n, nodigitize: bool = False) -> str:
     """Always render all three view columns so a missing view shows as an empty
     panel (—) rather than silently vanishing — the reader sees exactly what is
-    absent (a paper crop, a digitization, or a render)."""
+    absent (a paper crop, a digitization, or a render). A committed
+    `figure_<N>.nodigitize` marker renders the Digitized cell as an explicit
+    'n/a' (not a curve to trace) rather than an ambiguous —, and is not warned."""
     paper, digi, impl = _paper_view(pool, n), _digitized_views(pool, n), _impl_views(pool, n)
     if not (paper or digi or impl):
         warn(f"figure {n}: no committed views on disk")
         return "_No committed figure views (paper · digitized · implementation all absent)._"
     if not paper:
         warn(f"figure {n}: no committed paper crop")
-    if not digi:
+    if not digi and not nodigitize:
         warn(f"figure {n}: no committed digitization")
 
     def cell(files, w):
@@ -318,8 +322,11 @@ def _image_table(pool, n) -> str:
         w = w if len(files) == 1 else 150  # shrink multi-panel rows
         return "".join(f'<img src="{f}" width="{w}">' for f in files)
 
+    digi_cell = cell(digi, 150)
+    if not digi and nodigitize:
+        digi_cell = "_n/a — not digitizable_"
     head = "<tr><th>Paper</th><th>Digitized</th><th>Implementation</th></tr>"
-    body = (f"<tr><td>{cell(paper, 300)}</td><td>{cell(digi, 150)}</td>"
+    body = (f"<tr><td>{cell(paper, 300)}</td><td>{digi_cell}</td>"
             f"<td>{cell(impl, 300)}</td></tr>")
     return f"<table>{head}{body}</table>"
 
@@ -352,18 +359,19 @@ def _figure_sort_key(f):
 
 
 def _discover_figure_nums(pool, layouts, fig_meta) -> list:
-    """Every figure with a layout, a meta entry, or any committed view in the
-    pool (figures_reproduced/, article_aware/figures/, or the figure_outputs/
-    convention). Ids may be integers or digit-prefixed (2a) — both render; a
-    purely non-numeric token from disk (e.g. figure_table_1) is ignored to avoid
-    spurious sections, but meta.figures may still name one explicitly."""
+    """The reproduction-TARGET figures: every figure in `meta.figures` or a layout,
+    plus any figure with a committed implementation RENDER (figures_reproduced/ or the
+    figure_outputs/ convention). A figure that has only a paper crop / digitization on
+    disk and is NOT a declared target (no meta entry, no render) is a reference image,
+    not a reproduction target, and gets no §4 row. Ids may be ints or digit-prefixed
+    (2a); a non-numeric disk token (figure_table_1) is ignored — meta may still name one."""
     keys: set = set(layouts.keys())
     keys |= {int(k) if str(k).isdigit() else str(k) for k in fig_meta}
-    fig_re = re.compile(
-        r"^(?:figures_reproduced|(?:implementation/)?figure_outputs|article_aware/figures)/"
+    render_re = re.compile(
+        r"^(?:figures_reproduced|(?:implementation/)?figure_outputs)/"
         r"figure_([0-9][0-9A-Za-z]*)(?=[._/])")
     for f in pool:
-        m = fig_re.match(f)
+        m = render_re.match(f)
         if m:
             tok = m.group(1)
             keys.add(int(tok) if tok.isdigit() else tok)
@@ -373,6 +381,14 @@ def _discover_figure_nums(pool, layouts, fig_meta) -> list:
 def section_figures(model_dir: Path, meta, layouts, rows, verdicts, pool) -> str:
     fig_meta = (meta or {}).get("figures") or {}
     nums = _discover_figure_nums(pool, layouts, fig_meta)
+    nodig = set()
+    fdir = model_dir / "article_aware" / "figures"
+    if fdir.is_dir():
+        for p in fdir.glob("figure_*.nodigitize"):
+            mm = re.match(r"figure_([0-9A-Za-z]+)\.nodigitize", p.name)
+            if mm:
+                tok = mm.group(1)
+                nodig.add(int(tok) if tok.isdigit() else tok)
     if not nums:
         warn("no figures on disk, no layout, no meta.figures — §4 is a stub")
         return ("## Reproduced figures — paper · digitized · implementation\n\n"
@@ -398,7 +414,7 @@ def section_figures(model_dir: Path, meta, layouts, rows, verdicts, pool) -> str
             title += f" — {headline}"
         if badge:
             title += f"  {badge}"
-        parts += [title, "", _image_table(pool, n), ""]
+        parts += [title, "", _image_table(pool, n, nodigitize=n in nodig), ""]
         if fm.get("note"):
             parts += [fm["note"].rstrip(), ""]
         # not-reproduced panels, from the layout
