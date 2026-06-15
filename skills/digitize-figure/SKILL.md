@@ -107,6 +107,39 @@ Be honest in `per_curve` and `caveats`: where you traced the envelope, interpola
 an occlusion, or could not separate curves, **say so**. The critic will check these against
 the pixels; an understated caveat is worse than an admitted limit.
 
+## Canonical committed artifacts (the coverage-gate contract)
+
+`tools/check_figure_coverage.py` is the SINGLE contract for what each in-scope figure must commit, and
+`tools/build_model_readme.py` renders exactly these paths. digitize-figure OWNS the two `article_aware/`
+views — commit them at EXACTLY these paths (they are read back via `git ls-files`, so they must be
+committed, not merely on disk):
+
+- **Paper crop** — `article_aware/figures/figure_<N>.{png,jpg}` (figure-level; the README "paper" view
+  and your tracing referent). If the paper source gives you only per-panel crops, also assemble/commit
+  the figure-level image here. Do NOT leave it only under a `figure_<N>/figure_<N>_source.png` /
+  `figure_<N>/panel_*_paper.png` subpath — those are not the canonical paper view (older models drifted
+  this way and their READMEs showed an empty Paper panel).
+- **Shipping overlay** — `article_aware/figures/figure_<N>/overlay_<panel>.png` (the filename MUST contain
+  `overlay`). This is the digitized curve on the paper pixels that the README **renders** as the Digitized
+  panel — the SAME final overlay you validated above, **committed**, not a throwaway scratch render.
+  ⚠️ Note the gate vs the README differ: `check_figure_coverage.py`'s `digitized` check passes on the
+  `panel_*_digitized.json` alone (regex `digiti|overlay`), so a **green gate does NOT mean the overlay
+  image is at the canonical path** — `tools/build_model_readme.py` renders the Digitized panel ONLY from a
+  committed `*overlay*` **image** under `figure_<N>/`. Commit the overlay image at the canonical path or
+  the README shows an empty Digitized panel even with a green gate.
+- **Per-panel data** — `article_aware/figures/figure_<N>/panel_<X>_digitized.json` (above).
+- **Non-digitizable panel** — if a panel is a schematic, an illustrative/constructed-stub output, or not
+  a Mode-1 plot, commit an empty `article_aware/figures/figure_<N>.nodigitize` marker INSTEAD of silently
+  producing nothing. A digitized view that is absent with no marker is a coverage-gate failure, not an
+  acceptable omission (this is why some models shipped an empty Digitized panel).
+
+Apply this to **your in-scope figure(s) only** — produce the canonical paths for the figure you are
+digitizing; do NOT migrate or rewrite other figures' legacy paths (that is out of scope and risks
+clobbering audited artifacts). Before handing off, run
+`python3 <repo-root>/tools/check_figure_coverage.py models/<name> --figures <N>` and confirm `original`
++ `digitized` are satisfied, AND visually confirm the canonical overlay image exists (a green gate alone
+is not proof the README's Digitized panel will render — see the ⚠️ above).
+
 ## What this skill is NOT — and the handoff
 
 - **You never grade your own digitization faithful**, never write APPROVED, never mark the

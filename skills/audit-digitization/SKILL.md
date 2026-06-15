@@ -83,6 +83,16 @@ Re-render the digitized reference through the view yourself before looking at it
 never trust a committed `figures_reproduced/figure_<N>_reference.png` (stale renders
 produce false verdicts in both directions).
 
+### Step 0 — Coverage: the canonical artifacts are committed at the contract paths
+
+Before judging faithfulness, confirm the figure's views actually exist where the README + gate read
+them (`tools/check_figure_coverage.py`): the **paper crop** at `article_aware/figures/figure_<N>.{png,jpg}`
+(figure-level, not only a `figure_<N>/..._source.png` subpath) and the **shipping overlay** at
+`article_aware/figures/figure_<N>/overlay_*.png` — OR a `figure_<N>.nodigitize` marker for a genuinely
+non-digitizable panel. A committed view at a non-canonical path (or absent with no marker) is a finding:
+the reader sees an empty Paper/Digitized panel. Run
+`python3 <repo-root>/tools/check_figure_coverage.py models/<name> --figures <list>` and report any gap.
+
 ### Step 1 — Faithfulness: digitized reference vs the paper, panel by panel
 
 **Overlay — and audit the overlay that ships.** Render the digitized curve *on top of*

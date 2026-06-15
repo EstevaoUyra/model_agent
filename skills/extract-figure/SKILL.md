@@ -20,7 +20,11 @@ specifies *what* to look for when doing a visual comparison of generated simulat
 
 ## Inputs
 
-- `article_aware/figures/figure_N.jpg` — the paper figure image
+- `article_aware/figures/figure_N.{png,jpg}` — the paper figure image (the canonical "paper" view the
+  README + coverage gate read, `tools/check_figure_coverage.py`). It must be **committed at this
+  figure-level path** — not only as per-panel crops in a `figure_N/` subdir. If it is absent or only
+  exists per-panel, **flag it** (the figure has no committed paper image to reproduce against) rather
+  than describing a figure with no canonical crop; producing/assembling it is `digitize-figure`'s job.
 - `paper/extracted_text.md` — the full extracted paper text, including verbatim figure
   captions, equations, Table 1 parameters, and qualitative claims
 - `article_aware/spec/citations.yaml` — citation IDs to reference from the figure.md

@@ -38,6 +38,11 @@ build your own and flag the intended reuse as a spec question for the later reus
   **view is Phase-A-owned**: you produce the measurement *record*; the view renders it. If
   the figure looks wrong because of axes/scale/normalization, that is a **contract** matter
   (a finding for Phase A), not something you fix in the view.
+- **Render every in-scope figure to a COMMITTED `figures_reproduced/figure_<N>.png`** — this is the
+  README's "implementation" view and the coverage gate's render artifact (`tools/check_figure_coverage.py`).
+  `implementation/figure_outputs/` is **gitignored scratch**; a render left only there (or committed under
+  `figure_outputs/`) is invisible to the README and fails the gate. Promote each fresh render to
+  `figures_reproduced/figure_<N>.png` and commit it. One figure → one canonical file.
 
 ## Iterate locally — the inner loop (no VLM)
 

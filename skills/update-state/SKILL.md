@@ -463,7 +463,10 @@ and where it goes — e.g. "drop the CRCNS MGSM toolbox in `paper/code/` and re-
 The human's single highest-leverage action must be impossible to miss, at the top of the Status
 section. A blocked/flagged exit gets a **"👉 DECISION NEEDED"** lead in the same field.
 
-Keep `status_narrative` ≤300 words and `model_summary` ≤200 — the README stays scannable.
+Keep `status_narrative` ≤300 words and `model_summary` ≤200 — the README stays scannable. **Summarize;
+do NOT paste the prior README's status prose wholesale** (the anti-pattern: a 4000-character narrative
+that restates every figure caveat — those belong in each figure's `note` and in `issues.yaml`, not the
+status). The status answers, tersely: what's green, what's broken/blocked, and the single next action.
 Re-run `tools/build_model_readme.py models/<model> --check` until it is clean and no in-scope
 section is a stub. **Never hand-edit the generated README.md.**
 
