@@ -2,14 +2,22 @@
 
 ## Purpose
 
-Refresh the model's README to reflect the current state of the reproduction
-so that a returning human or a cold-start agent can pick up the work without
-re-reading the entire history.
+Refresh the model's reproduction state so a returning human or cold-start agent
+can pick up the work without re-reading the entire history.
 
-This is **not** a status snapshot — it's a planning artifact. The agent
-gathers concrete data (including a fresh VLM pass over the figures), reflects
-on what's working and what's broken, then writes a README that names the next
-correction specifically enough to act on.
+> **The README is GENERATED, not hand-written (2026-06-15).** `tools/build_model_readme.py`
+> assembles the model README from artifacts — one fault-tolerant renderer per section — so the
+> deterministic facts (exit, test/VLM roll-up, changelog table, figure image tables, cost) never
+> drift and every model gets the same 7-section shape. **This skill's job is to AUTHOR the
+> structured artifacts the generator reads, then run the generator** — it writes *data*, never
+> README prose. Do NOT hand-edit `README.md`; it is generated output. Schemas + design:
+> `proposals/per-model-readme-autogen-2026-06-15.md`.
+
+This is **not** a status snapshot — it's a planning artifact. The agent gathers concrete data
+(including a fresh VLM pass over the figures), reflects on what's working and what's broken, and
+captures that into the artifacts specifically enough to act on. The reflection guidance below
+(the conflict rule, VLM staleness, "next correction") now feeds the `status_narrative` /
+`issues.yaml` fields instead of free-form README sections.
 
 > **In the `full-pass` workflow (2026-06-14).** Figure faithfulness is established by the
 > `audit-faithfulness` auditor (re-render vs digitized + paper), **not** by the Step-1b
@@ -108,39 +116,72 @@ the long-term design but not all are implemented — degrade gracefully.
 
 ---
 
-## Output: README structure
+## Output: the structured artifacts (then run the generator)
 
+Author these three artifacts in the model's `logs/`, then run the generator. The README's
+7 sections (Current exit · Status · Model · Reproduced figures · Potential sources · Changelog ·
+Reproduction cost) are rendered from them + the always-present sources (test_runs.jsonl,
+figure_comparisons/, changelog.md, article_aware/spec/*.yaml, repro_cost.py).
+
+1. **`logs/exit.json`** — the standalone exit state (also read by the parent `tools/build_readme.py`):
+   ```json
+   {"overall": "reproduced", "trajectory": "toward_paper", "flagged_count": 0, "blocked": [],
+    "audit": "hardened", "figures_in_scope": [1,2,3], "figures_rerendered": 3,
+    "updated_at": "YYYY-MM-DD", "headline": "<one sentence>"}
+   ```
+   `audit`: `hardened` (independent faithfulness+digitization audit, build/audit roles separated) ·
+   `vlm` (figure-comparison only) · `self-reported` (implemented, not independently audited).
+
+2. **`logs/readme_meta.yaml`** — the irreducible prose, rendered verbatim:
+   ```yaml
+   title: "<Authors YEAR — short title>"
+   status_narrative: |              # §2 — what's working/broken/blocked; specific test_ids + figures.
+     ...                            # LEAD with a 👉 DECISION NEEDED / 👉 UNBLOCKER block when blocked.
+   model_summary: |                 # §3 — grounded in citation IDs / structural facts. ≤200 words.
+     ...
+   model_equation_refs: [C-005, C-006]   # governing-equation citation IDs from citations.yaml
+   figures:                         # §4 — one entry per in-scope figure
+     6:
+       headline: "Feature-based attention sharpening"
+       status_badge: "✅ FAITHFUL (det all-pass · fresh render)"
+       note: |
+         ...
+       checks:                      # FALLBACK for the tier table until the suite re-runs with
+         - {tier: hard, check: "...", result: "✅ pass"}   # @pytest.mark.tier markers captured
+   ```
+
+3. **`logs/issues.yaml`** — §5 "Potential sources of the issues":
+   ```yaml
+   preamble: |
+     ...
+   issues:
+     - {id: F1, category: FIGURE, status: resolved, title: "...", body: "...", sources: ["model.py:284"]}
+   ```
+
+4. **`logs/adjudications.yaml`** *(only when the organizer overrode an audit)* — a documented audit
+   override. The organizer may overturn an audit/test RED by judging a change small and safe, but
+   **never paperlessly**: the override is legitimate ONLY if recorded here, with the finding
+   overridden, the reasoning, the `change_scope`, and the evidence checked **against the diff**. The
+   generator renders it prominently in §2 Status (⚖️) and flags the count in the §1 exit table.
+   ```yaml
+   adjudications:
+     - {id: ADJ-001, date: YYYY-MM-DD, decided_by: organizer,
+        verdict: "override → faithful", finding: "...", audit_ref: "logs/faithfulness_audit/...md",
+        change_scope: "small — model.py untouched (vs diff)", reasoning: "...", evidence: ["..."]}
+   ```
+   An audit RED with no matching adjudication entry stands as RED — do not silently downgrade it.
+
+Then **append one changelog line** to `logs/changelog.md` (`## YYYY-MM-DD — <summary>`, full detail
+below it) and **generate the README**:
+
+```bash
+python3 <repo-root>/tools/build_model_readme.py models/<model>
+python3 <repo-root>/tools/build_model_readme.py models/<model> --check   # must be clean
 ```
-# <Model name> Reproduction
 
-## Model
-<1-2 paragraphs: paper, scope, what's reproduced so far. ≤200 words.>
-
-## Current state
-<reflection: what's working, what's broken, what hypotheses are live, what's
-been ruled out. Specific test_ids and figure numbers, not vague summaries.
-≤300 words. REPLACED each invocation — not append-only.>
-
-## Next correction
-<single most important next fix. Concrete: file paths, the failing test_id,
-the failure message, a brief hypothesis if obvious. ≤200 words.>
-
-## Test status
-<markdown table from `neuromodels test-table`, verbatim>
-
-## Recent changes
-<table of last 3-5 versions from changelog.yaml summaries, OR last 5-10
-git commit subjects when no changelog exists>
-
-## README generation
-<List of custom Python (or other ad-hoc commands) the agent ran to answer
-questions the existing scripts don't cover. APPEND-ONLY across invocations.
-Each entry: date, one-line summary of what was queried, the actual code,
-and why it was needed. Patterns that recur should be turned into new
-scripts in `skills/update-state/scripts/`.>
-```
-
-Total target: ~1000 words including the test table.
+The generator prints a warning per stubbed/empty section (e.g. `no logs/issues.yaml — §5 is a stub`).
+If any section meant to have content came out empty, **fix the artifact and re-run** — never hand-edit
+the generated README.
 
 ---
 
@@ -407,38 +448,24 @@ and must be cleaned — this recurred in ~every model. Run this sweep at finaliz
   them (olshausen shipped a stale docstring). The prose must cite the now-binding
   values, not the values from before the fix.
 
-### Step 4 — Write README
+### Step 4 — Author artifacts + generate the README
+
+Write the three artifacts from the "Output" section above (`logs/exit.json`,
+`logs/readme_meta.yaml`, `logs/issues.yaml`), append the changelog line, then run
+`tools/build_model_readme.py models/<model>`. The reflection from Steps 2–3 lands in
+`status_narrative` (what's working/broken/blocked) and `issues.yaml` (the potential sources +
+next correction), NOT in free-form README sections.
 
 When a model is **BLOCKED on an obtainable-by-human gated source** (a
 login/paywall/CRCNS-registration rescue artifact per acquire-sources), the
-README must LEAD at the very TOP with a clear **"👉 UNBLOCKER"** banner naming
-exactly what to fetch and where it goes — e.g. "drop the CRCNS MGSM toolbox in
-`paper/code/` and re-run" (cagly2012). The human's single highest-leverage
-action must be impossible to miss, above the per-figure state.
+`status_narrative` must LEAD with a clear **"👉 UNBLOCKER"** block naming exactly what to fetch
+and where it goes — e.g. "drop the CRCNS MGSM toolbox in `paper/code/` and re-run" (cagly2012).
+The human's single highest-leverage action must be impossible to miss, at the top of the Status
+section. A blocked/flagged exit gets a **"👉 DECISION NEEDED"** lead in the same field.
 
-Open `README.md` in the model directory. Replace **Current state**, **Next
-correction**, **Test status**, and **Recent changes** entirely. Preserve
-**Model** unless its description is clearly stale.
-
-**Append (do not replace) the README generation section.** If a previous run
-left entries there, keep them and add new ones below. Format each entry:
-
-```
-- <YYYY-MM-DD>: <one-line summary of what you needed to know>.
-  Code:
-  ```
-  <the actual command or python snippet>
-  ```
-  Why: <one-line reason this wasn't in the existing scripts>.
-```
-
-If you didn't need any custom queries this run, write a single line:
-`- <YYYY-MM-DD>: no custom queries needed.`
-
-Word counts: Model ≤200, Current state ≤300, Next correction ≤200. The skill
-fails if any prose section exceeds its cap — keep the README scannable. The
-"README generation" section has no cap (it's evidence-tracking, not reading
-material).
+Keep `status_narrative` ≤300 words and `model_summary` ≤200 — the README stays scannable.
+Re-run `tools/build_model_readme.py models/<model> --check` until it is clean and no in-scope
+section is a stub. **Never hand-edit the generated README.md.**
 
 ---
 
