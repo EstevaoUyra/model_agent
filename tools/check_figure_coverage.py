@@ -16,6 +16,19 @@ Per target figure N, three views must be committed:
 And the faithfulness audit must have run this model at least once:
   - verdict     : >=1 logs/faithfulness_audit/* file committed
 
+Render-only panels (no paper counterpart): some target "figures" are MODEL-GENERATED
+explanatory panels with NO figure in the paper at all — e.g. a `mechanism`/`dynamics`
+dissociation panel the model produces to illustrate its own behaviour. These can never
+carry an `original` (paper crop) or `digitized` (overlay) view, because there is nothing
+in the paper to crop or digitize against. A committed
+  - article_aware/figures/figure_N.nopaper   marker (with a one-line reason inside)
+declares exactly this and EXEMPTS the original + digitized views for figure N. The
+`implemented` render is STILL required — a render-only panel must show its committed
+render, so .nopaper waives the (nonexistent) paper comparison, never the model output
+itself. Use .nopaper ONLY for a panel with no paper source; a real paper figure that is
+merely hard to obtain (paywalled, lost) stays blocked and routes to a human — never mask
+it with .nopaper.
+
 Committed status is read with `git ls-files` inside the submodule.
 
 Usage:
@@ -32,9 +45,10 @@ def tracked(model_dir):
     return out.stdout.splitlines()
 
 
-def check(model, figures):
-    model_dir = os.path.join(REPO_ROOT, model) if not os.path.isabs(model) else model
-    files = set(tracked(model_dir))
+def classify_figures(files, figures):
+    """Pure classification: given the committed file paths and the target figure list,
+    return (rows, faith_ran). Free of any git/IO so it is unit-testable."""
+    files = set(files)
 
     def has(pattern):
         rx = re.compile(pattern)
@@ -44,15 +58,25 @@ def check(model, figures):
     rows = []
     for n in figures:
         n = str(n)
-        original = has(rf"^article_aware/figures/figure_{re.escape(n)}\.(png|jpg|jpeg)$")
+        # A .nopaper marker = a model-generated panel with NO paper counterpart: it exempts
+        # the paper-crop + digitization views (which cannot exist), but NOT the render.
+        nopaper = has(rf"^article_aware/figures/figure_{re.escape(n)}\.nopaper$")
+        original = has(rf"^article_aware/figures/figure_{re.escape(n)}\.(png|jpg|jpeg)$") or nopaper
         implemented = has(rf"^figures_reproduced/figure_{re.escape(n)}\.(png|jpg|jpeg)$")
         digitized = (has(rf"^article_aware/figures/figure_{re.escape(n)}/.*(digiti|overlay).*")
-                     or has(rf"^article_aware/figures/figure_{re.escape(n)}\.nodigitize$"))
+                     or has(rf"^article_aware/figures/figure_{re.escape(n)}\.nodigitize$")
+                     or nopaper)
         missing = [k for k, v in (("original", original), ("implemented", implemented),
                                   ("digitized", digitized)) if not v]
         rows.append({"figure": n, "original": original, "implemented": implemented,
-                     "digitized": digitized, "complete": not missing, "missing": missing})
+                     "digitized": digitized, "nopaper": nopaper,
+                     "complete": not missing, "missing": missing})
+    return rows, faith_ran
 
+
+def check(model, figures):
+    model_dir = os.path.join(REPO_ROOT, model) if not os.path.isabs(model) else model
+    rows, faith_ran = classify_figures(tracked(model_dir), figures)
     all_complete = faith_ran and all(r["complete"] for r in rows)
     return {"model": model, "faithfulness_audit_ran": faith_ran,
             "figures": rows, "all_complete": all_complete,
