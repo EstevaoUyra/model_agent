@@ -77,7 +77,11 @@ stuck-detector as the iteration cap, and a presence-only citation check):
 - `models/<m>/article_aware/figures/figure_<N>.png` — the **committed** original
   paper-figure crop (the README's "paper" view + the digitization/faithfulness
   referent). A genuine schematic carries a `figure_<N>.nodigitize` marker instead of
-  a digitized overlay. Both are required by the coverage gate.
+  a digitized overlay. Both are required by the coverage gate. A **render-only panel
+  with no paper counterpart** (a model-generated `mechanism`/`dynamics` explanatory
+  figure) carries a `figure_<N>.nopaper` marker, which exempts the paper-crop +
+  digitized views (they cannot exist) but **not** the committed render. `.nopaper` is
+  only for a panel absent from the paper — a real-but-unavailable figure stays blocked.
 
 ---
 
