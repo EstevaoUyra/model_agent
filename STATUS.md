@@ -90,9 +90,16 @@ stuck-detector as the iteration cap, and a presence-only citation check):
 The reproduction loop is now driven by **`.claude/workflows/full-pass.js`** (the `full-pass`
 workflow), NOT the hand-run skill loop the older text below described. Its loop is:
 acquire → extract-spec + digitization gate (digitize → separate-critic audit, **per-panel**,
-commits the paper crop) → audit-spec gate → implement → verify (`audit-faithfulness` +
-`audit-process`, loop-until-dry) → **exit reconciliation** → finalize (stale-sweep that commits
-`figures_reproduced/` + **modification smoke test** + **coverage gate** → README → PR).
+commits the paper crop → **then** extract-figure *describe* against that committed crop) →
+audit-spec gate → implement → verify (`audit-faithfulness` + `audit-process`, loop-until-dry) →
+**exit reconciliation** → finalize (stale-sweep that commits `figures_reproduced/` +
+**modification smoke test** + **coverage gate** → README → PR).
+
+> Figure-pipeline order (fixed 2026-06-26): digitize runs **before** describe, because
+> extract-figure (describe) requires the committed `figure_N.png` crop that digitize produces.
+> Describing first made describe self-block on the not-yet-cropped image and silently emit no
+> `figure_N.md`; the **coverage gate now requires the `described` view** (`figure_N.md`) so this
+> can never pass silently again.
 
 Figure faithfulness is established by **`audit-faithfulness`** (re-render vs the digitized
 reference + paper), **not** by `compare-figure-packet` + VLM subagents — that VLM-checklist path

@@ -10,10 +10,11 @@ def _by_fig(rows):
     return {r["figure"]: r for r in rows}
 
 
-def test_complete_figure_with_all_three_views():
+def test_complete_figure_with_all_four_views():
     files = [
         "logs/faithfulness_audit/2026-06-15.md",
         "article_aware/figures/figure_5.png",
+        "article_aware/figures/figure_5.md",
         "figures_reproduced/figure_5.png",
         "article_aware/figures/figure_5/panel_a_digitized.json",
     ]
@@ -27,6 +28,7 @@ def test_missing_digitized_blocks():
     files = [
         "logs/faithfulness_audit/2026-06-15.md",
         "article_aware/figures/figure_6.png",
+        "article_aware/figures/figure_6.md",
         "figures_reproduced/figure_6.png",
     ]
     rows, _ = classify_figures(files, ["6"])
@@ -34,10 +36,26 @@ def test_missing_digitized_blocks():
     assert rows[0]["missing"] == ["digitized"]
 
 
+def test_missing_described_blocks():
+    # The describe contract (figure_N.md) is required even when the other three views exist —
+    # this is the silent gap (an unrun/blocked extract-figure) the view was added to catch.
+    files = [
+        "logs/faithfulness_audit/2026-06-15.md",
+        "article_aware/figures/figure_7.png",
+        "figures_reproduced/figure_7.png",
+        "article_aware/figures/figure_7/panel_a_digitized.json",
+    ]
+    rows, _ = classify_figures(files, ["7"])
+    assert rows[0]["described"] is False
+    assert rows[0]["complete"] is False
+    assert rows[0]["missing"] == ["described"]
+
+
 def test_nodigitize_marker_satisfies_digitized_only():
     files = [
         "logs/faithfulness_audit/2026-06-15.md",
         "article_aware/figures/figure_3.png",
+        "article_aware/figures/figure_3.md",
         "figures_reproduced/figure_3.png",
         "article_aware/figures/figure_3.nodigitize",
     ]
@@ -46,15 +64,18 @@ def test_nodigitize_marker_satisfies_digitized_only():
     # .nodigitize does NOT waive the paper crop.
     rows2, _ = classify_figures(
         ["logs/faithfulness_audit/x.md", "figures_reproduced/figure_3.png",
+         "article_aware/figures/figure_3.md",
          "article_aware/figures/figure_3.nodigitize"], ["3"])
     assert rows2[0]["missing"] == ["original"]
 
 
-def test_nopaper_marker_exempts_original_and_digitized_but_not_render():
-    # A render-only derived panel: only the committed render + the .nopaper marker exist.
+def test_nopaper_marker_exempts_original_and_digitized_but_not_render_or_describe():
+    # A render-only derived panel: .nopaper waives the paper crop + digitization, but the
+    # committed render AND the describe (figure_N.md) are both still required.
     files = [
         "logs/faithfulness_audit/2026-06-15.md",
         "figures_reproduced/figure_mechanism.png",
+        "article_aware/figures/figure_mechanism.md",
         "article_aware/figures/figure_mechanism.nopaper",
     ]
     rows, _ = classify_figures(files, ["mechanism"])
@@ -65,9 +86,11 @@ def test_nopaper_marker_exempts_original_and_digitized_but_not_render():
 
 
 def test_nopaper_still_requires_the_render():
-    # .nopaper waives the paper comparison, never the model output itself.
+    # .nopaper waives the paper comparison, never the model output itself. Describe present so the
+    # ONLY missing view is the render.
     files = [
         "logs/faithfulness_audit/2026-06-15.md",
+        "article_aware/figures/figure_dynamics.md",
         "article_aware/figures/figure_dynamics.nopaper",
     ]
     rows, _ = classify_figures(files, ["dynamics"])
@@ -79,6 +102,7 @@ def test_nopaper_still_requires_the_render():
 def test_no_faithfulness_audit_fails_overall_even_if_figures_complete():
     files = [
         "article_aware/figures/figure_2.png",
+        "article_aware/figures/figure_2.md",
         "figures_reproduced/figure_2.png",
         "article_aware/figures/figure_2.nodigitize",
     ]
@@ -93,6 +117,7 @@ def test_paywalled_real_figure_without_nopaper_stays_blocked():
     files = [
         "logs/faithfulness_audit/2026-06-15.md",
         "figures_reproduced/figure_1.png",
+        "article_aware/figures/figure_1.md",
         "article_aware/figures/figure_1.nodigitize",
     ]
     rows, _ = classify_figures(files, ["1"])

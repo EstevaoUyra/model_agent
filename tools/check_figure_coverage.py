@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Coverage gate — assert every target figure carries its committed three views + a fresh verdict.
+"""Coverage gate — assert every target figure carries its committed four views + a fresh verdict.
 
 This is the keystone gate the full-pass workflow was missing: every other check judges the
 *content* of artifacts that happen to exist, so a run could silently stop producing the original
@@ -7,12 +7,15 @@ crop / the implemented render / the digitization, and still exit `faithful`. Thi
 EXISTENCE, of COMMITTED files (the README can only show committed files), so a required step that
 silently didn't run becomes a hard BLOCK instead of a footnote.
 
-Per target figure N, three views must be committed:
+Per target figure N, four views must be committed:
   - original    : article_aware/figures/figure_N.{png,jpg,jpeg}      (the paper crop)
   - implemented : figures_reproduced/figure_N.{png,jpg}              (the model render, committed)
   - digitized   : article_aware/figures/figure_N/ with >=1 *digiti*/*overlay* file
                   OR a committed article_aware/figures/figure_N.nodigitize marker
                   (for a genuinely non-digitizable / schematic panel — honest, not skipped)
+  - described   : article_aware/figures/figure_N.md   (the extract-figure describe contract —
+                  required for EVERY figure incl. render-only; its silent absence on a fresh
+                  from=extract pass is what this view was added to catch, 2026-06-26)
 And the faithfulness audit must have run this model at least once:
   - verdict     : >=1 logs/faithfulness_audit/* file committed
 
@@ -66,10 +69,17 @@ def classify_figures(files, figures):
         digitized = (has(rf"^article_aware/figures/figure_{re.escape(n)}/.*(digiti|overlay).*")
                      or has(rf"^article_aware/figures/figure_{re.escape(n)}\.nodigitize$")
                      or nopaper)
+        # described = the extract-figure (describe) contract: the citation-grounded figure_<N>.md.
+        # Required for EVERY target figure (no nopaper exemption — a render-only panel is still
+        # described). Its absence is how an unrun/blocked describe step used to pass SILENTLY: the
+        # gate only checked the render/crop/digitized views, so a fresh from=extract pass whose
+        # describe self-blocked on the not-yet-cropped image left no figure_<N>.md and nothing
+        # flagged it (caught 2026-06-26 — the describe step ran BEFORE digitize produced the crop).
+        described = has(rf"^article_aware/figures/figure_{re.escape(n)}\.md$")
         missing = [k for k, v in (("original", original), ("implemented", implemented),
-                                  ("digitized", digitized)) if not v]
+                                  ("digitized", digitized), ("described", described)) if not v]
         rows.append({"figure": n, "original": original, "implemented": implemented,
-                     "digitized": digitized, "nopaper": nopaper,
+                     "digitized": digitized, "described": described, "nopaper": nopaper,
                      "complete": not missing, "missing": missing})
     return rows, faith_ran
 
