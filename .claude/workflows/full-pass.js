@@ -515,6 +515,10 @@ try {
     let specGate = await agent(
       `${SK('audit-spec')} Audit the freshly-extracted ${MODEL} contract vs the paper + acquired ground truth (paper/code). Adversarial; you did NOT author it. Tag each finding scope=model|figure.`,
       { label: 'audit-spec (gate)', phase: 'Extract', model: OPUS, schema: SPEC_VERDICT })
+    // null = the audit-spec agent died on a TRANSIENT error (e.g. session-quota limit). Never deref
+    // .status on null (that crashed the whole run, 2026-06-26) — block cleanly; a resume re-runs it.
+    if (!specGate) return blockedExit('Phase-A spec gate agent died (transient — likely session quota); resume to retry', [
+      { scope: 'model', detail: 'audit-spec gate returned null (transient API/quota failure). Re-run via resumeFromRunId.', fix: 'resume' }])
     for (let i = 1; i <= MAX_PAPERFIX && specGate.status !== 'FAITHFUL'; i++) {
       specGate = await paperFix(specGate.findings, `gate r${i}`, 'Extract')
     }

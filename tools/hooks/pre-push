@@ -1,0 +1,25 @@
+#!/bin/sh
+# Pre-push guard: refuse a direct push to `main`. The model `main` (and the parent
+# `main`) advances ONLY via a squash-merge PR — never a direct push. This is the
+# `guard-main-branch` referenced in WORKFLOW.md §9.
+#
+# Activated by pointing git at this directory:  git config core.hooksPath tools/hooks
+# (the same install as tools/hooks/pre-commit; set once per clone — and per model
+# submodule that wants the guard). Bypass deliberately with:  git push --no-verify
+#
+# git passes one line per ref on stdin:  <local_ref> <local_sha> <remote_ref> <remote_sha>
+set -e
+
+status=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main)
+      echo "pre-push: BLOCKED — direct push to main is forbidden." >&2
+      echo "          main advances via a squash-merge PR. Push a feature branch and open a PR." >&2
+      echo "          (deliberate override: git push --no-verify)" >&2
+      status=1
+      ;;
+  esac
+done
+
+exit "$status"
