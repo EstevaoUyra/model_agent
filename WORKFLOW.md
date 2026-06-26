@@ -548,7 +548,8 @@ models/<m>/                  # a private git submodule; the parent bumps the poi
 
 - Work on a **feature branch inside the model submodule** (`git -C models/<m>`);
   **never** a parent-repo git op from a model agent. The model `main` advances via a
-  **squash-merge PR**; `guard-main-branch.sh` blocks a direct `git push origin main`.
+  **squash-merge PR**; the `tools/hooks/pre-push` guard (installed via
+  `git config core.hooksPath tools/hooks`) blocks a direct `git push origin main`.
 - The parent's **submodule-pointer bumps are the organizer's serial job** — commit only
   inside the model repo; never `--amend` the parent from a model agent.
 - Commit milestones: spec+pseudocode; data+figures+`APPROVED`; a component's tests

@@ -460,17 +460,18 @@ try {
       `${SK('extract-spec')} Extract the article-aware contract for ${MODEL} (equations, parameters with evidenced/lineage-grounded assumptions, calibration ledger, citations, spec-questions).`,
       { label: 'spec-extract', phase: 'Extract', model: OPUS })
 
-    // ② describe → ③ digitize → ④ audit — ONE agent per role over ALL figures (a single SWEEP,
-    //    NOT a per-figure fan-out). The workflow diagram is unchanged — same roles, same order,
-    //    same digitizer≠auditor separation; the only change is the agent COUNT per role drops from
-    //    N to 1. Two payoffs over the fan-out: (a) concurrency drops sharply (the rate-limit relief),
-    //    and (b) ONE auditor sees ALL figures at once, so a defect shared across figures is caught in
-    //    a single pass instead of being re-discovered round-by-round. The 3↔4 retry loop re-digitizes
-    //    ONLY the figures the prior audit flagged (diff-focus inside the gate).
+    // ② digitize → ③ audit → ④ describe — ONE agent per role over ALL figures (a single SWEEP,
+    //    NOT a per-figure fan-out). ORDER MATTERS: digitize runs FIRST because it is what COMMITS the
+    //    cropped paper image `article_aware/figures/figure_<N>.png`, and extract-figure (describe)
+    //    REQUIRES that crop as an input (it is the canonical "paper" view the description grades
+    //    against). When describe ran first (the original order), the crop did not exist yet, so per its
+    //    own skill — and this workflow's prompt — describe marked EVERY figure BLOCKED and wrote NO
+    //    figure_<N>.md / _visual_checklist.md, and was never re-run; on a fresh from=extract pass the
+    //    describe contract silently never materialized (vicente/fitzhugh, caught 2026-06-26). Digitize
+    //    first, then describe against the real committed crops. Payoffs unchanged: ONE auditor sees ALL
+    //    figures at once (a shared defect caught in one pass); the 3↔4 retry loop re-digitizes ONLY the
+    //    figures the prior audit flagged (diff-focus inside the gate).
     const figList = FIGURES.join(', ')
-    await agent(
-      `${SK('extract-figure')} Describe figures ${figList} of ${MODEL} — for EACH figure: panels, axis limits, model-panels-only scope. A panel that is a RENDERED MODEL OUTPUT is a reproduction target even inside a schematic. If a figure's paper image is missing, mark THAT figure BLOCKED (do not block the others).`,
-      { label: 'fig-extract:all', phase: 'Extract', model: OPUS })
     let digVerdict = null
     for (let round = 1; round <= MAX_ROUNDS; round++) {
       const prior = digVerdict?.figures ?? []
@@ -498,6 +499,14 @@ try {
       if (digVerdict.figures.every(f => f.status === 'FAITHFUL' || f.status === 'BLOCKED')) break
     }
 
+    // ④ describe — runs AFTER digitize so the committed `figure_<N>.png` crops exist (see the
+    //    ordering note above). Produces figure_<N>.md + figure_<N>_visual_checklist.md, the describe
+    //    contract the coverage gate now enforces. A figure digitize still could NOT crop (it stayed
+    //    BLOCKED with no committed image) is the only one describe should mark BLOCKED.
+    await agent(
+      `${SK('extract-figure')} Describe figures ${figList} of ${MODEL} — for EACH figure: panels, axis limits, model-panels-only scope, against the COMMITTED paper crop \`article_aware/figures/figure_<N>.png\` (digitize already produced these). A panel that is a RENDERED MODEL OUTPUT is a reproduction target even inside a schematic. Only if a figure's committed paper image is genuinely still missing, mark THAT figure BLOCKED (do not block the others).`,
+      { label: 'fig-extract:all', phase: 'Extract', model: OPUS })
+
     await specDone
     // normalize the per-figure verdict to the downstream {fig, status, defect} shape; a figure the
     // auditor omitted → BLOCKED (the schema requires one entry per figure, but never crash if missing).
@@ -515,6 +524,10 @@ try {
     let specGate = await agent(
       `${SK('audit-spec')} Audit the freshly-extracted ${MODEL} contract vs the paper + acquired ground truth (paper/code). Adversarial; you did NOT author it. Tag each finding scope=model|figure.`,
       { label: 'audit-spec (gate)', phase: 'Extract', model: OPUS, schema: SPEC_VERDICT })
+    // null = the audit-spec agent died on a TRANSIENT error (e.g. session-quota limit). Never deref
+    // .status on null (that crashed the whole run, 2026-06-26) — block cleanly; a resume re-runs it.
+    if (!specGate) return blockedExit('Phase-A spec gate agent died (transient — likely session quota); resume to retry', [
+      { scope: 'model', detail: 'audit-spec gate returned null (transient API/quota failure). Re-run via resumeFromRunId.', fix: 'resume' }])
     for (let i = 1; i <= MAX_PAPERFIX && specGate.status !== 'FAITHFUL'; i++) {
       specGate = await paperFix(specGate.findings, `gate r${i}`, 'Extract')
     }

@@ -20,6 +20,11 @@ specifies *what* to look for when doing a visual comparison of generated simulat
 
 ## Inputs
 
+> **Order:** this describe step runs **after** `digitize-figure` in the full-pass workflow, so the
+> committed `figure_N.png` crop below already exists when you run. (It used to run first, before the
+> crop existed, which forced it to self-block on every figure and silently produce nothing — fixed
+> 2026-06-26.) If a crop is genuinely still missing, flag *that* figure; do not block the rest.
+
 - `article_aware/figures/figure_N.{png,jpg}` — the paper figure image (the canonical "paper" view the
   README + coverage gate read, `tools/check_figure_coverage.py`). It must be **committed at this
   figure-level path** — not only as per-panel crops in a `figure_N/` subdir. If it is absent or only
