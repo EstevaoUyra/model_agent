@@ -47,11 +47,11 @@ flowchart TD
   E0 --> ACQ
   ACQ -->|paper not fetchable| BLOCK
   ACQ --> XSPEC
-  ACQ --> XFIG
-  XFIG --> DIG
+  ACQ --> DIG
   DIG --> ADIG
   ADIG -->|defect, loop up to 3| DIG
-  ADIG -->|verdict recorded| ASPEC
+  ADIG -->|crops committed| XFIG
+  XFIG -->|describe contract recorded| ASPEC
   XSPEC -->|gate / verify the contract| ASPEC
   ASPEC -->|DIVERGENT: resolve, loop up to 2| XSPEC
   ASPEC -->|cap reached| BLOCK
