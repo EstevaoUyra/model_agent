@@ -109,3 +109,6 @@
 [submodule "models/hyvarinen_hoyer_2000"]
 	path = models/hyvarinen_hoyer_2000
 	url = git@github.com:EstevaoUyra/hyvarinen_hoyer_2000.git
+[submodule "models/vicente_kinouchi_caticha_1998"]
+	path = models/vicente_kinouchi_caticha_1998
+	url = git@github.com:EstevaoUyra/vicente_kinouchi_caticha_1998.git
