@@ -89,6 +89,21 @@ EXIT_LABEL = {
     "audit": "Audit", "audit_overrides": "Audit overrides",
     "figures_rerendered": "Figures re-rendered", "updated_at": "Updated",
 }
+# Humanize the enum VALUES so the exit table reads in plain language for a scientist who
+# does not know our internal vocabulary, while keeping the raw token (in backticks) for
+# precision. The machine JSON line below the table keeps the bare enum, so the parent
+# build_readme.py scrape is unaffected.
+EXIT_VALUE_HUMAN = {
+    ("overall", "faithful"): "faithful — matches the paper (`faithful`)",
+    ("overall", "partial"): "partial — mostly matches, with open items (`partial`)",
+    ("overall", "blocked"): "blocked — cannot certify yet (`blocked`)",
+    ("trajectory", "toward_paper"): "moving toward the paper (`toward_paper`)",
+    ("trajectory", "away_from_paper"): "drifting from the paper (`away_from_paper`)",
+    ("trajectory", "mixed"): "mixed (`mixed`)",
+    ("audit", "self-reported"): "self-reported — implemented, not independently audited (`self-reported`)",
+    ("audit", "hardened"): "independently audited (`hardened`)",
+    ("audit", "vlm"): "figure-comparison audited (`vlm`)",
+}
 
 
 def section_exit(exit_data: dict | None, n_adjudications: int = 0) -> str:
@@ -113,6 +128,8 @@ def section_exit(exit_data: dict | None, n_adjudications: int = 0) -> str:
         v = exit_data[k]
         if isinstance(v, list):
             v = ", ".join(map(str, v)) if v else "—"
+        else:
+            v = EXIT_VALUE_HUMAN.get((k, str(v)), v)
         rows.append(f"| {EXIT_LABEL.get(k, k)} | {v} |")
     headline = exit_data.get("headline", "")
     parts = ["## Current exit", ""]

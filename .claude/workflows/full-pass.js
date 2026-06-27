@@ -350,7 +350,12 @@ const finalize = async () => {
   //      appends the changelog one-liner.
   await agent(
     `${SK('update-state')} Author the structured README artifacts for ${MODEL} (the generator renders ` +
-    `them — do NOT hand-write README.md). Write, in the submodule:\n` +
+    `them — do NOT hand-write README.md). READABILITY IS REQUIRED: every prose field (headline, ` +
+    `status_narrative, model_summary, figure notes, issues preamble/bodies) is read by a SCIENTIST who ` +
+    `does NOT know our internal vocabulary — follow the skill's "Write for a scientist" rule: lead with ` +
+    `a plain-language sentence, gloss or drop our shorthand (xfail-tripwire, GENUINE_DIVERGENCE, ` +
+    `coverage gate, toward_paper, self-reported, .nodigitize) on first use, and never let a bare ID ` +
+    `(F3 / A-009 / SQ-6 / test_*) carry the meaning. Write, in the submodule:\n` +
     `(A) \`logs/exit.json\` — EXACTLY this exit object, enriched: ${JSON.stringify(exit)} plus ` +
     `"audit" (hardened if an independent faithfulness+digitization audit ran with build/audit roles ` +
     `separated, else vlm, else self-reported), "updated_at" (today, YYYY-MM-DD), "figures_in_scope" ` +

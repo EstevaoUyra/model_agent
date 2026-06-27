@@ -132,6 +132,41 @@ figure_comparisons/, changelog.md, article_aware/spec/*.yaml, repro_cost.py).
    `audit`: `hardened` (independent faithfulness+digitization audit, build/audit roles separated) ·
    `vlm` (figure-comparison only) · `self-reported` (implemented, not independently audited).
 
+> ### Write for a scientist, not for us (governs EVERY prose field below)
+>
+> The README is read by a **working scientist in the model's field who has not read our process
+> docs and does not know our internal vocabulary.** Every prose field you author — `status_narrative`,
+> `model_summary`, each figure's `headline`/`note`, and `issues.yaml` `preamble`/`body` — is for THEM.
+> The single most common defect in these READMEs is opaque insider shorthand. Avoid it:
+>
+> - **Lead with plain meaning.** Open each narrative with one jargon-free sentence: *what was
+>   reproduced and how well it matches the paper.* Tags, IDs, and test names come after, in support —
+>   never first, never carrying the meaning alone.
+> - **Gloss or drop our shorthand on first use.** Never ship a bare internal term. Either say it
+>   plainly or define it the first time it appears:
+>   - *xfail / strict-xfail tripwire* → "a test we deliberately keep failing as a guard — it turns
+>     green only once <condition>"; *GENUINE_DIVERGENCE* → "a real, intentional difference from the
+>     paper, where the paper doesn't pin the choice down"; *CODE_BUG / CONTRACT_BUG* → "a mistake in
+>     our code / our spec"; *coverage gate · the three views · triptych* → "the check that each figure
+>     has all three: the paper's cropped figure, our digitized trace of its curves, and our re-render";
+>     *`.nodigitize` · `.nopaper`* → "marked as having no curve to digitize / no counterpart in the
+>     paper"; *trajectory `toward_paper`* → "the work moved closer to the paper"; *`self-reported`* →
+>     "implemented but not yet independently audited".
+> - **No bare IDs.** `F3`, `A-009`, `SQ-6`, `C-012`, `test_figure_7_*` may appear as *references*, but
+>   only after a plain-language statement of what they are — an ID must never be the only thing a
+>   reader gets.
+> - **Spell out acronyms once** (VLM, IC, RF, …).
+> - **Keep the precision.** Specific figure numbers, test names, and numeric thresholds stay — pair
+>   them with their plain meaning, don't replace it. Plain ≠ vague.
+> - **Goal:** a reader finishes each section knowing *what works, what's uncertain, and why* —
+>   without opening the code, the audit logs, or our process docs.
+>
+> *Opaque (the current defect):* "Fig 7 GENUINE_DIVERGENCE (A-2), random −ρD coupling per A-009;
+> encoded as strict-xfail tripwire, routes to human." → *Readable:* "Figure 7 reproduces faithfully.
+> One modelling choice the paper leaves open — whether the time-varying drift acts as random or
+> worst-case — we resolved to *random*, which the paper's own value range supports; a guard test
+> records that choice so it can't be changed silently."
+
 2. **`logs/readme_meta.yaml`** — the irreducible prose, rendered verbatim:
    ```yaml
    title: "<Authors YEAR — short title>"
