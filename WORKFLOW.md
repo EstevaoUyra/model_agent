@@ -548,8 +548,13 @@ models/<m>/                  # a private git submodule; the parent bumps the poi
 
 - Work on a **feature branch inside the model submodule** (`git -C models/<m>`);
   **never** a parent-repo git op from a model agent. The model `main` advances via a
-  **squash-merge PR**; the `tools/hooks/pre-push` guard (installed via
-  `git config core.hooksPath tools/hooks`) blocks a direct `git push origin main`.
+  **squash-merge PR**. A direct `git push origin main` is blocked by **two layers**: the
+  authoritative git hooks `tools/hooks/{pre-commit,pre-push}` (installed via
+  `git config core.hooksPath tools/hooks`; they see the real refspec, correct across
+  worktrees) and the advisory Claude harness hook
+  [`tools/claude-hooks/guard-main-branch.sh`](tools/claude-hooks/) (a `PreToolUse` early
+  warning; live copy is machine-local in `~/.claude/hooks/`). Override either with
+  `ALLOW_MAIN_COMMIT` (e.g. seeding a new repo's `main`).
 - The parent's **submodule-pointer bumps are the organizer's serial job** — commit only
   inside the model repo; never `--amend` the parent from a model agent.
 - Commit milestones: spec+pseudocode; data+figures+`APPROVED`; a component's tests

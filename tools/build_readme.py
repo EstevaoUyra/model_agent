@@ -122,13 +122,17 @@ def short_traj(t):
 
 def build_rows():
     data, clusters = load_corpus()
-    key2dir = {ALIAS.get(d, d): d for d in submodule_dirs()}
+    dirs = submodule_dirs()
+    key2dir = {ALIAS.get(d, d): d for d in dirs}
 
     warnings = []
     rows = []
+    matched_dirs = set()
     for d in data:
         key = d["key"]
         mdir = key2dir.get(key)
+        if mdir:
+            matched_dirs.add(mdir)
         oa = "closed" if d["oa"].lower() == "closed" else d["oa"]
         row = {
             "score": d["score"],
@@ -158,11 +162,35 @@ def build_rows():
             row.update(state="not started", traj="—", flags="—", figs="—", audit="—")
         rows.append(row)
 
-    rows.sort(key=lambda r: (-r["score"], -r["cites"]))
+    # Off-corpus started submodules. The loop above emits one row per CORPUS paper, so a
+    # started submodule whose key is NOT in the corpus ranking (a paper added outside the
+    # original landscape — e.g. vicente_kinouchi_caticha_1998, fitzhugh_1961) was SILENTLY
+    # DROPPED, contradicting this module's promise to show "every paper we have actually
+    # started". Surface them as rows with no corpus score, sorted to the end (rank shown as
+    # "—"); their live state still comes from the submodule's own exit-JSON.
+    for mdir in sorted(d for d in dirs if d not in matched_dirs):
+        e = exit_state(mdir)
+        if not e.get("overall"):
+            warnings.append(
+                f"  no parseable exit-JSON line (prose-only status?): models/{mdir}/README.md")
+        audit = e.get("audit")
+        if audit is None:
+            warnings.append(f"  no \"audit\" field in exit JSON: models/{mdir}/README.md")
+            audit = "self-reported"
+        rows.append({
+            "score": None, "label": mdir, "cluster": "—", "cites": 0, "oa": "—",
+            "link": f"models/{mdir}", "code": "—", "started": True, "off_corpus": True,
+            "state": e.get("overall", "unknown"), "traj": short_traj(e.get("trajectory")),
+            "flags": e.get("flagged_count", "—"), "figs": figs_count(mdir),
+            "audit": AUDIT_LABELS.get(audit, audit),
+        })
+
+    # numeric corpus score sorts high→low first; off-corpus rows (score None) sort to the end.
+    rows.sort(key=lambda r: (-(r["score"] if r["score"] is not None else float("-inf")), -r["cites"]))
     for i, r in enumerate(rows, 1):
         r["rank"] = i
 
-    # top-100 by rank UNION every started paper
+    # top-100 by rank UNION every started paper (corpus + off-corpus)
     shown = [r for r in rows if r["rank"] <= 100 or r["started"]]
     return shown, warnings
 
@@ -174,8 +202,11 @@ def render_table(rows):
     lines = [head, sep]
     for r in rows:
         paper = f"[{r['label']}]({r['link']})"
+        # off-corpus started models carry no corpus rank/score — show "—" for both.
+        rank = "—" if r.get("off_corpus") else r["rank"]
+        score = "—" if r.get("off_corpus") else r["score"]
         lines.append(
-            f"| {r['rank']} | {r['score']} | {paper} | {r['cluster']} | {r['cites']} | "
+            f"| {rank} | {score} | {paper} | {r['cluster']} | {r['cites']} | "
             f"{r['oa']} | {r['code']} | {r['state']} | {r['traj']} | {r['figs']} | "
             f"{r['flags']} | {r['audit']} |"
         )
