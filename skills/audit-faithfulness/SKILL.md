@@ -121,10 +121,30 @@ judge on the dimensions the old checklist *excused* — they are now binding:
   model panel the paper has and the figure drops;
 - **axes** — range, scale (log/linear), sign convention, labels, tick values;
 - **condition mapping** — which curve/color is which condition.
+- **local curve fidelity — trace each curve, do NOT judge aggregate shape.** Follow every
+  rendered curve along its WHOLE length and hunt for spurious local features the paper's
+  curve does not have: a horizontal flat / plateau / step **mid-range**, a kink, a jump, a
+  dead-straight segment where the paper bends. A curve can have the right endpoints, the
+  right ordering, and the right plateau **and still be locally broken** by a numerical
+  artifact (a root-finder latching a discontinuity, a solver fallback, an aliased
+  quadrature). "Monotonic + right ordering + right magnitude" is **NOT** sufficient — that
+  exact gestalt-only judgement shipped `vicente_kinouchi_caticha_1998` Figs 4/5/6 as
+  FAITHFUL with a flat plateau pinned at e_G≈0.25 (a Gauss-Hermite aliasing artifact at
+  λ=1) that **three** audits missed (2026-06-28). This is the eye being adversarial: look
+  for where the curve LEAVES the paper, do not confirm it tracks.
+- **the model's own symbols must sit on its own line.** When a figure overlays the model's
+  SIMULATION symbols on its THEORY curve (both are model output — this is NOT the paper's
+  empirical-data overlay the scope note excuses), the symbols must lie ON the line within
+  the paper's scatter. Symbols visibly **detaching** from the line is a divergence.
+- **compare densely, not at the endpoints.** Check SEVERAL interior points along each curve
+  against the digitized reference, not just the start/end/plateau. If the digitized
+  reference is too sparse to catch a mid-curve artifact, that is a coverage gap to flag —
+  not a reason to pass.
 
 Scope note (per the 2026-06-02 ruling): figures are **model-panels-only** — the
 absence of the paper's empirical data points / error bars is in-scope and **not** a
-finding. Judge the model curves and layout, not data overlays.
+finding. Judge the model curves and layout, not data overlays. (This does NOT excuse the
+model's own simulation symbols above — those are reproduction output, not paper data.)
 
 ### Step 4 — The constructed-result and laundered-contradiction checks
 

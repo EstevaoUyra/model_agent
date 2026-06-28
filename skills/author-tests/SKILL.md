@@ -54,6 +54,19 @@ Each finding from [`audit-faithfulness`](../audit-faithfulness/SKILL.md) carries
   0.97 yet sat 4× too high; its scale-invariant shape tests all passed and the magnitude was
   waved off until an adversarial audit caught it. Add an absolute-magnitude assertion
   alongside any shape test on a data/fit-scaled axis.
+- **For a plotted CURVE, test LOCAL fidelity, not just endpoints/ordering/plateau.** Summary
+  statistics (first point, last point, ordering, tail value) pass a curve that is locally
+  broken by a numerical artifact — a flat segment / kink / jump mid-range. Add assertions
+  that catch that: (a) **no spurious interior plateau** the paper lacks — e.g. forbid a run
+  of ≥k consecutive near-equal samples in a region the paper shows monotonic/curving;
+  (b) **bounded local variation** (no jump/kink: cap the second difference, or require the
+  curve track the digitized reference at SEVERAL interior x, not just the ends); (c) where
+  the figure overlays the model's own **simulation symbols on a theory line, assert the
+  symbols lie on the line** (|symbol − theory(x)| within the paper's scatter). A
+  monotonicity test that TOLERATES flats (`diff > -ε`) is **insufficient** — it passed
+  `vicente_kinouchi_caticha_1998` Figs 4/5/6 with a flat plateau pinned at e_G≈0.25
+  (a quadrature artifact at λ=1) because a horizontal segment satisfies `diff > -ε` and the
+  ordering/plateau still held (2026-06-28). Strictness here is the point.
 
 ## Commit when done
 
