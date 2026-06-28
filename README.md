@@ -143,5 +143,5 @@ must confirm.
 | 161 | 56.3 | [Coen-Cagli, Dayan & Schwartz 2012 — Surround interactions via natural scene statistics (MGSM)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002405) | Normalization & attention (R&H family) | 126 | gold | unknown | blocked | — | 5 | 0 | hardened |
 | 175 | 54.1 | [Ghose & Maunsell 2008 — Spatial summation explains attentional modulation in V4](https://www.jneurosci.org/content/jneuro/28/19/5115.full.pdf) | Normalization & attention (R&H family) | 88 | bronze | no | partial | toward | 3 | 2 | hardened |
 | 192 | 50.2 | [Verhoef & Maunsell 2017 — Attention operates uniformly throughout RF and surround](https://doi.org/10.7554/eLife.17256) | Normalization & attention (R&H family) | 22 | gold | no | faithful | toward | 3 | 0 | self-reported |
-| — | — | [vicente_kinouchi_caticha_1998](models/vicente_kinouchi_caticha_1998) | — | 0 | — | — | partial | toward | 7 | 4 | hardened |
+| — | — | [vicente_kinouchi_caticha_1998](models/vicente_kinouchi_caticha_1998) | — | 0 | — | — | faithful | toward | 7 | 0 | hardened |
 <!-- END AUTOGEN: reproduction-table -->
