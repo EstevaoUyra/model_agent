@@ -1,0 +1,5 @@
+{"id":"G1-census","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_31914d4f-91d/agent-a2c7907304a4c3ae0.jsonl","quote":"rejects the fabricated beta_spatial/beta_feature split"}
+{"id":"G1-census","path":"e9688977-51dd-450f-937d-15bb966604d9/subagents/workflows/wf_8bc2a4df-32a/agent-ac0ebdcb7daafdca9.jsonl","quote":"had a *fabricated* EVIDENCE tag"}
+{"id":"G1-census","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_e1858984-ebd/agent-a12c610215389f70d.jsonl","quote":"which is a confabulated bound (the paper's Eq.5 imposes no such bound"}
+{"id":"G1-census","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_9184cdfe-ac5/agent-af81ecb2681cf3fa5.jsonl","quote":"but they currently contain confabulated values"}
+{"id":"G1-census","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_a4d57c3c-9ac/agent-ab44ab3dceabf8ca2.jsonl","quote":"This is a fabricated/unsupported tripwire that could fail or pass for reasons unrelated to the paper"}

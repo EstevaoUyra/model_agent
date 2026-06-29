@@ -1,0 +1,5 @@
+{"id":"X1-census","path":"a651000f-a156-41c6-b8cc-3db390b5524f/subagents/workflows/wf_b4c958b9-2de/agent-a0c55f5cd85c1d7f1.jsonl","quote":"routes the root cause (unbounded phi) to a"}
+{"id":"X1-census","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90/subagents/workflows/wf_05b2e3ba-49f/agent-a3b67ada1b41f3c0b.jsonl","quote":"mischaracterize a faithful result as a paper defect requiring human escalation"}
+{"id":"X1-census","path":"a651000f-a156-41c6-b8cc-3db390b5524f/subagents/workflows/wf_b8d9b14a-1e8/agent-adc41ffa0d9e746c9.jsonl","quote":"not an indefinite human punt"}
+{"id":"X1-census","path":"a651000f-a156-41c6-b8cc-3db390b5524f/subagents/workflows/wf_5abd222b-313/agent-ab606d0a5334b06b9.jsonl","quote":"but the resolution traces directly to acquired ground truth"}
+{"id":"X1-census","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_af948253-90f/agent-a330c975c01eeb185.jsonl","quote":"the disposition follows the paper (rung resolved via paper itself)"}

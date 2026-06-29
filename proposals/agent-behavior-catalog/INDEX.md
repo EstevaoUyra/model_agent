@@ -134,10 +134,12 @@ These classes are excluded *by construction*; listed here as named, mostly-empty
 holes read as holes. Reserved ID-space: **`P#`** positive/competent baselines, **`U#`**
 suspected-but-uncaught (hypothesis, no artifact).
 
-- **Positive / competent behaviors** (`P#`) — every thread is a pathology, so the map has **no
-  denominator**: the rate of leniency needs the population of *correct* verdicts, which isn't
-  cataloged. The "after" of each fix is the only positive signal. *(Seed P-threads: auditor
-  true-positive catches; correct rung-1 self-resolution; faithful-first-try builds.)*
+- **Positive / competent behaviors** (`P#`) — *now evidenced (2026-06-29).* The Phase-1 census
+  (`census-phase1.md`) found that **~93–100% of candidate matches per behavior are the agent doing
+  the right thing** (named-divergence-kept-RED, shared-scale-preserved, refused-to-fabricate). That
+  honest-handling majority **is** the positive baseline / denominator — the post-fix `wf_` corpus is
+  dominated by the system working, not by failures. Still un-built as standalone `P#` threads, but
+  the rate is measured.
 - **Never-caught failures** (`U#`) — figures that passed and are *still* wrong because nothing
   re-checked them. The map cannot see its own false-negative rate. **Now bounded, not just named:**
   thread **U1** ran the injected-fault probe — a silently-skipped *enumerated* artifact is caught by
@@ -228,6 +230,15 @@ exit 0) across 18 ledgers; threads without a ledger are git/proposal/`issues.yam
 behaviour isn't in the workflow-agent narration — see each entry's Evidence layer). Completeness is
 *bounded*: Tier-1 intervention surfaces swept; **U1** puts a measured floor on the never-caught class;
 remaining open work = a Method-C raw-narration sample + `P#` positive baselines.
+
+**Reference completeness (census, `census-phase1.md`, 2026-06-29):** the curated quotes are *existence
+proofs*; a deterministic Phase-0 scan + Phase-1 LLM adjudication (precision-adjusted, 46 new verified
+examples harvested) measured each behavior's true footprint. Finding: the `wf_` corpus starts at the
+#5 fix, so it is the **post-fix regime** — grader-side fidelity threads (E2/E3/E5/E6/E7/E8/E12) are
+~0 in it (their originating failures predate the window; curated smoking guns stand) while
+**Generation (G1/G2) + active-tuning/routing (X1/X3) carry real un-referenced instances** (est. tens
+each, wide CIs). The ~93–100% honest-handling majority is the `P#` baseline. Per-thread denominators
+live in `census-phase1.md`; harvested examples in `evidence/*.census.quotes.jsonl`.
 
 #### Evaluation (E)
 | ID | Thread | Role | Flags | Status | Entry · refs (denominator) |
