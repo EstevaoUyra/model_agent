@@ -130,9 +130,11 @@ split above is the result.*
 - **Manifest (deterministic slice spine):** `../evidence/manifest.jsonl` (2062 rows; rebuild with
   `../evidence/build_manifest.py`). **Quote bundle:** `../evidence/E1.bundle.md` (93 excerpts / 21
   agents, provenance-tagged) — persisted out of session scratchpad on 2026-06-29.
-- **Verification status:** **6 of ~93 bundle excerpts** verified verbatim against source `.jsonl`
-  (6/6 spot-checks passed); the rest are *candidate* evidence, not yet vetted. Verify the full set
-  mechanically via `(source_path, verbatim_substring)` grep before any quote is promoted to a claim.
+- **Quote ledger:** `../evidence/E1.quotes.jsonl` — the **13 promoted quotes**, all verified
+  verbatim by `../evidence/verify_quotes.py E1` (13/13, exit 0). The harness **caught and rejected
+  one paraphrased "quote"** from the analysis agent (`figure↔caption reconciliation…` — not in
+  source, never promoted) — exactly the rubber-stamp risk it exists to prevent. The wider bundle
+  (`E1.bundle.md`, ~93 excerpts) remains *candidate* evidence, not individually vetted.
 - **Refs:** memory `faithfulness-critics-want-to-find-issues`, `curve-fidelity-audit-blindspot`,
   `rendered-output-panels-are-reproduction-targets` · proposals `figure-faithfulness-postmortem-2026-06-02`,
   `faithfulness-enforcement-2026-06-02`, `faithfulness-rerun-report-2026-06-03` · PRs #5, #56, #73.

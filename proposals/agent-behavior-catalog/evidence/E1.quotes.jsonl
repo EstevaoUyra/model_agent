@@ -1,0 +1,13 @@
+{"id":"E1a-A-pestilli","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_19edde3c-0d3/agent-aa96fe049887aa0ec.jsonl","quote":"illustrative-parameter / sweep-ceiling artifact"}
+{"id":"E1a-A-verhoef","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_6d6edb4c-cae/agent-a247b26d7b0a44c9f.jsonl","quote":"a defensible disambiguation, not a divergence"}
+{"id":"E1a-A-doostani","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_9af44023-305/agent-aad4d2f213c566a78.jsonl","quote":"the disclosed ILLUSTRATIVE constructed-result artifact"}
+{"id":"E1a-A-hermann","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_b9729dce-a82/agent-a5f2115fb07a03c9b.jsonl","quote":"visibly NOT converging"}
+{"id":"E1a-B-pfister-fit","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90/subagents/workflows/wf_32a62589-685/agent-aee30c7cc50cd81fc.jsonl","quote":"fitting the contract to the digitized image rather than the paper"}
+{"id":"E1a-B-pfister-diverge","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90/subagents/workflows/wf_c1423ea5-08f/agent-a524f1ef1a7fbf757.jsonl","quote":"diverges materially from the paper"}
+{"id":"E1a-C-boynton-raise","path":"a651000f-a156-41c6-b8cc-3db390b5524f/subagents/workflows/wf_5abd222b-313/agent-a22f0d1e63116a110.jsonl","quote":"close it by raising d to fit the figure"}
+{"id":"E1a-C-boynton-legit","path":"a651000f-a156-41c6-b8cc-3db390b5524f/subagents/workflows/wf_5abd222b-313/agent-a22f0d1e63116a110.jsonl","quote":"Legitimate resolution, not laundered"}
+{"id":"E1a-C-bienenstock","path":"a651000f-a156-41c6-b8cc-3db390b5524f/subagents/workflows/wf_b4c958b9-2de/agent-a4e7a66e31b1a9dac.jsonl","quote":"does not launder anything green; the tripwires remain RED"}
+{"id":"E1a-C-ghose","path":"a651000f-a156-41c6-b8cc-3db390b5524f/subagents/workflows/wf_1c622463-d61/agent-adcce6f36c63e15a0.jsonl","quote":"This is sound, not a laundering"}
+{"id":"E1b-D-vicente-analytic","path":"18b29086-79a1-4fb8-82a9-d0f7286c4e76/subagents/workflows/wf_d5723551-9fe/agent-aeee31454a61332d7.jsonl","quote":"matches analytic to ~1e-15 through"}
+{"id":"E1b-D-vicente-diffscope","path":"18b29086-79a1-4fb8-82a9-d0f7286c4e76/subagents/workflows/wf_d5723551-9fe/agent-a367938be306a1472.jsonl","quote":"diff-scoped re-audit confirms the round-2 minor legend finding is resolved"}
+{"id":"E1b-D-vicente-falsif","path":"18b29086-79a1-4fb8-82a9-d0f7286c4e76/subagents/workflows/wf_863fd7e6-332/agent-a3fbe24b7e53e0586.jsonl","quote":"genuine within-paper (rung-1) falsification, not laundering"}
