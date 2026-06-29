@@ -1,0 +1,4 @@
+{"id":"C5","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-a7b84004b08d576b5.jsonl","quote":"the stale R&H `regime.contrast_gain.*` reuse surface that hermann consumes via `rh_model.crf_protocol.run_crf`"}
+{"id":"C5","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-afb61726f7b7da76e.jsonl","quote":"But `regime.response_gain.suppressive_drive_gain` is still at the stale value `4.0`."}
+{"id":"C5","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-afb61726f7b7da76e.jsonl","quote":"the response-gain `suppressive_drive_gain` must be raised to **~150** — about 37x the original Fig-2B-family value (4)"}
+{"id":"C5","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-a991fdfe6014249d5.jsonl","quote":"It's the same saturation mechanism the paper requires (`R&H raised figure_2B 4→6 for exactly this reason`)."}

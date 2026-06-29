@@ -79,10 +79,20 @@ but not built. The recurrence at #70 is consistent with the human-rule being the
 High that the drift occurred: the register documents specific file:line divergences
 (STATUS.md:82–84 vs the actual loop, WORKFLOW.md preconditions vs `full-pass.js` line numbers),
 and the fix is committed. The "why nobody caught it" is intervention-tracked (the coverage gate
-was built in direct response). Threats: (a) the recurrence claim rests on **one** later instance
-(PR #70), so "⟳ recurred" means "happened again at least once," not a measured drift rate;
-(b) the file:line citations in the register are point-in-time (2026-06-14) and would need
-re-checking against current `full-pass.js` to assert as live.
+was built in direct response).
+
+**Denominator (this is a class, not an anecdote).** The drift register isn't one instance — it
+enumerates **D0–D12**, and rows **D7–D12 are six concrete, distinct instances of *this same*
+doc-drift behaviour** discovered in a single sweep: D7 (docs name the retired `compare-figure-packet`
+VLM loop, reality uses `audit-faithfulness`), D8 (STATUS.md's "real loop" is the old VLM loop, not
+`full-pass.js`), D9 (vocabulary: docs say `reproduced`, the workflow emits `faithful|partial|blocked`;
+phantom `ILLUSTRATIVE`/`APPROVED` statuses), D10 (`run-tests` invoked as the stale-sweep, a job its
+own SKILL.md never documents), D11 (the cost README section wired in but absent from the skill), D12
+(docs want ≥2 spec reviewers; the workflow runs one). So D1 has a **measured floor of ≥6
+simultaneous instances** at 2026-06-14, not a single occurrence. Threats: (a) the *recurrence* claim
+(distinct from this denominator) still rests on one later instance (PR #70) — "⟳ recurred" = "at
+least once more," not a rate; (b) the register's file:line citations are point-in-time (2026-06-14)
+and would need re-checking against current `full-pass.js` to assert as live.
 
 ## Scope / generality
 

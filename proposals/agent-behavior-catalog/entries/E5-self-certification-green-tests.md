@@ -90,9 +90,16 @@ second documented instance with a different surface). Threats:
   example is "a fresh audit surfaces an untracked knob the green suite hides," which holds regardless of
   *when* the knob was introduced; but it means this is not a clean "this pass tried to cheat and got
   caught" story.
-- **No denominator.** This is built from the instances the re-audit / headline gate caught; it cannot
-  estimate how many self-certified models passed and stayed wrong (that is the `U#` never-caught-
-  failure hole the INDEX names — only an injected-fault probe could measure it).
+- **No denominator for the *caught* incidents** — but the residue gives a partial one. The
+  `issues.yaml` sweep (2026-06-29) found un-ledgered / `audited:false` hand-tuned knobs flagged across
+  **≈16 models** — i.e. the behaviour's footprint is corpus-wide, not two anecdotes (though each is now
+  *guarded*, so this counts the residue the fix leaves, not live misses). The live-miss rate stays the
+  `U#` hole — only an injected-fault probe ([[U1]]) could measure it.
+- **Facet — "unknown" reported as "green" (`#94511bc`).** A narrower instance of the same root: the
+  state was reported `all green` when figures had passing deterministic tests but **no VLM verdict** —
+  untested treated as validated. The fix made `update-state` distinguish `unknown` (uncovered) from
+  `green` (tests AND a fresh verdict). Same move as the headline self-cert: absence-of-a-complaint read
+  as confirmation, here at the *coverage* level rather than the *correctness* level.
 - **Entangled with E2 and D3.** The heeger builder sign-off is *also* E2 (the green was laundered) and
   the silent-step variant is D3; E5 is the shared cognitive root, not a cleanly separable incident.
 - **Model-version ruled out:** `claude_model` constant across the corpus.

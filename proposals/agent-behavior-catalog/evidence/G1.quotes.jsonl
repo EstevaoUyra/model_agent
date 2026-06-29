@@ -1,0 +1,4 @@
+{"id":"G1","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_a4d57c3c-9ac/agent-ab44ab3dceabf8ca2.jsonl","quote":"that's the extractor's invention, and it's mathematically wrong (separable soft-thresholding shrinks pixel coefficients)"}
+{"id":"G1","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_a4d57c3c-9ac/agent-ab44ab3dceabf8ca2.jsonl","quote":"Test Q-905 asserts an unsupported inequality. This is a green-but-unfaithful tripwire."}
+{"id":"G1","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_a4d57c3c-9ac/agent-ab44ab3dceabf8ca2.jsonl","quote":"identity-dictionary inference applies separable soft-thresholding, so a is in fact sparser than b. The paper never claims this."}
+{"id":"G1","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_0051a7be-06a/agent-abfca9e69c6cbded4.jsonl","quote":"deleted falsely-cited test Q-905; re-anchored Fig-8 high-SF to the paper's absolute axis"}

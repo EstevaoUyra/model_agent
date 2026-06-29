@@ -117,6 +117,13 @@ valence — valence is per-thread).
 
    *(Renamed from "Tool-trust" to avoid colliding with the Evaluation behavior "tool rubber-
    stamping," which lives in domain 1 as E3.)*
+6. **Generation / fabrication** *(added 2026-06-29)* — the producer side: the agent **makes
+   something up** rather than mis-judging something real. Confabulating a mechanism, fabricating
+   a quantitative claim with a real-looking citation (G1), building the result then self-verifying
+   the construction ("we drew the answer", G2). Domains 1–2 are *grader-side* (judging output);
+   domain 6 is *generation-side* (producing false output) — a whole family the memory-seeded Pass 1
+   missed because memory skews to audit/orchestration lessons. Surfaced by the skill-history +
+   `issues.yaml` sweeps.
 
 ---
 
@@ -132,16 +139,20 @@ suspected-but-uncaught (hypothesis, no artifact).
   cataloged. The "after" of each fix is the only positive signal. *(Seed P-threads: auditor
   true-positive catches; correct rung-1 self-resolution; faithful-first-try builds.)*
 - **Never-caught failures** (`U#`) — figures that passed and are *still* wrong because nothing
-  re-checked them. The map cannot see its own false-negative rate. Only the **injected-fault
-  calibration probe** (see protocol) can estimate it.
+  re-checked them. The map cannot see its own false-negative rate. **Now bounded, not just named:**
+  thread **U1** ran the injected-fault probe — a silently-skipped *enumerated* artifact is caught by
+  the coverage gate (deterministic, no human); the open residue is wrong-but-present content, a
+  figure dropped from the target list, and non-enumerated steps. A *measured* floor, not a shrug.
 - **Under-instrumented roles** — the corpus is auditor-heavy (see matrix). Builder/digitizer/
   describer/orchestrator biases are under-sampled, not absent.
 - **Diffuse / statistical tendencies** — the `Smoking gun` requirement favors discrete
   incidents over gradual drifts (slow overconfidence, verbosity creep) that have no single
   artifact.
-- **Emergent multi-agent dynamics** — no domain yet houses builder↔critic settling into a
-  mutually-agreeable wrong equilibrium, or anchoring cascades down the agent tree (WAB
-  explicitly wants these — Method B is the instrument).
+- **Emergent multi-agent dynamics** — *partially filled (2026-06-29)*: **C6** (a span-crossing
+  decision owned by no one), **C7** (correlated reviewers — "adversarial" review as a second draw
+  from the same error distribution) now cover the independence/ownership failures. Still open: a
+  builder↔critic settling into a mutually-agreeable wrong equilibrium, anchoring cascades down the
+  agent tree (Method B — interaction-graph — is the instrument, not yet run).
 - **Human-in-the-loop behaviors** — the corrective half of most threads is the human lead's
   judgment; agent over-compliance with *wrong* human steering is barely covered (X1 adjacent).
 
@@ -205,44 +216,94 @@ narration* — behavioral proxy, NOT CoT, NOT internal state.
 
 ## Thread index
 
-Flags: ⟳ recurred after a fix · ✗ failed/reverted fix · ⇄ migrated to another thread.
+Flags: ⟳ recurred after a fix · ✗ failed/reverted fix · ⇄ migrated · ↔ inverse/paired thread.
 *(Paper-candidate ★ ranking moved to `paper-framing-leads.md` — Stage 2.)*
-Domain: E=Evaluation · X=Escalation · C=Coordination · M=Process-maintenance · T=Tool/env.
+Domains: E=Evaluation · X=Escalation · C=Coordination · M=Process-maintenance · T=Tool/env · **G=Generation**.
 
-**Build status (2026-06-29):** all 17 threads have full entries (`entries/`). Quote evidence:
-**40/40 promoted quotes verified verbatim** against `corpus-snapshot/` (`verify_quotes.py`, exit 0)
-across 9 ledgers; threads without a ledger are git/proposal/memory-grounded (the behaviour isn't in
-the workflow-agent narration — see each entry's Evidence layer). Still TODO: the `P#`/`U#` seeds and
-a Method-C un-distilled-discovery sweep (no new threads found yet — these were the Pass-1 known set).
+**Build status (2026-06-29):** **38 threads across 37 entry files**, built in three sweeps — Pass-1
+(memory-seeded), then the *intervention-surface* sweeps (workflow + skill + drift-register + AGENTS/
+WORKFLOW/tools histories + 39 `issues.yaml`) that the "is it complete?" check demanded. Quote
+evidence: **85/85 promoted quotes verified verbatim** against `corpus-snapshot/` (`verify_quotes.py`,
+exit 0) across 18 ledgers; threads without a ledger are git/proposal/`issues.yaml`-grounded (the
+behaviour isn't in the workflow-agent narration — see each entry's Evidence layer). Completeness is
+*bounded*: Tier-1 intervention surfaces swept; **U1** puts a measured floor on the never-caught class;
+remaining open work = a Method-C raw-narration sample + `P#` positive baselines.
 
-| ID | Thread | Dom | Role | Flags | Status | Entry · key refs |
-|----|--------|-----|------|-------|--------|----------|
-| [E1a](entries/E1-faithfulness-audit-blindspot.md) | Evaluator leniency — acquits a discrepancy it has named | E | auditor | ⇄→E1b | mitigated | E1 · ledger ✓; PR #5,#56 |
-| [E1b](entries/E1-faithfulness-audit-blindspot.md) | Perceptual blind spot — local curve defect passes | E | auditor | ⟳ | mitigated | E1 · ledger ✓; PR #73 |
-| [E2](entries/E2-leniency-drift-grading-own-homework.md) | Leniency drift / grading own homework (heeger Vₑ) | E | builder+audit-process | — | mitigated | ledger ✓ (5); `process-auditor-discriminates-drift-from-stuck` |
-| [E3](entries/E3-tool-vlm-rubber-stamp.md) | Agent rubber-stamps its own tool/VLM output | E | digitizer/auditor | — | mitigated | ledger ✓ (2); `vlm-eye-is-arbiter-over-tools` |
-| [E4](entries/E4-sycophancy-flattery.md) | Sycophancy / flattery in agent output | E | orchestrator (chat) | — | mitigated | ledger ✓ (2); thin — lives in chat, not corpus; `dont-flatter-be-plain` |
-| [E5](entries/E5-self-certification-green-tests.md) | Self-certification (green tests ⇒ "done") | E | builder/organizer | ⟳ ↔M(D3) | recurring | ledger ✓ (3); `re-audit-after-every-model-change` |
-| [X1](entries/X1-over-routing-to-human.md) | Over-routing to human for paper-resolvable findings | X | spec/process-auditor | ⟳ ↔X2 | mitigated | ledger ✓ (6); `paper-resolvable-findings-arent-human-routed` |
-| [X2](entries/X2-escalation-ladder-under-walked.md) | Escalation-ladder under-walked (self-resolvable→human) | X | orchestrator/resolver | ↔X1 | mitigated | ledger ✓ (3); `resolution-authority-ladder` |
-| [S1](entries/S1-organizer-over-reach.md) | Organizer over-reach / do-it-myself reflex | C | orchestrator | ⟳ | recurring | git/memory; `organizer-doesnt-implement-trust-the-process` |
-| [S2](entries/S2-shared-decision-resolved-n-times.md) | One shared decision resolved N× independently (saturation) | C | orchestrator+auditors | ⟳ | open | ledger ✓ (4); `saturation-is-the-genealogy-blocker` |
-| [S3](entries/S3-wrong-repo-commits.md) | Workflow agents commit in wrong repo (parent vs submodule) | C | workflow/finalize | ⟳ | solved | git/memory; PR #28 |
-| [S4](entries/S4-parallel-work-swallowed-onto-main.md) | Parallel work swallowed onto main / branch-discipline | C | orchestrator | ⟳✗ | solved | git/memory; PR #47/#48,#58 |
-| [D1](entries/D1-process-outran-docs.md) | Process outran its docs (machinery ≠ description) | M | orchestrator/docs | ⟳ | mitigated | git/proposal; PR #55,#56,#70 |
-| [D2](entries/D2-generated-output-drift.md) | Generated-output drift (README re-fixed repeatedly) | M | README-gen/finalize | ⟳ | mitigated | git; PR #61–#65,#70,#72 |
-| [D3](entries/D3-required-step-silently-stops.md) | Required step silently stops running (no coverage gate) | M | process/gate | ↔E5 | mitigated | proposal/git; PR #56,#66 |
-| [T1](entries/T1-cost-fix-reverted.md) | Ships unvalidated optimization to main (reverted ×2) | T | orchestrator | ✗⟳ →E5,S4 | solved | git; PR #45→#48→#50→#59→#60 |
-| [T2](entries/T2-render-sandbox-lacks-matplotlib.md) | Render sandbox lacks matplotlib (substrate) | T | builder/render | ⟳ | solved | ledger ✓ (2); `workflow-sandbox-lacks-matplotlib` *(Kind: substrate)* |
-| [T3](entries/T3-acts-on-stale-tool-model.md) | Acts on stale tool-model (snapshot / bad model-arg) | T | orchestrator/tooling | ✗ | solved | git/memory; `workflow-tool-invocation-gotchas` |
+#### Evaluation (E)
+| ID | Thread | Role | Flags | Status | Entry · refs (denominator) |
+|----|--------|------|-------|--------|----------|
+| [E1a](entries/E1-faithfulness-audit-blindspot.md) | Evaluator leniency — acquits a discrepancy it named | auditor | ⇄→E1b | mitigated | ledger ✓; PR #5,#56 (≈13 models relabel-to-illustrative) |
+| [E1b](entries/E1-faithfulness-audit-blindspot.md) | Perceptual blind spot — local curve defect passes | auditor | ⟳ | mitigated | ledger ✓; PR #73 |
+| [E2](entries/E2-leniency-drift-grading-own-homework.md) | Leniency drift / grades own homework | builder+audit-process | — | mitigated | ledger ✓(5); *facet: tautological test authoring (#294261d)* |
+| [E3](entries/E3-tool-vlm-rubber-stamp.md) | Rubber-stamps its own tool/VLM output (false GREEN) | digitizer/auditor | ↔E12 | mitigated | ledger ✓(2) |
+| [E4](entries/E4-sycophancy-flattery.md) | Sycophancy / flattery | orchestrator (chat) | — | mitigated | ledger ✓(2); thin — chat not corpus |
+| [E5](entries/E5-self-certification-green-tests.md) | Self-certification (green ⇒ "done") | builder/organizer | ⟳ ↔D3,M6 | recurring | ledger ✓(3); *facet: unknown reported as green (#94511bc)* (≈16 models) |
+| [E6](entries/E6-extractor-reads-figure-it-expected.md) | Reads the figure it *expected*, not the one there | extract-figure | ⟳ | mitigated | ledger ✓(7); PR c112359 |
+| [E7](entries/E7-shape-faithful-wrong-absolute-scale.md) | Shape-faithful but wrong absolute scale | audit-faithfulness | — | mitigated | ledger ✓(7); denison 4× |
+| [E8](entries/E8-per-panel-normalization-overrides-shared-scale.md) | Default normalization overrides paper's shared scale | digitizer/builder | ⟳ | mitigated | ledger ✓(7); R&H Fig2 |
+| [E9](entries/E9-illustrative-used-as-escape-hatch.md) | "Illustrative" escape hatch to dodge a reproducible result | extract-spec | — | mitigated | ledger ✓(6); carrasco F7 |
+| [E10](entries/E10-false-paper-issue-attribution.md) | False paper-issue attribution (blame source, retracted) | builder/auditor | ⟳ | mitigated | issues.yaml; hara,bienenstock,rao |
+| [E11](entries/E11-binding-magnitude-hidden-in-test-code.md) | Binding magnitude hidden in test code, escapes ledger | extract/author-tests | ⟳ | mitigated | wave-retros; (2/6 at extraction) |
+| [E12](entries/E12-judges-stale-artifact-false-needs-work.md) | Judges a stale artifact → false NEEDS-WORK | auditor | ↔E3 | mitigated | ledger ✓(3); spratling,bell (inverse of E3) |
 
-### Migration & link edges (the catalog's core signal — kept structural, not prose-only)
-- `E1a ⇄ E1b` — fix bound the referent (ended leniency); the wrong-figure-passes symptom
-  **migrated** to a perceptual blind spot the referent never constrained.
-- `X1 ↔ X2` — **inverse**: hardening over-routing risks under-routing. Same dial.
-- `E5 ↔ D3` — self-certification is the cognitive root of "a required step silently stops."
-- `T1 → E5` (shipping unvalidated = self-certification) · `T1 → S4` (durable fix = git discipline).
-- `S2 shared-root` — one R&H saturation decision surfaced across RH2009 / heeger / hermann.
+#### Generation (G) — *new domain: the producer makes something up*
+| ID | Thread | Role | Flags | Status | Entry · refs |
+|----|--------|------|-------|--------|----------|
+| [G1](entries/G1-extractor-confabulates-mechanism.md) | Confabulates a mechanism / fabricates a cited claim | extract-spec/figure | — | mitigated | ledger ✓(4); olshausen Q-905 (caught by critic) |
+| [G2](entries/G2-result-bearing-stub-we-drew-the-answer.md) | Result-bearing stub / "we drew the answer" | implement | ⟳ | mitigated | faithfulness-enforcement B1; +absent-source sub-case |
 
-*The Pass-1 known set (above) is fully built. A Method-C un-distilled-discovery sweep + the `P#`
-(positive baseline) / `U#` (never-caught) seeds will append below this line when run.*
+#### Escalation (X)
+| ID | Thread | Role | Flags | Status | Entry · refs |
+|----|--------|------|-------|--------|----------|
+| [X1](entries/X1-over-routing-to-human.md) | Over-routing to human for paper-resolvable findings | spec/process-auditor | ⟳ ↔X2 | mitigated | ledger ✓(6) (≈18 models human-routing) |
+| [X2](entries/X2-escalation-ladder-under-walked.md) | Escalation-ladder under-walked (58% self-resolvable) | orchestrator/resolver | ↔X1 | mitigated | ledger ✓(3) |
+| [X3](entries/X3-misroutes-model-fault-as-code-tunes-per-figure-knob.md) | Misroutes model-fault as code → tunes per-figure knob | implement/audit-spec | — | mitigated | ledger ✓(4); RH gain 4→12→16 |
+
+#### Coordination (C)
+| ID | Thread | Role | Flags | Status | Entry · refs |
+|----|--------|------|-------|--------|----------|
+| [S1](entries/S1-organizer-over-reach.md) | Organizer over-reach / do-it-myself reflex | orchestrator | ⟳ | recurring | git/memory |
+| [S2](entries/S2-shared-decision-resolved-n-times.md) | One shared decision resolved N× (everyone owns it) | orchestrator+auditors | ⟳ ↔C6 | open | ledger ✓(4); saturation |
+| [S3](entries/S3-wrong-repo-commits.md) | Commits in wrong repo (parent vs submodule) | workflow/finalize | ⟳ | solved | git; PR #28 *(+read-side phantom-blocker facet)* |
+| [S4](entries/S4-parallel-work-swallowed-onto-main.md) | Parallel work swallowed onto main | orchestrator | ⟳✗ | solved | git; PR #47/#48,#58 |
+| [C5](entries/C5-default-reuse-inherits-ancestor-bug.md) | Default cross-model reuse inherits ancestor's bug | implement | — | mitigated | ledger ✓(4); hermann←R&H (root of S2) |
+| [C6](entries/C6-no-owner-of-integrative-question.md) | Integrative question owned by *no one* | (cross-figure) | ↔S2 | mitigated | faithfulness-enforcement E3 (inverse of S2) |
+| [C7](entries/C7-correlated-reviewers.md) | Correlated reviewers — review = 2nd draw from same errors | extractor+reviewer | — | mitigated | faithfulness-enforcement E2 |
+
+#### Process-maintenance (M)
+| ID | Thread | Role | Flags | Status | Entry · refs |
+|----|--------|------|-------|--------|----------|
+| [D1](entries/D1-process-outran-docs.md) | Process outran its docs | orchestrator/docs | ⟳ | mitigated | drift register (≥6 instances D7–D12) |
+| [D2](entries/D2-generated-output-drift.md) | Generated-output drift (README re-fixed) | README-gen/finalize | ⟳ | mitigated | PR #61–#65,#70,#72 (≈7 models) |
+| [D3](entries/D3-required-step-silently-stops.md) | Required step silently stops (no coverage gate) | process/gate | ↔E5 | mitigated | PR #56,#66 *(+D6: Pillar-3 check never runs)* |
+| [D5](entries/D5-granularity-collapse-hides-bad-subunit.md) | Granularity-collapse — rolled-up status hides bad sub-unit | (digitization gate) | introduced-by→T1 | solved | drift register D5 |
+| [M4](entries/M4-no-op-fix-spin.md) | "The spin" — re-tries a no-op fix forever | orchestrator | — | solved | #2b88d08 (needs an arbiter) |
+| [M5](entries/M5-capture-without-resolution.md) | Capture-without-resolution — filed finding stays inert | (process) | →D3 | open | sq-blocking (≠D3: actuation not detection) |
+| [M6](entries/M6-non-termination-effort-exhaustion.md) | Non-termination — never declares "stuck" | (fix loop) | ↔E5 | mitigated | final-triage (4.4h; needs a stopwatch) |
+
+#### Tool / environment (T)
+| ID | Thread | Role | Flags | Status | Entry · refs |
+|----|--------|------|-------|--------|----------|
+| [T1](entries/T1-cost-fix-reverted.md) | Ships unvalidated optimization to main (reverted ×2) | orchestrator | ✗⟳ →E5,S4 | solved | PR #45→#48→#50→#59→#60 |
+| [T2](entries/T2-render-sandbox-lacks-matplotlib.md) | Render sandbox lacks matplotlib | builder/render | ⟳ | solved | *(Kind: substrate)* |
+| [T3](entries/T3-acts-on-stale-tool-model.md) | Acts on stale tool-model | orchestrator/tooling | ✗ | solved | git/memory |
+| [T4](entries/T4-throttle-null-verdict-gate.md) | Throttling → null verdict → crash / false-green risk | process/gate | — | solved | PR #41,#68 |
+| [T5](entries/T5-law-of-the-instrument-wrong-tool.md) | Law of the instrument — runs the wrong tool it has | digitizer | — | solved | ledger ✓(3); tracer on a dictionary |
+
+#### Coverage instruments
+| ID | Thread | Role | Flags | Status | Entry · refs |
+|----|--------|------|-------|--------|----------|
+| [U1](entries/U1-silently-skipped-step-probe.md) | Never-caught floor — injected-fault probe | (measurement) | measures→D3 | open (bounded) | probe `evidence/u1_coverage_probe.sh` |
+
+### Migration & link edges (the catalog's core signal — structural, not prose-only)
+- `E1a ⇄ E1b` — fix bound the referent (ended leniency); wrong-figure-passes **migrated** to a perceptual blind spot.
+- `E3 ↔ E12` — **inverse**: E3 rubber-stamps → false GREEN; E12 distrusts a correct model → false RED. Same eye, opposite sign.
+- `X1 ↔ X2` — **inverse**: hardening over-routing risks under-routing. Same escalation dial.
+- `S2 ↔ C6` — **inverse**: a shared decision owned by *everyone* (S2, resolved N×) vs by *no one* (C6, resolved 0×).
+- `E5 ↔ M6` — **inverse**: terminates too early (E5) vs never terminates (M6). `E5 ↔ D3` — self-certification at agent vs process scale.
+- `C5 → S2` (**generative root**: default reuse inherits the bug S2 then re-resolves) · `D5 introduced-by T1` (de-parallelization regression) · `T1 → E5,S4`.
+- `G1 ⋈ G2` (fabricate-the-target: invent a mechanism vs build the result) · `T5 ⋈ X3` (law-of-the-instrument: nearest *tool* vs nearest *knob*).
+- `M4` needs an arbiter · `M5` needs a consumer · `M6` needs a stopwatch (three distinct non-progress modes).
+
+*Pass-1 + the intervention-surface sweeps are fully built. Remaining: a Method-C raw-narration
+sample (Tier 2) and `P#` positive baselines append below this line when run.*

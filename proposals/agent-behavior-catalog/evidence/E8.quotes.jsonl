@@ -1,0 +1,7 @@
+{"id":"E8","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_a6f22cb4-836/agent-a20b6f9c752334d44.jsonl","quote":"independently pins each panel to its own max (2A att=1.0, 2B att=1.0), which differs from the paper's shared-scale claim"}
+{"id":"E8","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_af0bce49-722/agent-ab1880bf24931864b.jsonl","quote":"renders correctly, and no per-panel auto-normalization to 1.0 occurred"}
+{"id":"E8","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_af0bce49-722/agent-a00e92e67ac002e0e.jsonl","quote":"The skill's per-panel-auto-normalize trap is avoided."}
+{"id":"E8","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_af0bce49-722/agent-a00e92e67ac002e0e.jsonl","quote":"fixation reaches only 0.903 (NOT per-curve pinned to 1.0)"}
+{"id":"E8","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_af0bce49-722/agent-a554c8684aef27a00.jsonl","quote":"verified correct in both panels (C ~0.94 below 1.0; F 0.74/0.615)"}
+{"id":"E8","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_246026d2-440/agent-a5273f59a0c518652.jsonl","quote":"both attended (blue) and unattended (gray) saturate below 1.0"}
+{"id":"E8","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_af0bce49-722/agent-acd4e204052285e05.jsonl","quote":"the shared scale is fixed, and the override deleted"}
