@@ -1,0 +1,3 @@
+{"id":"E5-hidden-knob-tests","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_af0bce49-722/agent-a460154e74a7bf28c.jsonl","quote":"plus Fig-3 baseline fudges, all audited:false, hand-tuned per panel"}
+{"id":"E5-hidden-knob-procaudit","path":"3b2b7a60-da9d-4ae5-bb82-a3a5b9885198/subagents/workflows/wf_871351a0-9d4/agent-a29efe62c7fdd57a0.jsonl","quote":"suppressive_drive_gains retuned above the reuse default"}
+{"id":"E5-builder-selfcert","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_d456c152-76c/agent-ac441a27b5005064e.jsonl","quote":"The model is in the correct, faithful state"}

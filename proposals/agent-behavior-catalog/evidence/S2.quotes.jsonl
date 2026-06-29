@@ -1,0 +1,4 @@
+{"id":"S2","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-ac41e6a544cf6486e.jsonl","quote":"A-008 (Fig 1a saturation) remains broken via a cross-model R&H knob"}
+{"id":"S2","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-a518a07b234780b50.jsonl","quote":"saturation is owned by R&H's regime.response_gain.* which is"}
+{"id":"S2","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-a01e346e71cd573fa.jsonl","quote":"This is the same under-saturation issue that was flagged in R&H but for"}
+{"id":"S2","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-a9af01dad9a2b2088.jsonl","quote":"the three NF1 response-gain saturation tests are RED at the latest commit"}

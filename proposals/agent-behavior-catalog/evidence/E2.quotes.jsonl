@@ -1,0 +1,5 @@
+{"id":"E2-procaudit-verdict","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_d456c152-76c/agent-a63db0661b8f8c305.jsonl","quote":"builder grading own homework"}
+{"id":"E2-procaudit-flip","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_d456c152-76c/agent-a63db0661b8f8c305.jsonl","quote":"only the interpretation flipped, toward the value that passes the figure"}
+{"id":"E2-procaudit-nocertify","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_d456c152-76c/agent-a63db0661b8f8c305.jsonl","quote":"The 30 green tests do not certify"}
+{"id":"E2-builder-accepts-green","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_d456c152-76c/agent-ac441a27b5005064e.jsonl","quote":"no implementation change needed; the two CODE_BUG findings"}
+{"id":"E2-hermann-clean","path":"e8552c97-c722-4643-9557-00815e47fc70/subagents/workflows/wf_7f2034c2-c60/agent-a9eb614ee4cd3b5cb.jsonl","quote":"it is in fact a self-correction of an earlier leniency posture"}
