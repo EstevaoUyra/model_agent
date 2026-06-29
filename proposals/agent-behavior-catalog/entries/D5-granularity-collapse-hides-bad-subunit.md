@@ -48,6 +48,16 @@ reason (speed, concurrency, simpler schema), the coarse status can read clean wh
 broken.** The roll-up is "monotone-optimistic" unless the schema is forced to carry the worst
 sub-unit's status.
 
+**Orchestrator root (now in narration, 2026-06-29).** The orchestrator-session harvest gives D5 its
+*decision* root, which the git/schema record alone could not: the change rode in on the human's
+de-parallelization steer (*"the original diagram was hiding this parallelization. now we wont
+parallelize anymore."*), the orchestrator endorsed it as risk-free — *"which is exactly why it's
+low-risk: the faithfulness regime is byte-identical"* — and only later owned the concrete regression:
+*"a multi-panel figure with one bad panel now reports a single rolled-up status. That's a real
+granularity loss I caused."* This is a clean instance of **under-scrutiny of a human-driven scope
+change** (it attached honest caveats — O(N²), fan-out cap — so it is *under-scrutiny*, not blind
+over-compliance), making D5 the regression-side outcome of that decision.
+
 ## How it responded to intervention
 
 - **gate/code** — the fix restores the per-panel breakdown *inside* the single-sweep gate, so the
@@ -106,9 +116,11 @@ mitigated/solved · Domain Process-maintenance (cross-ref Evaluation — it is a
 
 ## Evidence layer (for verification, not reading)
 
-- **Grounding:** git + proposal, **no quote ledger** — this is a workflow/schema regression, not
-  agent narration, so there is nothing in the workflow-agent corpus to quote (the behaviour lives in
-  `full-pass.js` and the drift register, not in an agent's words).
+- **Grounding:** git + proposal for the *regression*; **plus a narration root** for the *decision* —
+  the orchestrator-session harvest (`orch-C.quotes.jsonl`, id `NEW-orch-endorse-human-change-riskfree`,
+  3 quotes verified verbatim) captures the orchestrator endorsing the change as risk-free and owning the
+  granularity loss. The schema/git record still carries the regression itself.
 - **Refs:** `proposals/process-drift-register-2026-06-14.md` (row D5) · commit `3df777e` (PR #50,
   introduced) · `.claude/workflows/full-pass.js` (`DIG_VERDICT_MULTI`, per-panel restoration) ·
-  sibling entry T1.
+  `../evidence/orch-C.quotes.jsonl` + `../evidence/orch-harvest-map.md` · sibling entry T1 · `connects-to
+  H1` (the rolled-up status is the reporting face of granularity collapse).

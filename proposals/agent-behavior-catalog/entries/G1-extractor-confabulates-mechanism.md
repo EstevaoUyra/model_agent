@@ -56,6 +56,15 @@ the fabrication is then encoded as a test, the rest of the pipeline (determinist
 builder) treats it as ground truth. This is a **candidate general hypothesis** (one pipeline, one
 clean multi-defect incident; transferable in principle), not an established rate.
 
+**Cross-surface facet — the same fill-to-contract move in a human deliverable (2026-06-29).** The
+orchestrator-session harvest shows the same generation-side reflex outside the extraction pipeline: while
+building a presentation deck, the orchestrator filled a rationale slide with plausible-but-ungrounded
+reasoning, then conceded *"several of these need real grounding, not my hand-waving"* (`orch-D`,
+`76d8afbc…`). Same root (a slot that must be filled, no binding cite-or-abstain), different surface (a
+deck, not a `test.*`). It is weaker than the olshausen case (self-caught, lower stakes) but shows the
+confabulation-to-fill move generalizes beyond spec extraction — useful breadth for Stage 2, not a second
+rate.
+
 ## How the behaviour responded to the intervention
 
 - **Fix (2026-06-02, WORKFLOW Phase-A "Faithfulness rules (extraction)"):** *never confabulate —
@@ -107,7 +116,8 @@ and its deletion — three records that agree, plus the commit trail removing Q-
   rate. The "did not recur" signal is from the program's own mid-run check (wave-retros l.127), not a
   manifest-strata count.
 - **Quote ledger:** `../evidence/G1.quotes.jsonl` — 4 quotes, verified verbatim by
-  `verify_quotes.py G1` (4/4, exit 0).
+  `verify_quotes.py G1` (4/4, exit 0). Cross-surface facet quote in `../evidence/orch-D.quotes.jsonl`
+  (`NEW-confabulated-justification-in-deliverable`, verified). See `../evidence/orch-harvest-map.md`.
 - **Refs:** wave-retros l.21-36, l.127 · final-triage-2026-06-02 l.101 · WORKFLOW.md Phase-A
   "Faithfulness rules (extraction)" · discovery report `discovery-docs-tools-proposals.md` N1.
 

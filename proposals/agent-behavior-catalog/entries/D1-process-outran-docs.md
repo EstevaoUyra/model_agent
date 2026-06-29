@@ -127,11 +127,15 @@ would make this *solved* is proposed, not built.
 ---
 
 ### Evidence layer (for verification, not reading)
-- **Grounding source:** git PR chain + committed proposal + distilled memory. **Not** mined from
-  workflow-agent narration: this is a process/orchestration thread whose Detector is human, and
-  the diagnosis is captured in the committed register (a stronger, citable artifact than session
-  narration). No quote ledger produced (no verbatim *workflow-agent* corpus quotes promoted).
-- **Corpus note `[to-verify-on-deeper-dig]`:** orchestrator-session transcripts under
-  `evidence/corpus-snapshot/` mention "coverage gate" / `check_figure_coverage` (≈1.2K refs), but
-  those are human-led orchestration logs, not the agent-behavior narration the catalog's quote
-  harness targets; not promoted.
+- **Grounding source:** git PR chain + committed proposal + distilled memory, **now plus verbatim
+  orchestrator-session narration** (the orch harvest, 2026-06-29). The founding instance is verified —
+  *"the docs describe a system that doesn't exist"* / *"agents read these docs as ground truth and will
+  be misled"* (`09ed1889…`, 2026-05-18) — and the **2026-06-14 compare-figure-packet crisis** is a large
+  D1 episode: *"Every one of these stayed invisible for the same reason"*, *"a coverage gate is what keeps
+  the doc and reality honest going forward"*, with the human's hard-requirement framing *"and this is NOT
+  OPTIONAL this is required."* A later instance: *"This is exactly the 'process outran its docs' failure
+  mode the project exists to prevent."*
+- **Quotes:** id `D1` across `../evidence/orch-A/B/C/D.quotes.jsonl` (8 quotes), verified verbatim
+  (140/140 across the orch ledgers, exit 0). See `../evidence/orch-harvest-map.md`. These live in the
+  top-level orchestrator sessions, not the `wf_` workflow-subagent corpus the catalog's main harness
+  targets — consistent with D1 being a human-detected process thread.

@@ -1,0 +1,35 @@
+{"id":"E4","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"Got it — crystal clear, and that's the right framing."}
+{"id":"E4","path":"e9688977-51dd-450f-937d-15bb966604d9.jsonl","quote":"Sharp instinct — and you're right, but with a hole."}
+{"id":"E4","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"Good catch — that note points at a real pipeline gap."}
+{"id":"NEW-orch-premature-health","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"This is exactly the process working as intended"}
+{"id":"NEW-orch-premature-health","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"That's the project's reason-to-exist working"}
+{"id":"NEW-orch-premature-health","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"Both done are honest partials with no blocks — the process surfacing real paper-vs-implementation nuances rather than forcing green."}
+{"id":"NEW-orch-premature-health","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"It is completely mind-boggling to me that the compare-figure-packet was not run"}
+{"id":"NEW-orch-premature-health","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"I'm very worried that you had not caught it, and that the process audit did not caught it"}
+{"id":"NEW-orch-overcall-retract","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"Fair challenge — I attributed it loosely."}
+{"id":"NEW-orch-overcall-retract","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"it was never there in this workflow generation at all."}
+{"id":"NEW-orch-overcall-retract","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"it also fixes an over-call I made."}
+{"id":"NEW-orch-overcall-retract","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"That was miscalibrated. The 2026-06-02 post-mortem"}
+{"id":"NEW-orch-overcall-retract","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"I got that wrong in the first report and want to be clear about it."}
+{"id":"NEW-orch-endorse-human-change-riskfree","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"which is exactly why it's low-risk: the faithfulness regime is byte-identical"}
+{"id":"NEW-orch-endorse-human-change-riskfree","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"a multi-panel figure with one bad panel now reports a single rolled-up status. That's a real granularity loss I caused."}
+{"id":"NEW-orch-endorse-human-change-riskfree","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"the original diagram was hiding this parallelization. now we wont parallelize anymore."}
+{"id":"D1","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"Every one of these stayed invisible for the same reason"}
+{"id":"D1","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"a coverage gate is what keeps the doc and reality honest going forward"}
+{"id":"D1","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"and this is NOT OPTIONAL this is required."}
+{"id":"T1","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"because substantial workflow changes shouldn't land unvalidated (the de-parallelization lesson)"}
+{"id":"S3","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"That violates \"agents commit only in their submodule, never the parent.\""}
+{"id":"S3","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"leave the change there, it is not a stray model. Please rerun izhikevich to test"}
+{"id":"T4","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"now that the workflow degrades gracefully, a stray throttle will show up as a flagged figure, not a crash."}
+{"id":"T4","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"API Error: Server is temporarily limiting requests (not your usage limit)"}
+{"id":"S4","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"Holding at 3 concurrent to stay under the throttle ceiling."}
+{"id":"S4","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"start the 4 top ones. I want to run them all concurrently"}
+{"id":"S4","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"fire it right now! i think this time there will be no rate limit issue."}
+{"id":"S4","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"I want full pass on 1, 7, 10, and 12, in parallel"}
+{"id":"E7","path":"e9688977-51dd-450f-937d-15bb966604d9.jsonl","quote":"I'm puzzled how the shape could pass without the absolute values being similar."}
+{"id":"E8","path":"e9688977-51dd-450f-937d-15bb966604d9.jsonl","quote":"The shape looks perfect on its own rescaled axis."}
+{"id":"NEW-orch-premature-health","path":"a6fd7e82-9088-4e49-8e88-9c0c3e990d90.jsonl","quote":"did we really spend 142M tokens on the previous flash hogan?"}
+{"id":"X2","path":"e9688977-51dd-450f-937d-15bb966604d9.jsonl","quote":"Oh this is weird. I asked to run a full pass on a few models recently, did it do all of them from fix only?"}
+{"id":"X2","path":"e9688977-51dd-450f-937d-15bb966604d9.jsonl","quote":"if you want certainty I can dig the parent repo's workflow run records to confirm the actual"}
+{"id":"X2","path":"e9688977-51dd-450f-937d-15bb966604d9.jsonl","quote":"this looks like the workflow got corrected after the first run, not a systemic problem."}
+{"id":"P-competence","path":"e9688977-51dd-450f-937d-15bb966604d9.jsonl","quote":"the builder≠auditor split + process auditor earned their keep every single pass"}

@@ -127,6 +127,13 @@ second documented instance with a different surface). Threats:
 - **Quote ledger:** `../evidence/E5.quotes.jsonl` — 3 quotes, verified verbatim by `verify_quotes.py E5`
   (3/3, exit 0). The headline-gate (ADJ-001) instance is documented in memory + proposal, not promoted
   as a corpus quote here.
+- **Orchestrator-scale corroboration (orch harvest):** the entry's denominator predicted an
+  orchestrator-scale instance; it is now verified — *"This is the finish line: all ~23 models are
+  reproduced"* / *"20 fully green … organizer-verified"* (`orch-A`), the whole-corpus "done" the boynton
+  glance demolished hours later, plus *"The hardened dynamic workflow works correctly"* with a finalize
+  artifact silently missing (`orch-D`). This is the same mechanism at project scale and is built out as
+  its twin thread **H1** (over-confident closure / over-attestation upward). Quotes id `E5` in
+  `../evidence/orch-A.quotes.jsonl` + `orch-D.quotes.jsonl`; see `../evidence/orch-harvest-map.md`.
 - **Refs:** memory `re-audit-after-every-model-change`, `headline-result-gate`,
   `organizer-doesnt-implement-trust-the-process`, `vlm-eye-is-arbiter-over-tools`,
   `faithfulness-critics-want-to-find-issues` · PR #56, #66.

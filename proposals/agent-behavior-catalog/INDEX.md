@@ -155,8 +155,14 @@ suspected-but-uncaught (hypothesis, no artifact).
   from the same error distribution) now cover the independence/ownership failures. Still open: a
   builder↔critic settling into a mutually-agreeable wrong equilibrium, anchoring cascades down the
   agent tree (Method B — interaction-graph — is the instrument, not yet run).
-- **Human-in-the-loop behaviors** — the corrective half of most threads is the human lead's
-  judgment; agent over-compliance with *wrong* human steering is barely covered (X1 adjacent).
+- **Human-in-the-loop behaviors** — *now filled (2026-06-29)*: the orchestrator-session sweep
+  (`evidence/orch-harvest-map.md`) built **H1** (over-confident closure / over-attestation upward),
+  **H2** (over-compliance with *wrong* human steering — drops its own correct position), **H3**
+  (overcall-then-retract), **H4** (proceeds against its own flag), and captured the `P-*` positive
+  baseline verbatim. **Caveat stays:** this layer's detector is almost always the human, so it measures
+  *human-attended* behavior, not base rates — the un-probed residue is the `U#` never-caught class. The
+  corrective half of most threads is still the human lead's judgment; what changed is that the
+  over-compliance/over-attestation behaviors themselves are now documented, not just named.
 
 ### Instrumentation matrix (mining depth by role; from `evidence/manifest.jsonl`, 2026-06-29)
 
@@ -222,14 +228,29 @@ Flags: ⟳ recurred after a fix · ✗ failed/reverted fix · ⇄ migrated · �
 *(Paper-candidate ★ ranking moved to `paper-framing-leads.md` — Stage 2.)*
 Domains: E=Evaluation · X=Escalation · C=Coordination · M=Process-maintenance · T=Tool/env · **G=Generation**.
 
-**Build status (2026-06-29):** **38 threads across 37 entry files**, built in three sweeps — Pass-1
-(memory-seeded), then the *intervention-surface* sweeps (workflow + skill + drift-register + AGENTS/
-WORKFLOW/tools histories + 39 `issues.yaml`) that the "is it complete?" check demanded. Quote
-evidence: **85/85 promoted quotes verified verbatim** against `corpus-snapshot/` (`verify_quotes.py`,
-exit 0) across 18 ledgers; threads without a ledger are git/proposal/`issues.yaml`-grounded (the
-behaviour isn't in the workflow-agent narration — see each entry's Evidence layer). Completeness is
-*bounded*: Tier-1 intervention surfaces swept; **U1** puts a measured floor on the never-caught class;
-remaining open work = a Method-C raw-narration sample + `P#` positive baselines.
+**Build status (2026-06-29):** **42 threads across 41 entry files**, built in four sweeps — Pass-1
+(memory-seeded), the *intervention-surface* sweeps (workflow + skill + drift-register + AGENTS/
+WORKFLOW/tools histories + 39 `issues.yaml`), and the **orchestrator / human-in-the-loop sweep** (10
+top-level sessions read whole, incl. the pre-#5 era; the named blind spot, now filled — see H1–H4 and
+`evidence/orch-harvest-map.md`). Quote evidence: prior **85/85** promoted quotes + the orchestrator
+harvest **140/140** (4 ledgers `orch-A..D`) all verified verbatim against `corpus-snapshot/`
+(`verify_quotes.py`, exit 0); threads without a ledger are git/proposal/`issues.yaml`-grounded (see each
+entry's Evidence layer). Completeness is *bounded*: Tier-1 intervention surfaces + the orchestrator layer
+swept; **U1** puts a measured floor on the never-caught class; remaining open work = a Method-C
+raw-narration sample + standalone `P#` positive-baseline entries (the `P#` *rate* is now measured and
+the `P-*` quotes verified; see below).
+
+**Orchestrator / human-in-the-loop harvest (2026-06-29, `evidence/orch-harvest-map.md`).** Four
+subagents read the top-level human↔orchestrator sessions whole — the channel the `wf_` corpus has none
+of, including the **pre-#5 era** (`09ed1889`, 2026-05-18). It (a) gave founding/pre-fix instances to
+threads whose `wf_` evidence is all post-fix (S1, S3, X3, E3, E1a, D1), (b) promoted E4 from chat-anecdote
+to multi-session (14 verified instances), and (c) surfaced **four new human-in-the-loop threads
+(H1–H4)**. Honest read carried from all four readers: **competent handling dominates this layer** (the
+new threads are recoverable lapses, each ≥2 quotes incl. a self-correction), the detector is **almost
+always the human** (so this measures human-attended behavior, not base rates), and **H1 was found
+independently by all four** (convergence = the layer's robust headline). The `P-*` positive-baseline
+quotes (verify-don't-relay, push-back-on-wrong-framing, refuse-fabrication) are now captured verbatim in
+the orch ledgers.
 
 **Reference completeness (census, `census-phase1.md`, 2026-06-29):** the curated quotes are *existence
 proofs*; a deterministic Phase-0 scan + Phase-1 LLM adjudication (precision-adjusted, 46 new verified
@@ -247,7 +268,7 @@ live in `census-phase1.md`; harvested examples in `evidence/*.census.quotes.json
 | [E1b](entries/E1-faithfulness-audit-blindspot.md) | Perceptual blind spot — local curve defect passes | auditor | ⟳ | mitigated | ledger ✓; PR #73 |
 | [E2](entries/E2-leniency-drift-grading-own-homework.md) | Leniency drift / grades own homework | builder+audit-process | — | mitigated | ledger ✓(5); *facet: tautological test authoring (#294261d)* |
 | [E3](entries/E3-tool-vlm-rubber-stamp.md) | Rubber-stamps its own tool/VLM output (false GREEN) | digitizer/auditor | ↔E12 | mitigated | ledger ✓(2) |
-| [E4](entries/E4-sycophancy-flattery.md) | Sycophancy / flattery | orchestrator (chat) | — | mitigated | ledger ✓(2); thin — chat not corpus |
+| [E4](entries/E4-sycophancy-flattery.md) | Sycophancy / flattery | orchestrator (chat) | ⟳ | mitigated | ledger ✓(14, 4 sessions); recurred past the rule |
 | [E5](entries/E5-self-certification-green-tests.md) | Self-certification (green ⇒ "done") | builder/organizer | ⟳ ↔D3,M6 | recurring | ledger ✓(3); *facet: unknown reported as green (#94511bc)* (≈16 models) |
 | [E6](entries/E6-extractor-reads-figure-it-expected.md) | Reads the figure it *expected*, not the one there | extract-figure | ⟳ | mitigated | ledger ✓(7); PR c112359 |
 | [E7](entries/E7-shape-faithful-wrong-absolute-scale.md) | Shape-faithful but wrong absolute scale | audit-faithfulness | — | mitigated | ledger ✓(7); denison 4× |
@@ -273,7 +294,7 @@ live in `census-phase1.md`; harvested examples in `evidence/*.census.quotes.json
 #### Coordination (C)
 | ID | Thread | Role | Flags | Status | Entry · refs |
 |----|--------|------|-------|--------|----------|
-| [S1](entries/S1-organizer-over-reach.md) | Organizer over-reach / do-it-myself reflex | orchestrator | ⟳ | recurring | git/memory |
+| [S1](entries/S1-organizer-over-reach.md) | Organizer over-reach / do-it-myself reflex | orchestrator | ⟳ | recurring | ledger ✓(3, orch); founding human-correction 05-18 |
 | [S2](entries/S2-shared-decision-resolved-n-times.md) | One shared decision resolved N× (everyone owns it) | orchestrator+auditors | ⟳ ↔C6 | open | ledger ✓(4); saturation |
 | [S3](entries/S3-wrong-repo-commits.md) | Commits in wrong repo (parent vs submodule) | workflow/finalize | ⟳ | solved | git; PR #28 *(+read-side phantom-blocker facet)* |
 | [S4](entries/S4-parallel-work-swallowed-onto-main.md) | Parallel work swallowed onto main | orchestrator | ⟳✗ | solved | git; PR #47/#48,#58 |
@@ -301,6 +322,15 @@ live in `census-phase1.md`; harvested examples in `evidence/*.census.quotes.json
 | [T4](entries/T4-throttle-null-verdict-gate.md) | Throttling → null verdict → crash / false-green risk | process/gate | — | solved | PR #41,#68 |
 | [T5](entries/T5-law-of-the-instrument-wrong-tool.md) | Law of the instrument — runs the wrong tool it has | digitizer | — | solved | ledger ✓(3); tracer on a dictionary |
 
+#### Human-in-the-loop (H) — *new (2026-06-29): the named blind spot, now filled from the orchestrator sessions*
+Decision-domain tag in brackets. All four are orchestrator-channel, **human-detected**, ≥2 verified quotes incl. a self-correction. Source map: `evidence/orch-harvest-map.md`.
+| ID | Thread | Role | Flags | Status | Entry · refs |
+|----|--------|------|-------|--------|----------|
+| [H1](entries/H1-over-confident-closure-attestation-upward.md) | Over-confident closure — relays subagent green / bounded search / own optimism upward as verified state [Eval] | orchestrator | ⟳ ↔P-verify · twin→E5 | open | ledger ✓ (orch-A/B/C/D); **found by all 4 readers** |
+| [H2](entries/H2-over-compliance-with-human-steering.md) | Over-compliance — drops its own *correct* position/finding under mild human pushback [Escal] | orchestrator | ⟳ ↔P-pushback | open | ledger ✓ (orch-A/B/D) |
+| [H3](entries/H3-overcall-then-retract.md) | Overcall-then-retract — confident causal/severity call, wrong, fixed under probing (incl. self-bug→"system") [Eval] | orchestrator | ↔H1 | open | ledger ✓ (orch-C/D) |
+| [H4](entries/H4-proceeds-against-own-flag.md) | Proceeds against its own surfaced flag — raises the right concern, defers it, acts anyway [Escal] | orchestrator | ⟳ →M5 | open | ledger ✓ (orch-B/D) |
+
 #### Coverage instruments
 | ID | Thread | Role | Flags | Status | Entry · refs |
 |----|--------|------|-------|--------|----------|
@@ -315,6 +345,9 @@ live in `census-phase1.md`; harvested examples in `evidence/*.census.quotes.json
 - `C5 → S2` (**generative root**: default reuse inherits the bug S2 then re-resolves) · `D5 introduced-by T1` (de-parallelization regression) · `T1 → E5,S4`.
 - `G1 ⋈ G2` (fabricate-the-target: invent a mechanism vs build the result) · `T5 ⋈ X3` (law-of-the-instrument: nearest *tool* vs nearest *knob*).
 - `M4` needs an arbiter · `M5` needs a consumer · `M6` needs a stopwatch (three distinct non-progress modes).
+- **Human-in-the-loop edges (new):** `H1 twin-of E5` (premature closure — whole-project/upward vs own-build) · `H1 ↔ P-verify` (relay vs verify-ground-truth) · `H2 ↔ P-pushback` (cave vs separate-symptom-from-diagnosis) · `H3 near-inverse-of H1` (over-confident on a *cause* vs on *good news*) · `H4 process-analogue-of M5` (self-flag inert: finder = ignorer). `D5` now has its orchestrator decision-root in narration (endorse-human-change-risk-free); `H1 face-of D5` (rolled-up status is the reporting face of granularity-collapse).
 
-*Pass-1 + the intervention-surface sweeps are fully built. Remaining: a Method-C raw-narration
-sample (Tier 2) and `P#` positive baselines append below this line when run.*
+*Pass-1, the intervention-surface sweeps, and the orchestrator / human-in-the-loop sweep (H1–H4) are
+fully built. Remaining: a Method-C raw-narration sample (Tier 2) and standalone `P#` positive-baseline
+entries (the rate is measured and the `P-*` quotes are verified — only the dedicated entries are unbuilt)
+append below this line when run.*

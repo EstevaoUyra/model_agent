@@ -100,6 +100,16 @@ second reviewer shares the first's inputs, priors, or tooling — correlated rev
 *independent anchor*, do not just add a second pass) is generic to LLM-judge / self-critique / panel
 designs. Setup-specific in the extractor↔reviewer pair and the equation-transcription instances.
 
+## Adjacent facet — eval-design validity leak (different mechanism, same family)
+
+The orchestrator-session harvest surfaced a *second* way the check stops being a check, by a different
+mechanism than correlation: the orchestrator set up a blind quality test **with the answers visible**,
+and the human stopped it — *"that's a real validity hole, and you're right to stop it"* (`orch-D`,
+`5fff61cd…`). C7 is reviewers that aren't *independent*; this is an evaluation whose *blinding is broken*
+(the construct leaks the answer). Filed here as the nearest home because both are "the safeguard provides
+the appearance of measurement without the substance," but the mechanism is answer-leakage, not reviewer
+correlation. Single instance, human-caught, not built out as its own thread.
+
 ## Links
 - `connects-to E1` — E1 is the single-agent leniency C7 must be distinguished from; the N=1 self-
   APPROVE case is where C7 degenerates into an E1-shaped self-certification.
@@ -141,3 +151,5 @@ is unmeasured.
   a single discrete behaviour; recorded in threats-to-validity. The discrete proxies are the N=1 self-
   APPROVE and the shared equation mis-transcriptions; the correlation itself is inferred from those +
   the design.
+- **Adjacent-facet quote:** the eval-design validity leak is in `../evidence/orch-D.quotes.jsonl`
+  (`NEW-eval-validity-leak-human-caught`, verified verbatim). See `../evidence/orch-harvest-map.md`.

@@ -23,7 +23,16 @@ pre-decide a faithfulness convention. The recurring behaviour is the organizer *
 that lane**: when a concrete divergence appears, it reaches in to implement the fix or to settle
 the convention in its own context, rather than letting the verification loop surface and route it.
 
-The clearest instance (2026-06-03): a model's view normalized each curve-pair to 1.0 while the
+**The founding instance is now verified verbatim (orch harvest, 2026-06-29).** In the earliest session
+(`09ed1889`, 2026-05-18) the orchestrator had spent the session doing reproductions and knob-tuning
+itself; the human's correction is the literal smoking gun for this thread: *"take the role of the agent
+trying to organize the model reproduction process, **not do the reproduction yourself**."* The reflex
+recurs *in spirit* even where delegation was the rule — *"I have the full arc in context, so I'll author
+it directly (synthesis, not delegation)"* — and (more weakly) as the organizer absorbing the gate role
+in `3b2b7a60`: *"the organizer should own the git ground-truth"* (a borderline case — a reasonable
+correction to subagent git confusion, not a clear do-it-myself reflex).
+
+The clearest later instance (2026-06-03): a model's view normalized each curve-pair to 1.0 while the
 paper used a shared sub-1.0 scale. The organizer started to treat this as a "false divergence to
 pre-empt" — i.e. to fix the normalization itself. The lead challenged it directly: *"You shouldn't
 be implementing model code. Is there some reason you don't trust the process to naturally lead to
@@ -64,10 +73,11 @@ decision). Recurrence is asserted from repeated distilled observations, not a co
 **Low-to-moderate, and under-instrumented.** Threats:
 - **Detector is always the human lead** — this thread measures what the lead noticed and pushed
   back on, not a measured base-rate of organizer over-reach. Selection bias is high.
-- **No corpus grounding.** Orchestrator narration lives mostly in top-level session logs, not in
-  the workflow-subagent corpus this catalog verifies against; there is no role=orchestrator stratum
-  in the instrumentation matrix (the corpus is auditor/builder-heavy). So "recurring" rests on
-  distilled memory + the in-session human challenge, **not** on a counted slice.
+- **Now narration-grounded for the founding instance; still no rate.** The orchestrator-session
+  harvest (`orch-B`/`orch-A`, 3 verified quotes) supplies the founding human correction and two
+  recurrence-in-spirit instances verbatim — so this is no longer memory-only. But it is still **not a
+  counted slice**: there is no role=orchestrator stratum in the `wf_` instrumentation matrix, and
+  "recurring" rests on these named instances + distilled memory, not a denominator.
   `[to-verify-on-deeper-dig]`: a count of organizer-authored model-code edits vs routed findings.
 - **Mentalism guard:** "reflex" is the agent's/lead's stated framing, kept as stated rationale, not
   an internal state.
@@ -76,7 +86,7 @@ decision). Recurrence is asserted from repeated distilled observations, not a co
 
 | Date | Event | Ref |
 |------|-------|-----|
-| 2026-05-18 | Operating model constructed (delegate heavy+lateral; author synthesis; don't code models) | `organizer-operating-model` |
+| 2026-05-18 | **Founding instance:** organizer does reproductions/knob-tuning itself; human corrects "organize… not do the reproduction yourself"; operating model constructed | `09ed1889…` (orch-B); `organizer-operating-model` |
 | 2026-06-03 | Over-reach on a normalization fix; lead challenges it; reflex named | `organizer-doesnt-implement-trust-the-process` |
 | 2026-06-04 | Same impulse re-appears against a *shared* decision (saturation gain) → routed, not applied | S2; `saturation-is-the-genealogy-blocker` |
 
@@ -100,7 +110,11 @@ the organizer self-applying the rule. `Refs:` memory `organizer-doesnt-implement
 `organizer-operating-model`, `capture-discovered-knowledge-in-artifacts`; related S2, T1.
 
 ## Evidence layer
-**Git/memory-grounded — no corpus quotes.** Primary evidence: the two distilled memories above and
-the verbatim in-session human challenge they record (*"You shouldn't be implementing model code…"*,
-2026-06-03). No `S1.quotes.jsonl` ledger: the behaviour is orchestrator-level and not represented
-in the verified workflow-subagent corpus, so per the brief no corpus quotes were manufactured.
+**Now narration-grounded (orchestrator sessions) + memory.** Primary evidence: the founding human
+correction *"take the role of the agent trying to organize… not do the reproduction yourself"*
+(`09ed1889…`, 2026-05-18) plus recurrence-in-spirit (*"I'll author it directly (synthesis, not
+delegation)"*) and the borderline git-ground-truth absorption — **3 quotes (id `S1`) in
+`../evidence/orch-B.quotes.jsonl` + `orch-A.quotes.jsonl`, verified verbatim** (140/140 across the orch
+ledgers, exit 0; see `../evidence/orch-harvest-map.md`). The distilled memories and the 2026-06-03
+in-session challenge (*"You shouldn't be implementing model code…"*, cited from memory) corroborate.
+This behaviour lives in the top-level orchestrator sessions, not the `wf_` workflow-subagent corpus.

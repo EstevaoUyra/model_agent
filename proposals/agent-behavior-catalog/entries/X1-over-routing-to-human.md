@@ -151,6 +151,13 @@ stated reasoning (weaker — possibly post-hoc rationalisation of a conservative
   human-tagged item.
 - **Quote ledger:** `../evidence/X1.quotes.jsonl` — 6 quotes, all verified verbatim by
   `verify_quotes.py X1` (6/6, exit 0).
+- **Orchestrator-channel corroboration (orch harvest):** the *same* session `a651000f`, read at the
+  top-level orchestrator layer (`orch-D`), captures the explicit diagnosis *"The process auditor punished
+  a correct, paper-grounded resolution for violating a routing rule that shouldn't have applied to a
+  paper-resolvable finding"* and the **autonomous recurrence** *"same pattern you flagged on boynton:
+  pfister's Q-006 and (arguably) itti's IOR were parked"* — evidence the over-routing recurs beyond the
+  one human-caught case. Quotes id `X1` in `../evidence/orch-D.quotes.jsonl`, verified; see
+  `../evidence/orch-harvest-map.md`.
 - **Confidence & threats:** see "How confident I am" above — anecdote not rate; drift-flag "why" is
   agent-stated; procedure-vs-grounding is contestable and couples with sequencing/authority (S2/E2).
 - **Refs:** memory `paper-resolvable-findings-arent-human-routed`, `resolution-authority-ladder`,

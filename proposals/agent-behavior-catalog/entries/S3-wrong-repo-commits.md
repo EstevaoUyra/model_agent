@@ -99,8 +99,14 @@ confirm the cwd-pin is still present. Behaviour is git-grounded, not in the narr
 AGENTS.md "commit only inside the model repo, never the parent."
 
 ## Evidence layer
-**Git/memory-grounded — no corpus quotes.** Primary evidence: PR #28 commit `78b5795` (the `SK()`
-pin, the `.gitignore` additions, and the deletion of 9 mis-placed per-model audits visible in its
-`--stat`), plus the distilled memory. No `S3.quotes.jsonl`: the failure is a commit-target
-side-effect, not verbalized workflow narration, so per the brief no corpus quotes were
-manufactured.
+**Git/memory-grounded, now plus orchestrator-session narration.** Primary evidence: PR #28 commit
+`78b5795` (the `SK()` pin, the `.gitignore` additions, and the deletion of 9 mis-placed per-model audits
+visible in its `--stat`), plus the distilled memory. The orch harvest (2026-06-29) adds the **founding
+orchestrator-level instance** verbatim: the orchestrator *designed* finalize to commit on the parent
+(*"I designed finalize to commit on the parent, which violated the existing [rule]"*, *"by bumping the
+parent + opening model_agent PRs"*) and the human caught it (*"the workflows should be commiting in their
+own submodule, not on model_agent"*) — "you caught it twice." A live agent parent-write was also surfaced
+rather than folded in (*"That violates 'agents commit only in their submodule, never the parent.'"*) and a
+pre-#5 *"accidental parent write self-reverted with no contamination."* Quotes id `S3` across
+`../evidence/orch-B.quotes.jsonl` + `orch-C.quotes.jsonl` (6 quotes), verified verbatim; see
+`../evidence/orch-harvest-map.md`.
