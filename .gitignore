@@ -34,3 +34,9 @@ presentation.html
 
 # Downloaded candidate PDFs (see proposals/corpus-top100-ranking.md)
 paper_candidates/
+
+# Archival snapshot of the agent-execution transcript corpus (the 1.8GB Claude Code
+# project dir) — primary evidence for the agent-behavior catalog. Copied in-repo for
+# durability (the original under ~/.claude can be rotated by Claude Code) but far too
+# large to track. Rebuild/refresh from the original; integrity via its sha256 manifest.
+proposals/agent-behavior-catalog/evidence/corpus-snapshot/
